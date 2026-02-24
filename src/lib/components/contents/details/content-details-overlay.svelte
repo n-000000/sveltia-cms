@@ -86,7 +86,10 @@
       (!!_editorFirstPane.locale && !allLocales.includes(_editorFirstPane.locale)) ||
       (!!_editorSecondPane.locale && !allLocales.includes(_editorSecondPane.locale)) ||
       ((!showPreview || !canPreview) &&
-        (_editorFirstPane.mode === 'preview' || _editorSecondPane.mode === 'preview'))
+        (_editorFirstPane.mode === 'preview' || _editorSecondPane.mode === 'preview')) ||
+      // If there are only 2 locales and the first pane is not in the default locale, don’t restore
+      // the panes so that the default locale is always shown in the first pane
+      (allLocales.length === 2 && _editorFirstPane.locale !== defaultLocale)
     ) {
       return false;
     }
