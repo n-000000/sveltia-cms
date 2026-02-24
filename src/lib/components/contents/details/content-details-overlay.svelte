@@ -38,6 +38,7 @@
   } = $props();
 
   let restoring = false;
+  let switching = false;
 
   let hidden = $state(true);
   /** @type {HTMLElement | undefined} */
@@ -108,11 +109,15 @@
    * Hide the preview pane if it’s disabled by the user or the collection/file.
    */
   const switchPanes = async () => {
-    if (!$entryDraft) {
+    if (!$entryDraft || switching) {
       return;
     }
 
+    switching = true;
+
     if (await restorePanes()) {
+      switching = false;
+
       return;
     }
 
@@ -129,6 +134,8 @@
     } else {
       $editorSecondPane = { mode: 'preview', locale: $editorFirstPane.locale };
     }
+
+    switching = false;
   };
 
   /**
