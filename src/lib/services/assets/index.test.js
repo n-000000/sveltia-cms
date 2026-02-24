@@ -1327,6 +1327,192 @@ describe('assets/index', () => {
 
       expect(createPath).toHaveBeenCalledWith(['my-post.md', 'images', 'photo.jpg']);
     });
+
+    it('should strip media_folder prefix from path when stored value includes it', async () => {
+      // Regression: when the stored value already includes the media_folder prefix (e.g. "images"),
+      // it was previously passed verbatim, resulting in the duplicated path
+      // "entryFolder/images/images/photo.jpg" instead of "entryFolder/images/photo.jpg".
+      const { resolvePath, createPath } = await import('$lib/services/utils/file');
+
+      const mockAsset = {
+        path: 'content/test1/my-slug/images/photo.jpg',
+        name: 'photo.jpg',
+        sha: 'abc123',
+        size: 1024,
+        kind: /** @type {import('$lib/types/private').AssetKind} */ ('image'),
+        folder: {
+          internalPath: 'content/test1/my-slug/images',
+          publicPath: 'images',
+          collectionName: 'test1',
+          entryRelative: true,
+          hasTemplateTags: false,
+        },
+      };
+
+      // Entry file lives at content/test1/my-slug/index.md (path template: {{slug}}/index)
+      const mockEntry = /** @type {any} */ ({
+        id: 'my-slug',
+        slug: 'my-slug',
+        locales: {
+          en: {
+            path: 'content/test1/my-slug/index.md',
+            sha: 'sha123',
+            slug: 'my-slug',
+            content: { title: 'My Title' },
+          },
+        },
+      });
+
+      // Collection mirrors the YAML sample: media_folder is "images"
+      const mockCollection = /** @type {any} */ ({
+        name: 'test1',
+        media_folder: 'images',
+        _i18n: { defaultLocale: 'en' },
+      });
+
+      // The stored field value includes the media_folder prefix: "images/photo.jpg"
+      const storedPath = 'images/photo.jpg';
+
+      vi.mocked(createPath).mockReturnValue('content/test1/my-slug/images/photo.jpg');
+      vi.mocked(resolvePath).mockReturnValue('content/test1/my-slug/images/photo.jpg');
+      allAssets.set([mockAsset]);
+
+      const result = getAssetByRelativePathAndCollection({
+        path: storedPath,
+        entry: mockEntry,
+        collection: mockCollection,
+      });
+
+      expect(result).toEqual(mockAsset);
+      // Prefix must be stripped: createPath should receive bare "photo.jpg", not "images/photo.jpg"
+      expect(createPath).toHaveBeenCalledWith(['content/test1/my-slug', 'images', 'photo.jpg']);
+      expect(resolvePath).toHaveBeenCalledWith('content/test1/my-slug/images/photo.jpg');
+    });
+
+    it('should strip media_folder prefix when path contains a sub-folder', async () => {
+      // Variant: stored value is "images/sub/photo.jpg" with media_folder "images"
+      const { resolvePath, createPath } = await import('$lib/services/utils/file');
+
+      const mockAsset = {
+        path: 'content/test1/my-slug/images/sub/photo.jpg',
+        name: 'photo.jpg',
+        sha: 'abc123',
+        size: 1024,
+        kind: /** @type {import('$lib/types/private').AssetKind} */ ('image'),
+        folder: {
+          internalPath: 'content/test1/my-slug/images',
+          publicPath: 'images',
+          collectionName: 'test1',
+          entryRelative: true,
+          hasTemplateTags: false,
+        },
+      };
+
+      const mockEntry = /** @type {any} */ ({
+        id: 'my-slug',
+        slug: 'my-slug',
+        locales: {
+          en: {
+            path: 'content/test1/my-slug/index.md',
+            sha: 'sha123',
+            slug: 'my-slug',
+            content: { title: 'My Title' },
+          },
+        },
+      });
+
+      const mockCollection = /** @type {any} */ ({
+        name: 'test1',
+        media_folder: 'images',
+        _i18n: { defaultLocale: 'en' },
+      });
+
+      vi.mocked(createPath).mockReturnValue('content/test1/my-slug/images/sub/photo.jpg');
+      vi.mocked(resolvePath).mockReturnValue('content/test1/my-slug/images/sub/photo.jpg');
+      allAssets.set([mockAsset]);
+
+      const result = getAssetByRelativePathAndCollection({
+        path: 'images/sub/photo.jpg',
+        entry: mockEntry,
+        collection: mockCollection,
+      });
+
+      expect(result).toEqual(mockAsset);
+      expect(createPath).toHaveBeenCalledWith(['content/test1/my-slug', 'images', 'sub/photo.jpg']);
+    });
+
+    it('should not strip path prefix when media_folder is undefined', async () => {
+      // When collection has no media_folder, the path must be passed through unchanged
+      const { resolvePath, createPath } = await import('$lib/services/utils/file');
+
+      const mockEntry = /** @type {any} */ ({
+        id: 'my-post',
+        slug: 'my-post',
+        locales: {
+          en: {
+            path: 'content/posts/my-post.md',
+            sha: 'sha123',
+            slug: 'my-post',
+            content: { title: 'My Post' },
+          },
+        },
+      });
+
+      const mockCollection = /** @type {any} */ ({
+        name: 'posts',
+        media_folder: undefined,
+        _i18n: { defaultLocale: 'en' },
+      });
+
+      vi.mocked(createPath).mockReturnValue('content/posts/images/photo.jpg');
+      vi.mocked(resolvePath).mockReturnValue('content/posts/images/photo.jpg');
+      allAssets.set([]);
+
+      getAssetByRelativePathAndCollection({
+        path: 'photo.jpg',
+        entry: mockEntry,
+        collection: mockCollection,
+      });
+
+      expect(createPath).toHaveBeenCalledWith(['content/posts', undefined, 'photo.jpg']);
+    });
+
+    it('should not strip path prefix when path does not start with media_folder', async () => {
+      // Guard against over-stripping: "other/photo.jpg" with media_folder "images" is untouched
+      const { resolvePath, createPath } = await import('$lib/services/utils/file');
+
+      const mockEntry = /** @type {any} */ ({
+        id: 'my-post',
+        slug: 'my-post',
+        locales: {
+          en: {
+            path: 'content/posts/my-post.md',
+            sha: 'sha123',
+            slug: 'my-post',
+            content: { title: 'My Post' },
+          },
+        },
+      });
+
+      const mockCollection = /** @type {any} */ ({
+        name: 'posts',
+        media_folder: 'images',
+        _i18n: { defaultLocale: 'en' },
+      });
+
+      vi.mocked(createPath).mockReturnValue('content/posts/images/other/photo.jpg');
+      vi.mocked(resolvePath).mockReturnValue('content/posts/images/other/photo.jpg');
+      allAssets.set([]);
+
+      getAssetByRelativePathAndCollection({
+        path: 'other/photo.jpg',
+        entry: mockEntry,
+        collection: mockCollection,
+      });
+
+      // "other/photo.jpg" doesn't start with "images/", so it is passed as-is
+      expect(createPath).toHaveBeenCalledWith(['content/posts', 'images', 'other/photo.jpg']);
+    });
   });
 
   describe('getAssetByRelativePath', () => {

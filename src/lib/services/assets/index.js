@@ -148,7 +148,14 @@ export const getAssetByRelativePathAndCollection = ({ path, entry, collection, f
   }
 
   const { entryFolder } = entryFilePath.match(/(?<entryFolder>.+?)(?:\/[^/]+)?$/)?.groups ?? {};
-  const resolvedPath = resolvePath(createPath([entryFolder, mediaFolder, path]));
+
+  // Strip the `media_folder` prefix from the stored path before joining with `mediaFolder`, to
+  // avoid duplication when the stored value already includes the media folder (e.g.
+  // `images/photo.jpg`).
+  const localPath =
+    mediaFolder && path.startsWith(`${mediaFolder}/`) ? path.slice(mediaFolder.length + 1) : path;
+
+  const resolvedPath = resolvePath(createPath([entryFolder, mediaFolder, localPath]));
 
   return get(allAssets).find((asset) => asset.path === resolvedPath);
 };
