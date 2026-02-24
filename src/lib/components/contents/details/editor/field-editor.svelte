@@ -17,12 +17,15 @@
   import { revertChanges } from '$lib/services/contents/draft/update/revert';
   import { isFieldMultiple, isFieldRequired } from '$lib/services/contents/entry/fields';
   import { MIN_MAX_VALUE_FIELD_TYPES } from '$lib/services/contents/fields';
+  import { parseDateTimeConfig } from '$lib/services/contents/fields/date-time/helper';
+  import { getFormattedDateTime } from '$lib/services/contents/fields/date-time/validate';
   import { DEFAULT_I18N_CONFIG } from '$lib/services/contents/i18n/config';
 
   /**
    * @import { Component } from 'svelte';
    * @import { Writable } from 'svelte/store';
    * @import {
+   * DateTimeFieldNormalizedProps,
    * DraftValueStoreKey,
    * FieldContext,
    * FieldEditorContext,
@@ -31,6 +34,8 @@
    * } from '$lib/types/private';
    * @import {
    * BooleanField,
+   * DateTimeField,
+   * DateTimeInputType,
    * Field,
    * FieldKeyPath,
    * MinMaxValueField,
@@ -100,19 +105,41 @@
   } = $derived(/** @type {VisibleField} */ (fieldConfig));
   const required = $derived(isFieldRequired({ fieldConfig, locale }));
   const multiple = $derived(isFieldMultiple(fieldConfig));
-  const { min = 0, max = Infinity } = $derived(
-    /** @type {MinMaxValueField} */ (
-      MIN_MAX_VALUE_FIELD_TYPES.includes(fieldType) ? fieldConfig : {}
+  const parsedDateTimeConfig = $derived(
+    /** @type {DateTimeFieldNormalizedProps} */ (
+      fieldType === 'datetime'
+        ? parseDateTimeConfig(/** @type {DateTimeField} */ (fieldConfig))
+        : {}
     ),
   );
-  const type = $derived(
-    // prettier-ignore
-    fieldType === 'string'
-      ? /** @type {StringField} */ (fieldConfig).type ?? 'text'
-      : fieldType === 'number'
-        ? 'number'
-        : undefined,
-  );
+  /** @type {{ min?: string | number, max?: string | number }} */
+  const { min, max } = $derived.by(() => {
+    if (MIN_MAX_VALUE_FIELD_TYPES.includes(fieldType)) {
+      const { min: _min, max: _max } =
+        fieldType === 'datetime'
+          ? parsedDateTimeConfig
+          : /** @type {MinMaxValueField} */ (fieldConfig);
+
+      return { min: _min, max: _max };
+    }
+
+    return {};
+  });
+  const type = $derived.by(() => {
+    if (fieldType === 'string') {
+      return /** @type {StringField} */ (fieldConfig).type ?? 'text';
+    }
+
+    if (fieldType === 'datetime') {
+      return parsedDateTimeConfig.type;
+    }
+
+    if (fieldType === 'number') {
+      return 'number';
+    }
+
+    return undefined;
+  });
   const allowPrefix = $derived(['string'].includes(fieldType));
   const prefix = $derived(
     allowPrefix ? /** @type {StringField} */ (fieldConfig).prefix : undefined,
@@ -296,7 +323,13 @@
         {/if}
         {#if validity.rangeUnderflow}
           {@const quantity = min === 1 ? 'one' : 'many'}
-          {#if fieldType === 'number'}
+          {#if fieldType === 'datetime' && typeof min === 'string'}
+            {$_(`validation.range_underflow.${type}`, {
+              values: {
+                min: getFormattedDateTime(/** @type {DateTimeInputType} */ (type), min),
+              },
+            })}
+          {:else if fieldType === 'number'}
             {$_('validation.range_underflow.number', { values: { min } })}
           {:else if canAddMultiValue}
             {$_(`validation.range_underflow.add_${quantity}`, { values: { min } })}
@@ -306,7 +339,13 @@
         {/if}
         {#if validity.rangeOverflow}
           {@const quantity = max === 1 ? 'one' : 'many'}
-          {#if fieldType === 'number'}
+          {#if fieldType === 'datetime' && typeof max === 'string'}
+            {$_(`validation.range_overflow.${type}`, {
+              values: {
+                max: getFormattedDateTime(/** @type {DateTimeInputType} */ (type), max),
+              },
+            })}
+          {:else if fieldType === 'number'}
             {$_('validation.range_overflow.number', { values: { max } })}
           {:else if canAddMultiValue}
             {$_(`validation.range_overflow.add_${quantity}`, { values: { max } })}

@@ -28,6 +28,10 @@ dayjs.extend(dayjsUTC);
  */
 export const parseDateTimeConfig = (fieldConfig) => {
   const {
+    type = 'datetime-local',
+    min = undefined,
+    max = undefined,
+    step = undefined,
     format,
     date_format: dateFormat = undefined,
     time_format: timeFormat = undefined,
@@ -36,11 +40,25 @@ export const parseDateTimeConfig = (fieldConfig) => {
 
   const dateFormatStr = typeof dateFormat === 'string' ? dateFormat : '';
   const timeFormatStr = typeof timeFormat === 'string' ? timeFormat : '';
+  // The new `type` option takes precedence over the `date_format` and `time_format` options, which
+  // are supported for backward compatibility with Netlify CMS configurations
+  const dateOnly = type === 'date' || timeFormat === false;
+  const timeOnly = type === 'time' || dateFormat === false;
+  // Set a default max value if not provided to prevent issues with browsers that allow 6-digit
+  // years (Chrome, Edge and Safari)
+  const defaultMax = dateOnly ? '9999-12-31' : timeOnly ? undefined : '9999-12-31T23:59';
 
   return {
+    type: dateOnly ? 'date' : timeOnly ? 'time' : 'datetime-local',
+    min: typeof min === 'string' && min ? min : undefined,
+    max: typeof max === 'string' && max ? max : defaultMax,
+    step:
+      (typeof step === 'number' && Number.isInteger(step) && step > 0) || step === 'any'
+        ? step
+        : undefined,
     format: format || [dateFormatStr, timeFormatStr].join(' ').trim() || undefined,
-    dateOnly: timeFormat === false,
-    timeOnly: dateFormat === false,
+    dateOnly,
+    timeOnly,
     utc,
   };
 };

@@ -80,6 +80,10 @@ describe('parseDateTimeConfig', () => {
     const result = parseDateTimeConfig(fieldConfig);
 
     expect(result).toEqual({
+      type: 'datetime-local',
+      min: undefined,
+      max: '9999-12-31T23:59',
+      step: undefined,
       format: 'YYYY-MM-DD HH:mm',
       dateOnly: false,
       timeOnly: false,
@@ -98,6 +102,10 @@ describe('parseDateTimeConfig', () => {
     const result = parseDateTimeConfig(fieldConfig);
 
     expect(result).toEqual({
+      type: 'date',
+      min: undefined,
+      max: '9999-12-31',
+      step: undefined,
       format: 'YYYY-MM-DD',
       dateOnly: true,
       timeOnly: false,
@@ -116,6 +124,10 @@ describe('parseDateTimeConfig', () => {
     const result = parseDateTimeConfig(fieldConfig);
 
     expect(result).toEqual({
+      type: 'time',
+      min: undefined,
+      max: undefined,
+      step: undefined,
       format: 'HH:mm',
       dateOnly: false,
       timeOnly: true,
@@ -132,11 +144,143 @@ describe('parseDateTimeConfig', () => {
     const result = parseDateTimeConfig(fieldConfig);
 
     expect(result).toEqual({
+      type: 'datetime-local',
+      min: undefined,
+      max: '9999-12-31T23:59',
+      step: undefined,
       format: undefined,
       dateOnly: false,
       timeOnly: false,
       utc: false,
     });
+  });
+
+  test('should handle new type option for date', () => {
+    /** @type {DateTimeField} */
+    const fieldConfig = {
+      ...baseFieldConfig,
+      type: 'date',
+    };
+
+    const result = parseDateTimeConfig(fieldConfig);
+
+    expect(result).toEqual({
+      type: 'date',
+      min: undefined,
+      max: '9999-12-31',
+      step: undefined,
+      format: undefined,
+      dateOnly: true,
+      timeOnly: false,
+      utc: false,
+    });
+  });
+
+  test('should handle new type option for time', () => {
+    /** @type {DateTimeField} */
+    const fieldConfig = {
+      ...baseFieldConfig,
+      type: 'time',
+    };
+
+    const result = parseDateTimeConfig(fieldConfig);
+
+    expect(result).toEqual({
+      type: 'time',
+      min: undefined,
+      max: undefined,
+      step: undefined,
+      format: undefined,
+      dateOnly: false,
+      timeOnly: true,
+      utc: false,
+    });
+  });
+
+  test('should parse min, max, and step attributes', () => {
+    /** @type {DateTimeField} */
+    const fieldConfig = {
+      ...baseFieldConfig,
+      min: '2023-01-01T10:00',
+      max: '2024-12-31T20:00',
+      step: 300,
+    };
+
+    const result = parseDateTimeConfig(fieldConfig);
+
+    expect(result).toEqual({
+      type: 'datetime-local',
+      min: '2023-01-01T10:00',
+      max: '2024-12-31T20:00',
+      step: 300,
+      format: undefined,
+      dateOnly: false,
+      timeOnly: false,
+      utc: false,
+    });
+  });
+
+  test('should handle step as "any"', () => {
+    /** @type {DateTimeField} */
+    const fieldConfig = {
+      ...baseFieldConfig,
+      step: 'any',
+    };
+
+    const result = parseDateTimeConfig(fieldConfig);
+
+    expect(result).toEqual({
+      type: 'datetime-local',
+      min: undefined,
+      max: '9999-12-31T23:59',
+      step: 'any',
+      format: undefined,
+      dateOnly: false,
+      timeOnly: false,
+      utc: false,
+    });
+  });
+
+  test('should ignore invalid step values', () => {
+    /** @type {DateTimeField} */
+    const fieldConfig = {
+      ...baseFieldConfig,
+      step: -5,
+    };
+
+    const result = parseDateTimeConfig(fieldConfig);
+
+    expect(result.step).toBeUndefined();
+  });
+
+  test('should ignore empty min/max strings', () => {
+    /** @type {DateTimeField} */
+    const fieldConfig = {
+      ...baseFieldConfig,
+      min: '',
+      max: '',
+    };
+
+    const result = parseDateTimeConfig(fieldConfig);
+
+    expect(result.min).toBeUndefined();
+    expect(result.max).toBe('9999-12-31T23:59'); // Falls back to default
+  });
+
+  test('should prefer type option over date_format and time_format', () => {
+    /** @type {DateTimeField} */
+    const fieldConfig = {
+      ...baseFieldConfig,
+      type: 'date',
+      date_format: 'YYYY-MM-DD',
+      time_format: 'HH:mm',
+    };
+
+    const result = parseDateTimeConfig(fieldConfig);
+
+    expect(result.type).toBe('date');
+    expect(result.dateOnly).toBe(true);
+    expect(result.timeOnly).toBe(false);
   });
 });
 

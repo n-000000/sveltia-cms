@@ -4,6 +4,7 @@ import { get } from 'svelte/store';
 import { entryDraft } from '$lib/services/contents/draft';
 import { getField, isFieldMultiple, isFieldRequired } from '$lib/services/contents/entry/fields';
 import { MEDIA_FIELD_TYPES, MIN_MAX_VALUE_FIELD_TYPES } from '$lib/services/contents/fields';
+import { validateDateTimeField } from '$lib/services/contents/fields/date-time/validate';
 import { getPairs } from '$lib/services/contents/fields/key-value/helper';
 import { getListFieldInfo } from '$lib/services/contents/fields/list/helper';
 import { COMPONENT_NAME_PREFIX_REGEX } from '$lib/services/contents/fields/rich-text';
@@ -22,6 +23,7 @@ import { getRegex } from '$lib/services/utils/misc';
  * } from '$lib/types/private';
  * @import {
  * CodeField,
+ * DateTimeField,
  * Field,
  * ListField,
  * LocaleCode,
@@ -249,6 +251,15 @@ export const validateAnyField = (args) => {
   if (['string', 'text'].includes(fieldType)) {
     const result = validateStringField({
       fieldConfig: /** @type {StringField | TextField} */ (fieldConfig),
+      value,
+    });
+
+    Object.assign(validity, result.validity);
+  }
+
+  if (fieldType === 'datetime') {
+    const result = validateDateTimeField({
+      fieldConfig: /** @type {DateTimeField} */ (fieldConfig),
       value,
     });
 

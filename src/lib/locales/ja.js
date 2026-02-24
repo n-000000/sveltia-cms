@@ -456,6 +456,9 @@ export const strings = {
   validation: {
     value_missing: 'この項目は必須です。',
     range_underflow: {
+      'datetime-local': '日時は {min} かそれ以降でなければなりません。',
+      date: '日付は {min} かそれ以降でなければなりません。',
+      time: '時刻は {min} かそれ以降でなければなりません。',
       number: '値は {min} 以上でなければなりません。',
       select_many: '少なくとも {min} 個の項目を選択してください。',
       select_one: '少なくとも {min} 個の項目を選択してください。',
@@ -463,6 +466,9 @@ export const strings = {
       add_one: '少なくとも {min} 個の項目を追加してください。',
     },
     range_overflow: {
+      'datetime-local': '日時は {max} かそれ以前でなければなりません。',
+      date: '日付は {max} かそれ以前でなければなりません。',
+      time: '時刻は {max} かそれ以前でなければなりません。',
       number: '値は {max} 以下でなければなりません。',
       select_many: '選択できるのは最大で {max} 項目です。',
       select_one: '選択できるのは最大で {max} 項目です。',

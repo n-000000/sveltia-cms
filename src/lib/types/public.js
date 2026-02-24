@@ -405,21 +405,48 @@
  */
 
 /**
+ * DateTime input type. It’s based on the supported date/time input types defined in the HTML spec.
+ * @typedef {'datetime-local' | 'date' | 'time'} DateTimeInputType
+ */
+
+/**
  * DateTime field properties.
  * @typedef {object} DateTimeFieldProps
  * @property {'datetime'} widget Field type.
  * @property {string} [default] Default value. Accepts a date/time string that matches the `format`,
  * or `{{now}}` to populate the current date/time. Default: empty string.
+ * @property {DateTimeInputType} [type] The
+ * [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input#input_types)
+ * HTML attribute value for the date/time input. If `type` is set to `date`, the input will only
+ * accept date values and the time part will be disabled. If `type` is set to `time`, the input will
+ * only accept time values and the date part will be disabled. Default: `datetime-local`, which
+ * accepts both date and time values.
+ * @property {string} [min] The
+ * [`min`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/min) HTML
+ * attribute value for the date/time input. The expected format depends on the `type` option:
+ * `YYYY-MM-DDTHH:mm` for `datetime-local`, `YYYY-MM-DD` for `date`, and `HH:mm` for `time`.
+ * @property {string} [max] The
+ * [`max`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/max) HTML
+ * attribute value for the date/time input. The expected format depends on the `type` option:
+ * `YYYY-MM-DDTHH:mm` for `datetime-local`, `YYYY-MM-DD` for `date`, and `HH:mm` for `time`.
+ * @property {number | 'any'} [step] The
+ * [`step`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/step) HTML
+ * attribute value for the date/time input. Accepts a positive integer or `'any'`. For
+ * `datetime-local` and `time` inputs, the integer represents the step in seconds (e.g. `300` for
+ * 5-minute steps). For `date` inputs, the integer represents the step in days (e.g. `7` for weekly
+ * steps). Default: `60` seconds for `datetime-local` and `time`; `1` day for `date`.
  * @property {string} [format] Storage format written in [Day.js
  * tokens](https://day.js.org/docs/en/display/format). Default: ISO 8601 format.
  * @property {string | boolean} [date_format] Date storage format written in [Day.js
  * tokens](https://day.js.org/docs/en/display/format) if the value is a string and the `format`
  * option is not defined. If `true`, ISO 8601 format is used unless the `format` option is defined.
- * If `false`, date input/output is disabled.
+ * If `false`, date input/output is disabled. This option is available for backward compatibility
+ * with Netlify CMS; use the `format` or `type` option instead.
  * @property {string | boolean} [time_format] Time storage format written in [Day.js
  * tokens](https://day.js.org/docs/en/display/format) if the value is a string and the `format`
  * option is not defined. If `true`, ISO 8601 format is used unless the `format` option is defined.
- * If `false`, time input/output is disabled.
+ * If `false`, time input/output is disabled. This option is available for backward compatibility
+ * with Netlify CMS; use the `format` or `type` option instead.
  * @property {boolean} [picker_utc] Whether to make the date input/output UTC. Default: `false`.
  * @see https://decapcms.org/docs/widgets/#Datetime
  * @see https://sveltiacms.app/en/docs/fields/datetime
@@ -882,7 +909,7 @@
 
 /**
  * Field types that have the `min` and `max` options.
- * @typedef {MultiValueField | ListField | NumberField} MinMaxValueField
+ * @typedef {MultiValueField | DateTimeField | ListField | NumberField} MinMaxValueField
  */
 
 /**

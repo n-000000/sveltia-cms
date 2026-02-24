@@ -7,6 +7,8 @@
  * Collection,
  * CollectionDivider,
  * CollectionFile,
+ * DateTimeFieldProps,
+ * DateTimeInputType,
  * EntryCollection,
  * Field,
  * FieldKeyPath,
@@ -961,6 +963,10 @@
 
 /**
  * @typedef {object} DateTimeFieldNormalizedProps
+ * @property {DateTimeInputType} type The `type` HTML attribute value.
+ * @property {string | undefined} min The `min` HTML attribute value.
+ * @property {string | undefined} max The `max` HTML attribute value.
+ * @property {number | 'any' | undefined} step The `step` HTML attribute value.
  * @property {string | undefined} format Same as {@link DateTimeFieldProps.format}. If it’s missing,
  * {@link DateTimeFieldProps.date_format} and {@link DateTimeFieldProps.time_format} will be used
  * instead. If these options are also missing, the value will be `undefined`, which makes the output

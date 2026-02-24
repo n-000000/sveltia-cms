@@ -43,7 +43,7 @@
 
   let inputValue = $state('');
 
-  const { dateOnly, timeOnly, utc } = $derived(parseDateTimeConfig(fieldConfig));
+  const { type, min, max, step, dateOnly, utc } = $derived(parseDateTimeConfig(fieldConfig));
 
   /**
    * Update {@link inputValue} based on {@link currentValue}.
@@ -95,8 +95,7 @@
 
 <div role="none">
   <input
-    type={dateOnly ? 'date' : timeOnly ? 'time' : 'datetime-local'}
-    max={dateOnly ? '9999-12-31' : timeOnly ? undefined : '9999-12-31T23:59'}
+    {...{ type, min, max, step }}
     bind:value={inputValue}
     {readonly}
     aria-readonly={readonly}

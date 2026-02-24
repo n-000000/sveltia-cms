@@ -454,14 +454,20 @@ export const strings = {
   validation: {
     value_missing: 'This field is required.',
     range_underflow: {
-      number: 'Value must be greater than or equal to {min}.',
+      'datetime-local': 'The date/time must be at or after {min}.',
+      date: 'The date must be on or after {min}.',
+      time: 'The time must be at or after {min}.',
+      number: 'The value must be greater than or equal to {min}.',
       select_many: 'You have to select at least {min} items.',
       select_one: 'You have to select at least {min} item.',
       add_many: 'You have to add at least {min} items.',
       add_one: 'You have to add at least {min} item.',
     },
     range_overflow: {
-      number: 'Value must be less than or equal to {max}.',
+      'datetime-local': 'The date/time must be at or before {max}.',
+      date: 'The date must be on or before {max}.',
+      time: 'The time must be at or before {max}.',
+      number: 'The value must be less than or equal to {max}.',
       select_many: 'You cannot select more than {max} items.',
       select_one: 'You cannot select more than {max} item.',
       add_many: 'You cannot add more than {max} items.',
