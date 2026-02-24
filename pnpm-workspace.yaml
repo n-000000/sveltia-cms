@@ -14,8 +14,3 @@ onlyBuiltDependencies:
 
 overrides:
   esbuild@<=0.24.2: ">=0.25.0"
-
-auditConfig:
-  ignoreGhsas:
-    # https://github.com/advisories/GHSA-3ppc-4f35-3m26
-    - GHSA-3ppc-4f35-3m26
