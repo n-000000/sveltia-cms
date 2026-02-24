@@ -160,7 +160,6 @@
 
   .powered-by {
     position: absolute;
-    z-index: 102;
     inset: auto 24px 24px;
     color: var(--sui-tertiary-foreground-color);
     font-size: var(--sui-font-size-small);
