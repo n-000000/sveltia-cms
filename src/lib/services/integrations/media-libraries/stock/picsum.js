@@ -10,10 +10,8 @@
 /**
  * @typedef {object} FetchResult
  * @property {string} id Asset ID.
- * @property {string} author Photographer name.
  * @property {number} width Image width.
  * @property {number} height Image height.
- * @property {string} download_url Full-size image URL.
  */
 
 const ENDPOINT = 'https://picsum.photos/v2/list';
@@ -27,17 +25,26 @@ const FETCH_PAGES = 3;
  * @returns {ExternalAsset[]} Assets.
  */
 export const parseResults = (results) =>
-  results.map(({ id, download_url: downloadURL }) => ({
-    id,
-    // The service doesn’t provide descriptions
-    description: '',
-    previewURL: `https://picsum.photos/id/${id}/400/300.webp`,
-    downloadURL: `${downloadURL}.webp`,
-    fileName: `picsum-${id}.webp`,
-    kind: 'image',
-    // No credit is required as the photos are licensed under CC0
-    // https://github.com/DMarby/picsum-photos/issues/81#issuecomment-1340068800
-  }));
+  results.map(({ id, width, height }) => {
+    // Limit the maximum dimension to 1920px to avoid excessively large files, while maintaining the
+    // aspect ratio. 1920x1280 is a common resolution that provides good quality without being too
+    // large for most use cases.
+    const landscape = width >= height;
+    const [w, h] = landscape ? [1920, 1280] : [1280, 1920];
+    const [pw, ph] = landscape ? [480, 320] : [320, 480];
+
+    return {
+      id,
+      // The service doesn't provide descriptions
+      description: '',
+      previewURL: `https://picsum.photos/id/${id}/${pw}/${ph}.webp`,
+      downloadURL: `https://picsum.photos/id/${id}/${w}/${h}.webp`,
+      fileName: `picsum-${id}.webp`,
+      kind: 'image',
+      // No credit is required as the photos are licensed under CC0
+      // https://github.com/DMarby/picsum-photos/issues/81#issuecomment-1340068800
+    };
+  });
 
 /**
  * Fetch all available pictures across all pages.

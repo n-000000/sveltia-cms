@@ -66,8 +66,8 @@ describe('integrations/media-libraries/stock/picsum', () => {
       expect(result[0]).toEqual({
         id: '0',
         description: '',
-        previewURL: 'https://picsum.photos/id/0/400/300.webp',
-        downloadURL: 'https://picsum.photos/id/0/5616/3744.webp',
+        previewURL: 'https://picsum.photos/id/0/480/320.webp',
+        downloadURL: 'https://picsum.photos/id/0/1920/1280.webp',
         fileName: 'picsum-0.webp',
         kind: 'image',
       });
@@ -75,8 +75,8 @@ describe('integrations/media-libraries/stock/picsum', () => {
       expect(result[1]).toEqual({
         id: '10',
         description: '',
-        previewURL: 'https://picsum.photos/id/10/400/300.webp',
-        downloadURL: 'https://picsum.photos/id/10/2500/1667.webp',
+        previewURL: 'https://picsum.photos/id/10/480/320.webp',
+        downloadURL: 'https://picsum.photos/id/10/1920/1280.webp',
         fileName: 'picsum-10.webp',
         kind: 'image',
       });
@@ -84,6 +84,18 @@ describe('integrations/media-libraries/stock/picsum', () => {
 
     it('should handle empty results', () => {
       expect(parseResults([])).toEqual([]);
+    });
+
+    it('should use 1280x1920 download and 300x400 preview for portrait images', () => {
+      /** @type {any[]} */
+      const results = [
+        { id: '20', author: 'Author', width: 1000, height: 1500, url: '', download_url: '' },
+      ];
+
+      const parsed = parseResults(results)[0];
+
+      expect(parsed.downloadURL).toBe('https://picsum.photos/id/20/1280/1920.webp');
+      expect(parsed.previewURL).toBe('https://picsum.photos/id/20/320/480.webp');
     });
 
     it('should use numeric id as string', () => {
