@@ -31,9 +31,9 @@ export const parseResults = (results) =>
     id,
     // The service doesn’t provide descriptions
     description: '',
-    previewURL: `https://picsum.photos/id/${id}/400/300`,
-    downloadURL,
-    fileName: `picsum-${id}.jpg`,
+    previewURL: `https://picsum.photos/id/${id}/400/300.webp`,
+    downloadURL: `${downloadURL}.webp`,
+    fileName: `picsum-${id}.webp`,
     kind: 'image',
     // No credit is required as the photos are licensed under CC0
     // https://github.com/DMarby/picsum-photos/issues/81#issuecomment-1340068800

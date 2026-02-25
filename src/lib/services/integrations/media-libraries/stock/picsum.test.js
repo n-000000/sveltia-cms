@@ -66,18 +66,18 @@ describe('integrations/media-libraries/stock/picsum', () => {
       expect(result[0]).toEqual({
         id: '0',
         description: '',
-        previewURL: 'https://picsum.photos/id/0/400/300',
-        downloadURL: 'https://picsum.photos/id/0/5616/3744',
-        fileName: 'picsum-0.jpg',
+        previewURL: 'https://picsum.photos/id/0/400/300.webp',
+        downloadURL: 'https://picsum.photos/id/0/5616/3744.webp',
+        fileName: 'picsum-0.webp',
         kind: 'image',
       });
 
       expect(result[1]).toEqual({
         id: '10',
         description: '',
-        previewURL: 'https://picsum.photos/id/10/400/300',
-        downloadURL: 'https://picsum.photos/id/10/2500/1667',
-        fileName: 'picsum-10.jpg',
+        previewURL: 'https://picsum.photos/id/10/400/300.webp',
+        downloadURL: 'https://picsum.photos/id/10/2500/1667.webp',
+        fileName: 'picsum-10.webp',
         kind: 'image',
       });
     });
