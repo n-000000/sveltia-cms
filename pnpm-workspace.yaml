@@ -5,6 +5,8 @@ minimumReleaseAgeExclude:
   - svelte
   - "@sveltejs/*"
   - "@sveltia/*"
+  - lexical
+  - "@lexical/*"
 
 onlyBuiltDependencies:
   - "@parcel/watcher"
