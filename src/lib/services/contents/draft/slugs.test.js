@@ -369,6 +369,7 @@ describe('draft/slugs', () => {
           en: { title: 'My Existing Article' },
           fr: { title: 'Mon Article Existant' },
         },
+        originalLocales: { en: true, fr: true },
         isIndexFile: false,
       };
 
@@ -394,6 +395,7 @@ describe('draft/slugs', () => {
           en: { title: 'My Article' },
           fr: { title: 'Mon Article' },
         },
+        originalLocales: { en: true, fr: true },
         isIndexFile: false,
       };
 
@@ -404,6 +406,44 @@ describe('draft/slugs', () => {
       });
 
       expect(result).toBe('default-slug');
+    });
+
+    it('should generate slug when enabling a new locale for an existing entry', async () => {
+      const { fillTemplate } = vi.mocked(await import('$lib/services/common/template'));
+
+      fillTemplate.mockReturnValue('nouvel-article');
+
+      const draft = {
+        isNew: false,
+        collection: {
+          _type: 'entry',
+          identifier_field: 'title',
+          slug: '{{title}}',
+          _i18n: { defaultLocale: 'en' },
+        },
+        collectionFile: undefined,
+        currentSlugs: {},
+        currentValues: {
+          en: { title: 'New Article' },
+          fr: { title: 'Nouvel Article' },
+        },
+        originalLocales: { en: true }, // fr not in originalLocales — locale being enabled
+        isIndexFile: false,
+      };
+
+      const result = getLocalizedSlug({
+        draft,
+        locale: 'fr',
+        localizingKeyPaths: ['title'],
+      });
+
+      expect(result).toBe('nouvel-article');
+      expect(fillTemplate).toHaveBeenCalledWith(
+        '{{title}}',
+        expect.objectContaining({
+          locale: 'fr',
+        }),
+      );
     });
 
     it('should handle file type collection (non-entry)', async () => {

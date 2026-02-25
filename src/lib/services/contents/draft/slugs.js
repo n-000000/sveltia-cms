@@ -59,7 +59,10 @@ export const getLocalizedSlug = ({ draft, locale, localizingKeyPaths }) => {
 
   const _slug = currentSlugs?.[locale] ?? currentSlugs?._;
 
-  if (isNew) {
+  // When creating a new entry or enabling a locale for an existing entry, we need to fill the slug
+  // template to generate the initial slug for the new locale. For other cases, we keep the existing
+  // slug to avoid changing URLs unexpectedly.
+  if (isNew || !draft.originalLocales[locale]) {
     return fillTemplate(slugTemplate, {
       collection,
       locale,
