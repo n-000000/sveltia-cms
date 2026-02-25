@@ -124,8 +124,8 @@ describe('integrations/media-libraries/stock/picsum', () => {
 
       const result = await list();
 
-      expect(global.fetch).toHaveBeenCalledTimes(2);
-      expect(result).toHaveLength(200);
+      expect(global.fetch).toHaveBeenCalledTimes(3);
+      expect(result).toHaveLength(300);
     });
 
     it('should use correct URL and query params', async () => {

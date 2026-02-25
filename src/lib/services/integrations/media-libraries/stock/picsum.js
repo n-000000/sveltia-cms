@@ -19,7 +19,7 @@
 const ENDPOINT = 'https://picsum.photos/v2/list';
 const LIMIT = 100;
 const TOTAL_PAGES = 10;
-const FETCH_PAGES = 2;
+const FETCH_PAGES = 3;
 
 /**
  * Parse API results into ExternalAsset format.
