@@ -21,7 +21,6 @@
     getInitialExpanderState,
     syncExpanderStates,
   } from '$lib/services/contents/editor/expanders';
-  import { getField } from '$lib/services/contents/entry/fields';
   import { formatSummary } from '$lib/services/contents/fields/object/helper';
   import { DEFAULT_I18N_CONFIG } from '$lib/services/contents/i18n/config';
   import { isSmallScreen } from '$lib/services/user/env';
@@ -79,9 +78,7 @@
   const getFieldArgs = $derived({ collectionName, fileName, valueMap, isIndexFile });
   const hasValues = $derived(
     Object.entries(valueMap).some(
-      ([_keyPath, value]) =>
-        !!_keyPath.startsWith(`${keyPath}.`) &&
-        (value !== null || getField({ ...getFieldArgs, keyPath: _keyPath })?.widget === 'object'),
+      ([_keyPath, value]) => _keyPath.startsWith(`${keyPath}.`) && value !== undefined,
     ),
   );
   const canEdit = $derived(
