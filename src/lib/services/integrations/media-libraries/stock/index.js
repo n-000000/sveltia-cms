@@ -1,6 +1,7 @@
 import { getMediaLibraryOptions } from '$lib/services/integrations/media-libraries';
 
 import pexels from './pexels';
+import picsum from './picsum';
 import pixabay from './pixabay';
 import unsplash from './unsplash';
 
@@ -15,6 +16,7 @@ import unsplash from './unsplash';
  */
 export const allStockAssetProviders = {
   pexels,
+  picsum,
   pixabay,
   unsplash,
 };

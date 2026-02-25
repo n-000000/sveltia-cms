@@ -166,7 +166,7 @@
 
 /**
  * Name of supported stock photo/video provider.
- * @typedef {'pexels' | 'pixabay' | 'unsplash'} StockAssetProviderName
+ * @typedef {'pexels' | 'picsum' | 'pixabay' | 'unsplash'} StockAssetProviderName
  */
 
 /**

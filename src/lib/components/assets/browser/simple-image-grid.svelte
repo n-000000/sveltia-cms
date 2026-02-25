@@ -106,6 +106,10 @@
               padding: 0 8px;
               width: 100%;
               min-height: calc(var(--sui-font-size-default) * 3);
+
+              &:empty {
+                display: none;
+              }
             }
           }
         }

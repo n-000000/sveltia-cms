@@ -99,6 +99,19 @@
   /** @type {ExternalAssetsPanel | undefined} */
   let externalAssetsPanel = $state();
 
+  /**
+   * Sort services by their label in alphabetical order.
+   * @param {[string, { serviceLabel: string }]} a First service entry.
+   * @param {[string, { serviceLabel: string }]} b Second service entry.
+   * @returns {number} Sorting order value.
+   */
+  const sortServicesByName = (a, b) => {
+    const nameA = a[1].serviceLabel.toLowerCase();
+    const nameB = b[1].serviceLabel.toLowerCase();
+
+    return nameA.localeCompare(nameB);
+  };
+
   const title = $derived(
     kind === 'image' ? $_('assets_dialog.title.image') : $_('assets_dialog.title.file'),
   );
@@ -142,27 +155,28 @@
   const enabledStockAssetProviderEntries = $derived.by(() => {
     const { providers = [] } = getStockAssetMediaLibraryOptions({ fieldConfig });
 
-    return Object.entries(allStockAssetProviders).filter(
-      ([serviceId, { hotlinking }]) =>
-        providers.includes(/** @type {StockAssetProviderName} */ (serviceId)) &&
-        // When hotlinking is not required, files are downloaded and then uploaded to the
-        // repository, so the default library has to be configured.
-        (hotlinking || isDefaultLibraryEnabled),
-    );
+    return Object.entries(allStockAssetProviders)
+      .filter(
+        ([serviceId, { hotlinking }]) =>
+          providers.includes(/** @type {StockAssetProviderName} */ (serviceId)) &&
+          // When hotlinking is not required, files are downloaded and then uploaded to the
+          // repository, so the default library has to be configured.
+          (hotlinking || isDefaultLibraryEnabled),
+      )
+      .sort(sortServicesByName);
   });
   const isEnabledMediaService = $derived(
-    enabledStockAssetProviderEntries
-      .map(([serviceId]) => serviceId)
-      .includes(/** @type {StockAssetProviderName} */ (libraryName)) &&
-      !!$prefs?.apiKeys?.[libraryName],
+    enabledStockAssetProviderEntries.some(
+      ([serviceId, { authType }]) =>
+        serviceId === libraryName && (authType === 'none' || !!$prefs?.apiKeys?.[libraryName]),
+    ),
   );
   const enabledCloudServiceEntries = $derived(
     Object.entries(allCloudStorageServices).filter(([, { isEnabled }]) => isEnabled?.() ?? true),
   );
-  const enabledExternalServiceEntries = $derived([
-    ...enabledCloudServiceEntries,
-    ...enabledStockAssetProviderEntries,
-  ]);
+  const enabledExternalServiceEntries = $derived(
+    [...enabledCloudServiceEntries, ...enabledStockAssetProviderEntries].sort(sortServicesByName),
+  );
   const isCloudLibrary = $derived(
     enabledCloudServiceEntries.map(([serviceId]) => serviceId).includes(libraryName),
   );
@@ -312,7 +326,7 @@
 </script>
 
 {#snippet headerItems()}
-  {#if isDefaultLibrary || (isCloudLibrary && libraryName !== 'cloudinary') || isStockLibrary}
+  {#if isDefaultLibrary || (isCloudLibrary && libraryName !== 'cloudinary') || (isStockLibrary && libraryName !== 'picsum')}
     {#if $selectAssetsView}
       <ViewSwitcher
         currentView={(() => /** @type {Writable<SelectAssetsView>} */ (selectAssetsView))()}

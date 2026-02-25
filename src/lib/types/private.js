@@ -239,10 +239,11 @@
  * @property {string} serviceURL Service URL.
  * @property {boolean} showServiceLink Whether to show a link to the service in the media library.
  * @property {boolean} hotlinking Whether to hotlink files.
- * @property {'api_key' | 'password' | 'widget'} authType Authentication type. `api_key` means the
- * service requires an API key (or API secret, depending on the service) for user authentication.
- * `password` means the service requires username/password for authentication. `widget` means the
- * service provides its own widget for file selection, and authentication is handled by the widget.
+ * @property {'api_key' | 'none' | 'password' | 'widget'} authType Authentication type. `api_key`
+ * means the service requires an API key (or API secret, depending on the service) for user
+ * authentication. `none` means the service requires no authentication. `password` means the service
+ * requires username/password for authentication. `widget` means the service provides its own widget
+ * for file selection, and authentication is handled by the widget.
  * @property {string} [developerURL] URL of the page that provides the API/developer service.
  * @property {string} [apiKeyURL] URL of the page that provides an API key.
  * @property {RegExp} [apiKeyPattern] API key pattern.

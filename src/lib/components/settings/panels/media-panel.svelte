@@ -95,22 +95,25 @@
             'https://sveltiacms.app/en/docs/integrations/stock-photos',
           )}
         </p>
-        {#each enabledStockAssetProviderEntries as [serviceId, { serviceLabel }] (serviceId)}
-          <section>
-            <h4>{serviceLabel}</h4>
-            <div role="none">
-              <PasswordInput
-                bind:value={$prefs.apiKeys[serviceId]}
-                flex
-                autocomplete="off"
-                spellcheck="false"
-                aria-label={$_('prefs.media.stock_photos.field_label', {
-                  values: { service: serviceLabel },
-                })}
-                onchange={() => onchange(serviceId)}
-              />
-            </div>
-          </section>
+        {#each enabledStockAssetProviderEntries as [serviceId, service] (serviceId)}
+          {@const { serviceLabel, authType } = service}
+          {#if authType !== 'none'}
+            <section>
+              <h4>{serviceLabel}</h4>
+              <div role="none">
+                <PasswordInput
+                  bind:value={$prefs.apiKeys[serviceId]}
+                  flex
+                  autocomplete="off"
+                  spellcheck="false"
+                  aria-label={$_('prefs.media.stock_photos.field_label', {
+                    values: { service: serviceLabel },
+                  })}
+                  onchange={() => onchange(serviceId)}
+                />
+              </div>
+            </section>
+          {/if}
         {/each}
       </section>
     {/if}

@@ -8,6 +8,7 @@ vi.mock('$lib/services/integrations/media-libraries', () => ({
 }));
 
 vi.mock('./pexels', () => ({ default: { name: 'Pexels' } }));
+vi.mock('./picsum', () => ({ default: { name: 'Lorem Picsum' } }));
 vi.mock('./pixabay', () => ({ default: { name: 'Pixabay' } }));
 vi.mock('./unsplash', () => ({ default: { name: 'Unsplash' } }));
 
@@ -26,7 +27,7 @@ describe('integrations/media-libraries/stock', () => {
       const result = getStockAssetMediaLibraryOptions();
 
       expect(result).toEqual({
-        providers: ['pexels', 'pixabay', 'unsplash'],
+        providers: ['pexels', 'picsum', 'pixabay', 'unsplash'],
       });
     });
 
@@ -88,7 +89,7 @@ describe('integrations/media-libraries/stock', () => {
       const result = getStockAssetMediaLibraryOptions({ fieldConfig });
 
       expect(result).toEqual({
-        providers: ['pexels', 'pixabay', 'unsplash'],
+        providers: ['pexels', 'picsum', 'pixabay', 'unsplash'],
       });
     });
 
@@ -103,7 +104,7 @@ describe('integrations/media-libraries/stock', () => {
       const result = getStockAssetMediaLibraryOptions();
 
       expect(result).toEqual({
-        providers: ['pexels', 'pixabay', 'unsplash'],
+        providers: ['pexels', 'picsum', 'pixabay', 'unsplash'],
       });
     });
   });
