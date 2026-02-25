@@ -51,7 +51,12 @@ export const fetchFile = async (
     : 'config.error.fetch_failed';
 
   try {
-    response = await fetch(href);
+    const url = new URL(href, window.location.href);
+
+    // Append a timestamp to the URL to prevent caching issues
+    url.searchParams.set('_', Date.now().toString());
+
+    response = await fetch(url);
   } catch (ex) {
     throw new Error(get(_)(fetchErrorKey), { cause: ex });
   }

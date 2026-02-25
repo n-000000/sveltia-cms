@@ -51,6 +51,7 @@ global.window = {
   location: {
     pathname: '/admin/',
     origin: 'https://example.com',
+    href: 'https://example.com/admin/',
   },
 };
 
@@ -95,6 +96,7 @@ describe('config/loader', () => {
         location: {
           pathname: '/admin/',
           origin: 'https://example.com',
+          href: 'https://example.com/admin/',
         },
       };
     });
@@ -214,7 +216,9 @@ describe('config/loader', () => {
 
       const result = await fetchCmsConfig();
 
-      expect(fetch).toHaveBeenCalledWith('/admin/config.yml');
+      expect(fetch).toHaveBeenCalledWith(
+        expect.objectContaining({ pathname: '/admin/config.yml' }),
+      );
       expect(result).toEqual({ collections: [{ name: 'posts' }] });
     });
 
@@ -231,7 +235,9 @@ describe('config/loader', () => {
 
       const result = await fetchCmsConfig();
 
-      expect(fetch).toHaveBeenCalledWith('custom-config.yml');
+      expect(fetch).toHaveBeenCalledWith(
+        expect.objectContaining({ pathname: '/admin/custom-config.yml' }),
+      );
       expect(result).toEqual({ backend: { name: 'github' } });
     });
 
@@ -430,7 +436,7 @@ backend:
 
       const result = await fetchFile({ href: '/config.yml', type: 'application/yaml' });
 
-      expect(fetch).toHaveBeenCalledWith('/config.yml');
+      expect(fetch).toHaveBeenCalledWith(expect.objectContaining({ pathname: '/config.yml' }));
       expect(result).toEqual({ backend: { name: 'github' }, collections: [{ name: 'posts' }] });
     });
 
@@ -443,8 +449,31 @@ backend:
 
       const result = await fetchFile({ href: '/config.json', type: 'application/json' });
 
-      expect(fetch).toHaveBeenCalledWith('/config.json');
+      expect(fetch).toHaveBeenCalledWith(expect.objectContaining({ pathname: '/config.json' }));
       expect(result).toEqual({ backend: { name: 'gitlab' }, media_folder: 'static' });
+    });
+
+    test('should append a cache-busting timestamp parameter to the URL', async () => {
+      fetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve('test: value'),
+      });
+
+      const before = Date.now();
+
+      await fetchFile({ href: '/config.yml' });
+
+      const after = Date.now();
+      const calledUrl = /** @type {URL} */ (fetch.mock.calls[0][0]);
+
+      expect(calledUrl).toBeInstanceOf(URL);
+      expect(calledUrl.searchParams.has('_')).toBe(true);
+
+      const ts = Number(calledUrl.searchParams.get('_'));
+
+      expect(ts).toBeGreaterThanOrEqual(before);
+      expect(ts).toBeLessThanOrEqual(after);
     });
 
     test('should use default type application/yaml', async () => {
@@ -553,7 +582,7 @@ folder = "content/pages"
 
       const result = await fetchFile({ href: '/config.toml', type: 'application/toml' });
 
-      expect(fetch).toHaveBeenCalledWith('/config.toml');
+      expect(fetch).toHaveBeenCalledWith(expect.objectContaining({ pathname: '/config.toml' }));
       expect(result).toEqual({
         backend: { name: 'github', repo: 'test/repo' },
         collections: [
@@ -679,6 +708,7 @@ collections:
         location: {
           pathname: '/admin/',
           origin: 'https://example.com',
+          href: 'https://example.com/admin/',
         },
       };
     });
