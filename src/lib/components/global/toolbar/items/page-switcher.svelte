@@ -13,7 +13,7 @@
       {
         key: 'collections',
         label: $_('contents'),
-        icon: 'library_books',
+        icon: 'article',
         link: '/collections',
       },
     ];
@@ -24,7 +24,7 @@
       _pages.push({
         key: 'assets',
         label: $_('assets'),
-        icon: 'photo_library',
+        icon: 'photo',
         link: $isSmallScreen
           ? '/assets'
           : `/assets/${$selectedAssetFolder?.internalPath ?? '-/all'}`,
