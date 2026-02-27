@@ -12,8 +12,7 @@ import { stripTags } from '@sveltia/utils/string';
  */
 export const getDefaultValueMap = ({ fieldConfig, keyPath, dynamicValue }) => {
   const { default: defaultValue } = /** @type {MarkdownField} */ (fieldConfig);
-  /** @type {string} */
-  let value;
+  let value = '';
 
   if (dynamicValue !== undefined) {
     try {
@@ -22,7 +21,9 @@ export const getDefaultValueMap = ({ fieldConfig, keyPath, dynamicValue }) => {
     } catch {
       // Fallback for environments where DOMParser is not available (e.g., Node.js tests)
       // Use a simple regex to remove HTML tags as a basic sanitization measure
-      value = dynamicValue.replace(/<[^>]*>/g, '');
+      if (import.meta.env.VITEST) {
+        value = dynamicValue.replace(/<[^>]*>/g, '');
+      }
     }
   } else {
     value = defaultValue || '';
