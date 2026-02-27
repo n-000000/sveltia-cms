@@ -63,7 +63,12 @@
         // Wait a moment to get the current value after the change event, otherwise navigating back
         // to the previous page doesn’t work when search terms are cleared
         await sleep(100);
-        navigate(/** @type {HTMLInputElement} */ (target).value.trim());
+
+        const terms = /** @type {HTMLInputElement} */ (target).value.trim();
+
+        if (!terms) {
+          navigate('');
+        }
       }}
     />
   {/if}
