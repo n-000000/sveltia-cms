@@ -19,8 +19,6 @@
       $announcedPageStatus = $_('welcome_message', { values: { name: $appTitle } });
     }
   });
-
-  const inert = $derived(!!$user && $dataLoaded);
 </script>
 
 {#snippet parseMarkdown(/** @type {string} */ str)}
@@ -30,7 +28,7 @@
   })}
 {/snippet}
 
-<div role="none" class="container" {inert}>
+<div role="none" class="container">
   <div role="none" class="inner">
     {#if $cmsConfigLoaded}
       <img src={$appLogoURL} alt="" class="logo" />
@@ -76,7 +74,7 @@
 </div>
 
 {#if $cmsConfigLoaded && $appTitle !== DEFAULT_APP_TITLE}
-  <div role="none" class="powered-by" {inert}>
+  <div role="none" class="powered-by">
     {$_('powered_by', { values: { name: DEFAULT_APP_TITLE } })}
   </div>
 {/if}
@@ -92,11 +90,6 @@
     align-items: center;
     gap: 16px;
     padding: 32px;
-    transition: filter 250ms;
-
-    &[inert] {
-      filter: opacity(0);
-    }
 
     .inner {
       display: flex;
@@ -166,10 +159,5 @@
     color: var(--sui-tertiary-foreground-color);
     font-size: var(--sui-font-size-small);
     text-align: center;
-    transition: filter 250ms;
-
-    &[inert] {
-      filter: opacity(0);
-    }
   }
 </style>

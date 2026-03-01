@@ -236,7 +236,9 @@
   {/snippet}
 </PageContainer>
 
-<ContentDetailsOverlay {editorLocale} />
+{#if $showContentOverlay}
+  <ContentDetailsOverlay {editorLocale} />
+{/if}
 
 <Toast bind:show={$contentUpdatesToast.saved}>
   <Alert status="success">

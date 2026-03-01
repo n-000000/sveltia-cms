@@ -81,10 +81,6 @@ vi.mock('$lib/services/contents/editor', () => ({
   showContentOverlay: { subscribe: vi.fn() },
 }));
 
-vi.mock('$lib/services/user/env', () => ({
-  isSmallScreen: { subscribe: vi.fn() },
-}));
-
 vi.mock('svelte/store', () => ({
   derived: vi.fn((stores, callback) => {
     // Call the callback to ensure code coverage for derived functions
@@ -232,11 +228,9 @@ describe('navigation', () => {
 
       Object.defineProperty(event, 'isTrusted', { value: true });
 
-      vi.mocked(get).mockReturnValue(false); // Not small screen
-
       updateContentFromHashChange(event, updateContent, /^\/collections/);
 
-      expect(updateContent).toHaveBeenCalledTimes(1);
+      expect(document.startViewTransition).toHaveBeenCalled();
     });
 
     it('should detect forward navigation', () => {
@@ -251,7 +245,6 @@ describe('navigation', () => {
       });
 
       Object.defineProperty(event, 'isTrusted', { value: true });
-      vi.mocked(get).mockReturnValue(true); // Small screen
 
       updateContentFromHashChange(event, updateContent, /^\/collections/);
 
@@ -273,7 +266,6 @@ describe('navigation', () => {
       });
 
       Object.defineProperty(event, 'isTrusted', { value: true });
-      vi.mocked(get).mockReturnValue(true); // Small screen
 
       updateContentFromHashChange(event, updateContent, /^\/collections/);
 
@@ -295,7 +287,6 @@ describe('navigation', () => {
       });
 
       Object.defineProperty(event, 'isTrusted', { value: true });
-      vi.mocked(get).mockReturnValue(true); // Small screen
 
       updateContentFromHashChange(event, updateContent, /^\/collections/);
 
@@ -315,7 +306,7 @@ describe('navigation', () => {
         '',
         'https://example.com/#/collections/posts',
       );
-      expect(window.dispatchEvent).toHaveBeenCalledWith(expect.any(HashChangeEvent));
+      expect(document.startViewTransition).toHaveBeenCalled();
     });
 
     it('should replace state when replaceState is true', async () => {
@@ -346,11 +337,10 @@ describe('navigation', () => {
       expect(window.dispatchEvent).not.toHaveBeenCalled();
     });
 
-    it('should use view transition when supported and on small screen', async () => {
+    it('should use view transition when document.startViewTransition is supported', async () => {
       const mockStartViewTransition = vi.fn();
 
       document.startViewTransition = mockStartViewTransition;
-      vi.mocked(get).mockReturnValue(true); // Small screen
 
       await goto('/assets', { transitionType: 'forwards' });
 
@@ -378,7 +368,6 @@ describe('navigation', () => {
       const mockStartViewTransition = vi.fn();
 
       document.startViewTransition = mockStartViewTransition;
-      vi.mocked(get).mockReturnValue(true); // Small screen
 
       goBack('/default');
 
@@ -467,17 +456,21 @@ describe('navigation', () => {
   });
 
   describe('startViewTransition', () => {
-    it('should call updateContent directly when not on small screen', async () => {
+    it('should call updateContent directly when document.startViewTransition is not available', async () => {
       const mockUpdateContent = vi.fn();
       const { sleep } = await import('@sveltia/utils/misc');
+      const originalStartViewTransition = document.startViewTransition;
 
-      vi.mocked(get).mockReturnValue(false); // isSmallScreen = false
+      // @ts-ignore
+      document.startViewTransition = undefined;
 
       startViewTransition('forwards', mockUpdateContent);
 
       expect(mockUpdateContent).toHaveBeenCalled();
-      expect(document.startViewTransition).not.toHaveBeenCalled();
       expect(sleep).not.toHaveBeenCalled();
+
+      // Restore
+      document.startViewTransition = originalStartViewTransition;
     });
 
     it('should call updateContent directly when startViewTransition not supported', async () => {
@@ -486,7 +479,6 @@ describe('navigation', () => {
 
       // @ts-ignore
       document.startViewTransition = undefined;
-      vi.mocked(get).mockReturnValue(true); // isSmallScreen = true
 
       startViewTransition('backwards', mockUpdateContent);
 
@@ -496,13 +488,12 @@ describe('navigation', () => {
       document.startViewTransition = originalStartViewTransition;
     });
 
-    it('should use view transition API when on small screen and supported', async () => {
+    it('should use view transition API when document.startViewTransition is supported', async () => {
       const mockUpdateContent = vi.fn();
       const mockTransition = { update: vi.fn() };
       const { sleep } = await import('@sveltia/utils/misc');
       const { flushSync } = await import('svelte');
 
-      vi.mocked(get).mockReturnValue(true); // isSmallScreen = true
       vi.mocked(sleep).mockResolvedValue(undefined);
       vi.mocked(flushSync).mockImplementation((fn) => {
         if (fn) fn();
@@ -528,23 +519,27 @@ describe('navigation', () => {
     });
 
     it('should handle backwards transition type', () => {
-      const mockUpdateContent = vi.fn();
+      const mockStartViewTransition = vi.fn();
 
-      vi.mocked(get).mockReturnValue(false); // isSmallScreen = false
+      document.startViewTransition = mockStartViewTransition;
 
-      startViewTransition('backwards', mockUpdateContent);
+      startViewTransition('backwards', vi.fn());
 
-      expect(mockUpdateContent).toHaveBeenCalled();
+      expect(mockStartViewTransition).toHaveBeenCalledWith(
+        expect.objectContaining({ types: ['backwards'] }),
+      );
     });
 
     it('should handle unknown transition type', () => {
-      const mockUpdateContent = vi.fn();
+      const mockStartViewTransition = vi.fn();
 
-      vi.mocked(get).mockReturnValue(false);
+      document.startViewTransition = mockStartViewTransition;
 
-      startViewTransition('unknown', mockUpdateContent);
+      startViewTransition('unknown', vi.fn());
 
-      expect(mockUpdateContent).toHaveBeenCalled();
+      expect(mockStartViewTransition).toHaveBeenCalledWith(
+        expect.objectContaining({ types: ['unknown'] }),
+      );
     });
 
     it('should handle TypeError when startViewTransition throws', async () => {
@@ -552,7 +547,6 @@ describe('navigation', () => {
       const { sleep } = await import('@sveltia/utils/misc');
       const { flushSync } = await import('svelte');
 
-      vi.mocked(get).mockReturnValue(true); // isSmallScreen = true
       vi.mocked(sleep).mockResolvedValue(undefined);
       vi.mocked(flushSync).mockImplementation((fn) => {
         if (fn) fn();
@@ -602,15 +596,19 @@ describe('navigation', () => {
         configurable: true,
       });
 
-      vi.mocked(get).mockReturnValue(false); // Not small screen
-
       goBack('/default');
 
-      // When not on small screen, history.back should be called directly
-      expect(mockHistoryBack).toHaveBeenCalled();
+      expect(document.startViewTransition).toHaveBeenCalled();
+
+      const callArgs = /** @type {any} */ (document.startViewTransition).mock.calls[0][0];
+
+      if (callArgs?.update) {
+        callArgs.update();
+        expect(mockHistoryBack).toHaveBeenCalled();
+      }
     });
 
-    it('should call window.history.back with view transition on small screen', () => {
+    it('should call window.history.back with view transition', () => {
       const mockStartViewTransition = vi.fn();
       const mockHistoryBack = vi.fn();
 
@@ -627,7 +625,6 @@ describe('navigation', () => {
       });
 
       document.startViewTransition = mockStartViewTransition;
-      vi.mocked(get).mockReturnValue(true); // Small screen
 
       goBack('/default');
 

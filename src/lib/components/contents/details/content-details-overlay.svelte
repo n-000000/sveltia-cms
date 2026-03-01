@@ -171,13 +171,10 @@
     }
   };
 
-  onMount(() => {
-    wrapper?.addEventListener('transitionend', () => {
-      if (!$showContentOverlay) {
-        hidden = true;
-        $entryDraft = null;
-      }
-    });
+  onMount(() => () => {
+    if (!$showContentOverlay) {
+      $entryDraft = null;
+    }
   });
 
   $effect(() => {
@@ -218,8 +215,6 @@
 <div
   role="group"
   class="wrapper content-editor"
-  {hidden}
-  inert={!$showContentOverlay}
   aria-label={$_('content_editor')}
   bind:this={wrapper}
 >
@@ -324,15 +319,6 @@
     display: flex;
     flex-direction: column;
     background-color: var(--sui-secondary-background-color);
-    transition: filter 250ms;
-
-    &[hidden] {
-      display: none;
-    }
-
-    &[inert] {
-      filter: opacity(0);
-    }
 
     .cols {
       flex: auto;

@@ -16,7 +16,6 @@
 
   /** @type {HTMLElement | undefined} */
   let wrapper = $state();
-  let hidden = $state(true);
   /** @type {Blob | undefined} */
   let blob = $state();
 
@@ -46,31 +45,15 @@
   });
 
   $effect(() => {
-    wrapper?.addEventListener('transitionend', () => {
-      if (!$showAssetOverlay) {
-        hidden = true;
-      }
-    });
-  });
-
-  $effect(() => {
     if (wrapper) {
       if ($showAssetOverlay) {
-        hidden = false;
         moveFocus();
       }
     }
   });
 </script>
 
-<div
-  role="group"
-  class="wrapper"
-  {hidden}
-  inert={!$showAssetOverlay}
-  aria-label={$_('asset_editor')}
-  bind:this={wrapper}
->
+<div role="group" class="wrapper" aria-label={$_('asset_editor')} bind:this={wrapper}>
   {#key $overlaidAsset?.sha}
     <Toolbar />
     <div role="none" class="row">
@@ -121,15 +104,6 @@
     display: flex;
     flex-direction: column;
     background-color: var(--sui-secondary-background-color);
-    transition: filter 250ms;
-
-    &[hidden] {
-      display: none;
-    }
-
-    &[inert] {
-      filter: opacity(0);
-    }
 
     .row {
       flex: auto;

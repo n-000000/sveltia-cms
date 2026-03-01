@@ -38,8 +38,12 @@
     display: contents;
 
     &[inert] {
-      // Disable the keyboard shortcut for the search bar
-      display: none;
+      :global {
+        .sui.search-bar {
+          // Disable the keyboard shortcut for the search bar
+          display: none !important;
+        }
+      }
     }
 
     :global {

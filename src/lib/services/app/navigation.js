@@ -5,7 +5,6 @@ import { derived, get, writable } from 'svelte/store';
 import { showAssetOverlay } from '$lib/services/assets/view';
 import { cmsConfig } from '$lib/services/config';
 import { showContentOverlay } from '$lib/services/contents/editor';
-import { isSmallScreen } from '$lib/services/user/env';
 
 /**
  * @import { Readable, Writable } from 'svelte/store';
@@ -68,7 +67,7 @@ export const parseLocation = (href = window.location.href) => {
  * @see https://developer.chrome.com/docs/web-platform/view-transitions/same-document
  */
 export const startViewTransition = (transitionType, updateContent) => {
-  if (!get(isSmallScreen) || !document.startViewTransition) {
+  if (!document.startViewTransition) {
     updateContent();
     return;
   }

@@ -9,7 +9,7 @@
   import MainRouter from '$lib/components/global/main-router.svelte';
   import { appLogoType, appLogoURL, appTitle } from '$lib/services/app/branding';
   import { initAppLocale } from '$lib/services/app/i18n';
-  import { announcedPageStatus } from '$lib/services/app/navigation';
+  import { announcedPageStatus, startViewTransition } from '$lib/services/app/navigation';
   import { backend } from '$lib/services/backends';
   import { cmsConfigLoaded, DEV_SITE_URL, initCmsConfig } from '$lib/services/config';
   import { dataLoaded } from '$lib/services/contents';
@@ -65,6 +65,20 @@
       });
     }
   });
+
+  let transitioned = $state(false);
+
+  $effect(() => {
+    if ($dataLoaded && $user) {
+      startViewTransition('forwards', () => {
+        transitioned = true;
+      });
+    } else {
+      startViewTransition('backwards', () => {
+        transitioned = false;
+      });
+    }
+  });
 </script>
 
 <svelte:head>
@@ -101,9 +115,10 @@
         <BackendStatusIndicator />
       {/if}
       <div role="none" class="main">
-        <EntrancePage />
-        {#if $user && $dataLoaded}
+        {#if $user && $dataLoaded && transitioned}
           <MainRouter />
+        {:else}
+          <EntrancePage />
         {/if}
       </div>
     </div>
@@ -215,61 +230,67 @@
 
   :global {
     html:active-view-transition-type(forwards) {
-      &::view-transition-old(page-root) {
-        z-index: 999;
-        animation: 100ms ease-in both slide-out-to-left;
-
-        @media (prefers-reduced-motion) {
-          animation: none;
-        }
-      }
-
-      &::view-transition-new(page-root) {
-        z-index: 1000;
-        animation: 100ms ease-in both slide-in-from-right;
-
-        @media (prefers-reduced-motion) {
-          animation: none;
-        }
-      }
-
-      &:dir(rtl) {
+      @media (width < 768px) {
         &::view-transition-old(page-root) {
-          animation: 100ms ease-in both slide-out-to-right-rtl;
+          z-index: 999;
+          animation: 100ms ease-in both slide-out-to-left;
+
+          @media (prefers-reduced-motion) {
+            animation: none;
+          }
         }
 
         &::view-transition-new(page-root) {
-          animation: 100ms ease-in both slide-in-from-left-rtl;
+          @media (width < 768px) {
+            z-index: 1000;
+            animation: 100ms ease-in both slide-in-from-right;
+          }
+
+          @media (prefers-reduced-motion) {
+            animation: none;
+          }
+        }
+
+        &:dir(rtl) {
+          &::view-transition-old(page-root) {
+            animation: 100ms ease-in both slide-out-to-right-rtl;
+          }
+
+          &::view-transition-new(page-root) {
+            animation: 100ms ease-in both slide-in-from-left-rtl;
+          }
         }
       }
     }
 
     html:active-view-transition-type(backwards) {
-      &::view-transition-old(page-root) {
-        z-index: 1000;
-        animation: 100ms ease-in both slide-out-to-right;
-
-        @media (prefers-reduced-motion) {
-          animation: none;
-        }
-      }
-
-      &::view-transition-new(page-root) {
-        z-index: 999;
-        animation: 100ms ease-in both slide-in-from-left;
-
-        @media (prefers-reduced-motion) {
-          animation: none;
-        }
-      }
-
-      &:dir(rtl) {
+      @media (width < 768px) {
         &::view-transition-old(page-root) {
-          animation: 100ms ease-in both slide-out-to-left-rtl;
+          z-index: 1000;
+          animation: 100ms ease-in both slide-out-to-right;
+
+          @media (prefers-reduced-motion) {
+            animation: none;
+          }
         }
 
         &::view-transition-new(page-root) {
-          animation: 100ms ease-in both slide-in-from-right-rtl;
+          z-index: 999;
+          animation: 100ms ease-in both slide-in-from-left;
+
+          @media (prefers-reduced-motion) {
+            animation: none;
+          }
+        }
+
+        &:dir(rtl) {
+          &::view-transition-old(page-root) {
+            animation: 100ms ease-in both slide-out-to-left-rtl;
+          }
+
+          &::view-transition-new(page-root) {
+            animation: 100ms ease-in both slide-in-from-right-rtl;
+          }
         }
       }
     }

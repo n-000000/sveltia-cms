@@ -154,7 +154,10 @@
   {/snippet}
 </PageContainer>
 
-<AssetDetailsOverlay />
+{#if $showAssetOverlay}
+  <AssetDetailsOverlay />
+{/if}
+
 <EditAssetDialog />
 <RenameAssetDialog />
 
