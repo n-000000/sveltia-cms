@@ -4,12 +4,14 @@
   import { validateStringField } from '$lib/services/contents/fields/string/validate';
 
   /**
+   * @import { InternalLocaleCode } from '$lib/types/private';
    * @import { StringField, TextField } from '$lib/types/public';
    */
 
   /**
    * @typedef {object} Props
    * @property {StringField | TextField} fieldConfig Field configuration.
+   * @property {InternalLocaleCode} locale Current locale.
    * @property {string | undefined} currentValue Field value.
    */
 
@@ -17,13 +19,14 @@
   let {
     /* eslint-disable prefer-const */
     fieldConfig,
+    locale,
     currentValue,
     /* eslint-enable prefer-const */
   } = $props();
 
   const { minlength, maxlength } = $derived(fieldConfig);
   const { count, hasMin, hasMax, invalid } = $derived(
-    validateStringField({ fieldConfig, value: currentValue }),
+    validateStringField({ fieldConfig, locale, value: currentValue }).detail,
   );
 </script>
 

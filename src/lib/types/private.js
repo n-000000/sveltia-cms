@@ -1010,6 +1010,14 @@
  */
 
 /**
+ * Arguments for the validation function of a field.
+ * @typedef {object} ValidateFieldFuncArgs
+ * @property {Field} fieldConfig Field configuration.
+ * @property {InternalLocaleCode} locale Current locale.
+ * @property {any} value Current value.
+ */
+
+/**
  * Options for the `fillTemplate` method.
  * @typedef {object} FillTemplateOptions
  * @property {'preview_path' | 'media_folder'} [type] Slug type.

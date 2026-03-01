@@ -7,6 +7,7 @@ import { MEDIA_FIELD_TYPES, MIN_MAX_VALUE_FIELD_TYPES } from '$lib/services/cont
 import { validateDateTimeField } from '$lib/services/contents/fields/date-time/validate';
 import { getPairs } from '$lib/services/contents/fields/key-value/helper';
 import { getListFieldInfo } from '$lib/services/contents/fields/list/helper';
+import { validateNumberField } from '$lib/services/contents/fields/number/validate';
 import { COMPONENT_NAME_PREFIX_REGEX } from '$lib/services/contents/fields/rich-text';
 import { validateStringField } from '$lib/services/contents/fields/string/validate';
 import { getRegex } from '$lib/services/utils/misc';
@@ -20,17 +21,14 @@ import { getRegex } from '$lib/services/utils/misc';
  * FlattenedEntryContent,
  * GetFieldArgs,
  * LocaleValidityMap,
+ * ValidateFieldFuncArgs,
  * } from '$lib/types/private';
  * @import {
  * CodeField,
- * DateTimeField,
  * Field,
  * ListField,
  * LocaleCode,
  * MinMaxValueField,
- * NumberField,
- * StringField,
- * TextField,
  * } from '$lib/types/public';
  */
 
@@ -65,6 +63,20 @@ export const DEFAULT_VALIDITY = {
   rangeOverflow: false,
   patternMismatch: false,
   typeMismatch: false,
+};
+
+/**
+ * Map of functions to validate different field types. Each function receives the field config and
+ * the current value, and returns an object with the same properties as `EntryValidityState` except
+ * `valid`.
+ * @type {Record<string, (args: ValidateFieldFuncArgs) => { validity: EntryValidityState }>}
+ * @internal
+ */
+export const VALIDATE_FIELD_FUNCTIONS = {
+  datetime: validateDateTimeField,
+  number: validateNumberField,
+  string: validateStringField,
+  text: validateStringField,
 };
 
 /**
@@ -247,39 +259,10 @@ export const validateAnyField = (args) => {
     }
   }
 
-  // Check the number of characters
-  if (['string', 'text'].includes(fieldType)) {
-    const result = validateStringField({
-      fieldConfig: /** @type {StringField | TextField} */ (fieldConfig),
-      value,
-    });
+  const validateField = VALIDATE_FIELD_FUNCTIONS[fieldType];
 
-    Object.assign(validity, result.validity);
-  }
-
-  if (fieldType === 'datetime') {
-    const result = validateDateTimeField({
-      fieldConfig: /** @type {DateTimeField} */ (fieldConfig),
-      value,
-    });
-
-    Object.assign(validity, result.validity);
-  }
-
-  if (fieldType === 'number') {
-    const { value_type: valueType = 'int' } = /** @type {NumberField} */ (fieldConfig);
-
-    if (typeof min === 'number' && value !== null && Number(value) < min) {
-      validity.rangeUnderflow = true;
-    } else if (typeof max === 'number' && value !== null && Number(value) > max) {
-      validity.rangeOverflow = true;
-    }
-
-    if (valueType === 'int' || valueType === 'float') {
-      if (required && value === null) {
-        validity.typeMismatch = true;
-      }
-    }
+  if (validateField) {
+    Object.assign(validity, validateField({ fieldConfig, locale, value }).validity);
   }
 
   return new Proxy(validity, validityProxyHandler);

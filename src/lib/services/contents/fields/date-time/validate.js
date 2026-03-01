@@ -1,28 +1,25 @@
 import { getInputValue, parseDateTimeConfig } from '$lib/services/contents/fields/date-time/helper';
 
 /**
+ * @import { EntryValidityState, ValidateFieldFuncArgs } from '$lib/types/private';
  * @import { DateTimeField, DateTimeInputType } from '$lib/types/public';
  */
 
 /**
- * @typedef DateTimeFieldValidationResult
+ * @typedef DateTimeFieldValidationDetail
  * @property {boolean} hasMin Whether the field has a minimum value.
  * @property {boolean} hasMax Whether the field has a maximum value.
  * @property {boolean} invalid Whether the value is invalid.
- * @property {object} validity Validity state.
- * @property {boolean} validity.rangeUnderflow Whether the value is below the minimum.
- * @property {boolean} validity.rangeOverflow Whether the value is above the maximum.
  */
 
 /**
  * Validate a DateTime field value against the field configuration.
- * @param {object} args Arguments.
- * @param {DateTimeField} args.fieldConfig Field configuration.
- * @param {string | undefined} args.value Current value.
- * @returns {DateTimeFieldValidationResult} Result.
+ * @param {ValidateFieldFuncArgs} args Arguments.
+ * @returns {{ validity: EntryValidityState, detail: DateTimeFieldValidationDetail }} Result.
  */
 export const validateDateTimeField = ({ fieldConfig, value }) => {
-  const { type, min, max } = parseDateTimeConfig(fieldConfig);
+  const config = /** @type {DateTimeField} */ (fieldConfig);
+  const { type, min, max } = parseDateTimeConfig(config);
   const hasMin = typeof min === 'string' && !!min;
   const hasMax = typeof max === 'string' && !!max;
   let rangeUnderflow = false;
@@ -30,7 +27,7 @@ export const validateDateTimeField = ({ fieldConfig, value }) => {
 
   if (value && (hasMin || hasMax)) {
     // Convert stored value to native input format for comparison
-    const inputValue = getInputValue(value, fieldConfig);
+    const inputValue = getInputValue(value, config);
 
     if (inputValue) {
       const inputElement = document.createElement('input');
@@ -44,11 +41,11 @@ export const validateDateTimeField = ({ fieldConfig, value }) => {
     }
   }
 
+  const invalid = rangeUnderflow || rangeOverflow;
+
   return {
-    hasMin,
-    hasMax,
-    invalid: rangeUnderflow || rangeOverflow,
     validity: { rangeUnderflow, rangeOverflow },
+    detail: { hasMin, hasMax, invalid },
   };
 };
 

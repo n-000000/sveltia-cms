@@ -412,7 +412,7 @@
         {#if hint}
           <p class="hint">{@html _sanitize(hint)}</p>
         {/if}
-        <ExtraHint {fieldConfig} {currentValue} />
+        <ExtraHint {fieldConfig} {locale} {currentValue} />
       </div>
     {/if}
   </FieldEditorGroup>

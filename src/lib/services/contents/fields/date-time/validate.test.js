@@ -113,11 +113,9 @@ describe('validateDateTimeField()', () => {
       /** @type {DateTimeField} */
       const fieldConfig = { ...baseFieldConfig, type: 'time' };
 
-      expect(validateDateTimeField({ fieldConfig, value: '12:30' })).toEqual({
-        hasMin: false,
-        hasMax: false,
-        invalid: false,
+      expect(validateDateTimeField({ fieldConfig, locale: 'en', value: '12:30' })).toEqual({
         validity: { rangeUnderflow: false, rangeOverflow: false },
+        detail: { hasMin: false, hasMax: false, invalid: false },
       });
     });
 
@@ -125,11 +123,9 @@ describe('validateDateTimeField()', () => {
       /** @type {DateTimeField} */
       const fieldConfig = { ...baseFieldConfig, type: 'time' };
 
-      expect(validateDateTimeField({ fieldConfig, value: undefined })).toEqual({
-        hasMin: false,
-        hasMax: false,
-        invalid: false,
+      expect(validateDateTimeField({ fieldConfig, locale: 'en', value: undefined })).toEqual({
         validity: { rangeUnderflow: false, rangeOverflow: false },
+        detail: { hasMin: false, hasMax: false, invalid: false },
       });
     });
 
@@ -137,11 +133,9 @@ describe('validateDateTimeField()', () => {
       /** @type {DateTimeField} */
       const fieldConfig = { ...baseFieldConfig, type: 'time' };
 
-      expect(validateDateTimeField({ fieldConfig, value: '' })).toEqual({
-        hasMin: false,
-        hasMax: false,
-        invalid: false,
+      expect(validateDateTimeField({ fieldConfig, locale: 'en', value: '' })).toEqual({
         validity: { rangeUnderflow: false, rangeOverflow: false },
+        detail: { hasMin: false, hasMax: false, invalid: false },
       });
     });
   });
@@ -160,11 +154,11 @@ describe('validateDateTimeField()', () => {
         max: '2023-12-31T23:59',
       };
 
-      expect(validateDateTimeField({ fieldConfig, value: '2023-06-15T10:30:00.000Z' })).toEqual({
-        hasMin: true,
-        hasMax: true,
-        invalid: false,
+      expect(
+        validateDateTimeField({ fieldConfig, locale: 'en', value: '2023-06-15T10:30:00.000Z' }),
+      ).toEqual({
         validity: { rangeUnderflow: false, rangeOverflow: false },
+        detail: { hasMin: true, hasMax: true, invalid: false },
       });
     });
 
@@ -177,9 +171,13 @@ describe('validateDateTimeField()', () => {
         max: '2023-12-31T23:59',
       };
 
-      const result = validateDateTimeField({ fieldConfig, value: '2023-01-01T10:30:00.000Z' });
+      const result = validateDateTimeField({
+        fieldConfig,
+        locale: 'en',
+        value: '2023-01-01T10:30:00.000Z',
+      });
 
-      expect(result.invalid).toBe(true);
+      expect(result.detail.invalid).toBe(true);
       expect(result.validity.rangeUnderflow).toBe(true);
       expect(result.validity.rangeOverflow).toBe(false);
     });
@@ -193,9 +191,13 @@ describe('validateDateTimeField()', () => {
         max: '2023-06-30T23:59',
       };
 
-      const result = validateDateTimeField({ fieldConfig, value: '2023-12-25T10:30:00.000Z' });
+      const result = validateDateTimeField({
+        fieldConfig,
+        locale: 'en',
+        value: '2023-12-25T10:30:00.000Z',
+      });
 
-      expect(result.invalid).toBe(true);
+      expect(result.detail.invalid).toBe(true);
       expect(result.validity.rangeUnderflow).toBe(false);
       expect(result.validity.rangeOverflow).toBe(true);
     });
@@ -209,9 +211,13 @@ describe('validateDateTimeField()', () => {
         max: '2023-12-31T23:59',
       };
 
-      const result = validateDateTimeField({ fieldConfig, value: '2023-06-15T10:30:00.000Z' });
+      const result = validateDateTimeField({
+        fieldConfig,
+        locale: 'en',
+        value: '2023-06-15T10:30:00.000Z',
+      });
 
-      expect(result.invalid).toBe(false);
+      expect(result.detail.invalid).toBe(false);
       expect(result.validity.rangeUnderflow).toBe(false);
     });
 
@@ -224,9 +230,13 @@ describe('validateDateTimeField()', () => {
         max: '2023-06-15T10:30',
       };
 
-      const result = validateDateTimeField({ fieldConfig, value: '2023-06-15T10:30:00.000Z' });
+      const result = validateDateTimeField({
+        fieldConfig,
+        locale: 'en',
+        value: '2023-06-15T10:30:00.000Z',
+      });
 
-      expect(result.invalid).toBe(false);
+      expect(result.detail.invalid).toBe(false);
       expect(result.validity.rangeOverflow).toBe(false);
     });
 
@@ -239,11 +249,9 @@ describe('validateDateTimeField()', () => {
         max: '2023-12-31T23:59',
       };
 
-      expect(validateDateTimeField({ fieldConfig, value: undefined })).toEqual({
-        hasMin: true,
-        hasMax: true,
-        invalid: false,
+      expect(validateDateTimeField({ fieldConfig, locale: 'en', value: undefined })).toEqual({
         validity: { rangeUnderflow: false, rangeOverflow: false },
+        detail: { hasMin: true, hasMax: true, invalid: false },
       });
     });
 
@@ -256,11 +264,9 @@ describe('validateDateTimeField()', () => {
         max: '2023-12-31T23:59',
       };
 
-      expect(validateDateTimeField({ fieldConfig, value: '' })).toEqual({
-        hasMin: true,
-        hasMax: true,
-        invalid: false,
+      expect(validateDateTimeField({ fieldConfig, locale: 'en', value: '' })).toEqual({
         validity: { rangeUnderflow: false, rangeOverflow: false },
+        detail: { hasMin: true, hasMax: true, invalid: false },
       });
     });
   });
@@ -275,11 +281,9 @@ describe('validateDateTimeField()', () => {
         max: '2023-12-31',
       };
 
-      expect(validateDateTimeField({ fieldConfig, value: '2023-06-15' })).toEqual({
-        hasMin: true,
-        hasMax: true,
-        invalid: false,
+      expect(validateDateTimeField({ fieldConfig, locale: 'en', value: '2023-06-15' })).toEqual({
         validity: { rangeUnderflow: false, rangeOverflow: false },
+        detail: { hasMin: true, hasMax: true, invalid: false },
       });
     });
 
@@ -292,9 +296,9 @@ describe('validateDateTimeField()', () => {
         max: '2023-12-31',
       };
 
-      const result = validateDateTimeField({ fieldConfig, value: '2023-01-01' });
+      const result = validateDateTimeField({ fieldConfig, locale: 'en', value: '2023-01-01' });
 
-      expect(result.invalid).toBe(true);
+      expect(result.detail.invalid).toBe(true);
       expect(result.validity.rangeUnderflow).toBe(true);
       expect(result.validity.rangeOverflow).toBe(false);
     });
@@ -308,9 +312,9 @@ describe('validateDateTimeField()', () => {
         max: '2023-06-30',
       };
 
-      const result = validateDateTimeField({ fieldConfig, value: '2023-12-25' });
+      const result = validateDateTimeField({ fieldConfig, locale: 'en', value: '2023-12-25' });
 
-      expect(result.invalid).toBe(true);
+      expect(result.detail.invalid).toBe(true);
       expect(result.validity.rangeUnderflow).toBe(false);
       expect(result.validity.rangeOverflow).toBe(true);
     });
@@ -319,10 +323,10 @@ describe('validateDateTimeField()', () => {
       // prevent browsers from accepting 6-digit years, so hasMax is always true.
       /** @type {DateTimeField} */
       const fieldConfig = { ...baseFieldConfig, type: 'date', min: '2023-01-01' };
-      const result = validateDateTimeField({ fieldConfig, value: '2022-12-01' });
+      const result = validateDateTimeField({ fieldConfig, locale: 'en', value: '2022-12-01' });
 
-      expect(result.hasMin).toBe(true);
-      expect(result.hasMax).toBe(true); // default max '9999-12-31'
+      expect(result.detail.hasMin).toBe(true);
+      expect(result.detail.hasMax).toBe(true); // default max '9999-12-31'
       expect(result.validity.rangeUnderflow).toBe(true);
       expect(result.validity.rangeOverflow).toBe(false); // '2022-12-01' < '9999-12-31'
     });
@@ -330,10 +334,10 @@ describe('validateDateTimeField()', () => {
     test('should report hasMin=false and hasMax=true when only max set', () => {
       /** @type {DateTimeField} */
       const fieldConfig = { ...baseFieldConfig, type: 'date', max: '2023-06-30' };
-      const result = validateDateTimeField({ fieldConfig, value: '2023-12-25' });
+      const result = validateDateTimeField({ fieldConfig, locale: 'en', value: '2023-12-25' });
 
-      expect(result.hasMin).toBe(false);
-      expect(result.hasMax).toBe(true);
+      expect(result.detail.hasMin).toBe(false);
+      expect(result.detail.hasMax).toBe(true);
       expect(result.validity.rangeUnderflow).toBe(false);
       expect(result.validity.rangeOverflow).toBe(true);
     });
@@ -346,10 +350,15 @@ describe('validateDateTimeField()', () => {
       // document.createElement path is skipped entirely.
       /** @type {DateTimeField} */
       const fieldConfig = { ...baseFieldConfig, type: 'time', min: '08:00' };
-      const result = validateDateTimeField({ fieldConfig, value: 'not-a-valid-time' });
 
-      expect(result.hasMin).toBe(true);
-      expect(result.invalid).toBe(false);
+      const result = validateDateTimeField({
+        fieldConfig,
+        locale: 'en',
+        value: 'not-a-valid-time',
+      });
+
+      expect(result.detail.hasMin).toBe(true);
+      expect(result.detail.invalid).toBe(false);
       expect(result.validity).toEqual({ rangeUnderflow: false, rangeOverflow: false });
     });
 
@@ -359,17 +368,13 @@ describe('validateDateTimeField()', () => {
       /** @type {DateTimeField} */
       const fieldConfig = { ...baseFieldConfig, type: 'time', min: '08:00' };
 
-      expect(validateDateTimeField({ fieldConfig, value: '06:00' })).toMatchObject({
-        hasMin: true,
-        hasMax: false,
-        invalid: true,
+      expect(validateDateTimeField({ fieldConfig, locale: 'en', value: '06:00' })).toMatchObject({
         validity: { rangeUnderflow: true, rangeOverflow: false },
+        detail: { hasMin: true, hasMax: false, invalid: true },
       });
-      expect(validateDateTimeField({ fieldConfig, value: '10:00' })).toMatchObject({
-        hasMin: true,
-        hasMax: false,
-        invalid: false,
+      expect(validateDateTimeField({ fieldConfig, locale: 'en', value: '10:00' })).toMatchObject({
         validity: { rangeUnderflow: false, rangeOverflow: false },
+        detail: { hasMin: true, hasMax: false, invalid: false },
       });
     });
 
@@ -377,28 +382,26 @@ describe('validateDateTimeField()', () => {
       /** @type {DateTimeField} */
       const fieldConfig = { ...baseFieldConfig, type: 'time', min: '08:00', max: '18:00' };
 
-      expect(validateDateTimeField({ fieldConfig, value: '12:30' })).toEqual({
-        hasMin: true,
-        hasMax: true,
-        invalid: false,
+      expect(validateDateTimeField({ fieldConfig, locale: 'en', value: '12:30' })).toEqual({
         validity: { rangeUnderflow: false, rangeOverflow: false },
+        detail: { hasMin: true, hasMax: true, invalid: false },
       });
     });
     test('should return rangeUnderflow=true for time below min', () => {
       /** @type {DateTimeField} */
       const fieldConfig = { ...baseFieldConfig, type: 'time', min: '08:00', max: '18:00' };
-      const result = validateDateTimeField({ fieldConfig, value: '06:30' });
+      const result = validateDateTimeField({ fieldConfig, locale: 'en', value: '06:30' });
 
-      expect(result.invalid).toBe(true);
+      expect(result.detail.invalid).toBe(true);
       expect(result.validity.rangeUnderflow).toBe(true);
       expect(result.validity.rangeOverflow).toBe(false);
     });
     test('should return rangeOverflow=true for time above max', () => {
       /** @type {DateTimeField} */
       const fieldConfig = { ...baseFieldConfig, type: 'time', min: '08:00', max: '18:00' };
-      const result = validateDateTimeField({ fieldConfig, value: '20:00' });
+      const result = validateDateTimeField({ fieldConfig, locale: 'en', value: '20:00' });
 
-      expect(result.invalid).toBe(true);
+      expect(result.detail.invalid).toBe(true);
       expect(result.validity.rangeUnderflow).toBe(false);
       expect(result.validity.rangeOverflow).toBe(true);
     });
@@ -407,9 +410,9 @@ describe('validateDateTimeField()', () => {
       /** @type {DateTimeField} */
       const fieldConfig = { ...baseFieldConfig, type: 'time', min: '08:00', max: '18:00' };
       // Values can be stored with seconds, e.g. '12:30:00'
-      const result = validateDateTimeField({ fieldConfig, value: '12:30:00' });
+      const result = validateDateTimeField({ fieldConfig, locale: 'en', value: '12:30:00' });
 
-      expect(result.invalid).toBe(false);
+      expect(result.detail.invalid).toBe(false);
       expect(result.validity.rangeUnderflow).toBe(false);
       expect(result.validity.rangeOverflow).toBe(false);
     });
@@ -426,11 +429,15 @@ describe('validateDateTimeField()', () => {
       };
 
       // Stored as custom format '15/06/2023 10:30', which is within range
-      const result = validateDateTimeField({ fieldConfig, value: '15/06/2023 10:30' });
+      const result = validateDateTimeField({
+        fieldConfig,
+        locale: 'en',
+        value: '15/06/2023 10:30',
+      });
 
-      expect(result.hasMin).toBe(true);
-      expect(result.hasMax).toBe(true);
-      expect(result.invalid).toBe(false);
+      expect(result.detail.hasMin).toBe(true);
+      expect(result.detail.hasMax).toBe(true);
+      expect(result.detail.invalid).toBe(false);
     });
   });
 });

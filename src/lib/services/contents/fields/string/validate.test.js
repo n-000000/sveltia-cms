@@ -75,17 +75,19 @@ describe('Test validateStringField()', () => {
     };
 
     const value = 'hello';
-    const result = validateStringField({ fieldConfig, value });
+    const result = validateStringField({ fieldConfig, locale: 'en', value });
 
     expect(result).toEqual({
-      count: 5,
-      hasMin: true,
-      hasMax: true,
-      invalid: false,
       validity: {
         tooShort: false,
         tooLong: false,
         typeMismatch: false,
+      },
+      detail: {
+        count: 5,
+        hasMin: true,
+        hasMax: true,
+        invalid: false,
       },
     });
   });
@@ -99,17 +101,19 @@ describe('Test validateStringField()', () => {
     };
 
     const value = 'hi';
-    const result = validateStringField({ fieldConfig, value });
+    const result = validateStringField({ fieldConfig, locale: 'en', value });
 
     expect(result).toEqual({
-      count: 2,
-      hasMin: true,
-      hasMax: true,
-      invalid: true,
       validity: {
         tooShort: true,
         tooLong: false,
         typeMismatch: false,
+      },
+      detail: {
+        count: 2,
+        hasMin: true,
+        hasMax: true,
+        invalid: true,
       },
     });
   });
@@ -123,17 +127,19 @@ describe('Test validateStringField()', () => {
     };
 
     const value = 'this is a very long string';
-    const result = validateStringField({ fieldConfig, value });
+    const result = validateStringField({ fieldConfig, locale: 'en', value });
 
     expect(result).toEqual({
-      count: 26,
-      hasMin: true,
-      hasMax: true,
-      invalid: true,
       validity: {
         tooShort: false,
         tooLong: true,
         typeMismatch: false,
+      },
+      detail: {
+        count: 26,
+        hasMin: true,
+        hasMax: true,
+        invalid: true,
       },
     });
   });
@@ -147,17 +153,19 @@ describe('Test validateStringField()', () => {
     };
 
     const value = undefined;
-    const result = validateStringField({ fieldConfig, value });
+    const result = validateStringField({ fieldConfig, locale: 'en', value });
 
     expect(result).toEqual({
-      count: 0,
-      hasMin: true,
-      hasMax: true,
-      invalid: true,
       validity: {
         tooShort: true,
         tooLong: false,
         typeMismatch: false,
+      },
+      detail: {
+        count: 0,
+        hasMin: true,
+        hasMax: true,
+        invalid: true,
       },
     });
   });
@@ -171,17 +179,19 @@ describe('Test validateStringField()', () => {
     };
 
     const value = '';
-    const result = validateStringField({ fieldConfig, value });
+    const result = validateStringField({ fieldConfig, locale: 'en', value });
 
     expect(result).toEqual({
-      count: 0,
-      hasMin: true,
-      hasMax: true,
-      invalid: true,
       validity: {
         tooShort: true,
         tooLong: false,
         typeMismatch: false,
+      },
+      detail: {
+        count: 0,
+        hasMin: true,
+        hasMax: true,
+        invalid: true,
       },
     });
   });
@@ -195,17 +205,19 @@ describe('Test validateStringField()', () => {
     };
 
     const value = '  hello  ';
-    const result = validateStringField({ fieldConfig, value });
+    const result = validateStringField({ fieldConfig, locale: 'en', value });
 
     expect(result).toEqual({
-      count: 5,
-      hasMin: true,
-      hasMax: true,
-      invalid: false,
       validity: {
         tooShort: false,
         tooLong: false,
         typeMismatch: false,
+      },
+      detail: {
+        count: 5,
+        hasMin: true,
+        hasMax: true,
+        invalid: false,
       },
     });
   });
@@ -218,17 +230,19 @@ describe('Test validateStringField()', () => {
     };
 
     const value = 'hi';
-    const result = validateStringField({ fieldConfig, value });
+    const result = validateStringField({ fieldConfig, locale: 'en', value });
 
     expect(result).toEqual({
-      count: 2,
-      hasMin: false,
-      hasMax: true,
-      invalid: false,
       validity: {
         tooShort: false,
         tooLong: false,
         typeMismatch: false,
+      },
+      detail: {
+        count: 2,
+        hasMin: false,
+        hasMax: true,
+        invalid: false,
       },
     });
   });
@@ -241,17 +255,19 @@ describe('Test validateStringField()', () => {
     };
 
     const value = 'hello world';
-    const result = validateStringField({ fieldConfig, value });
+    const result = validateStringField({ fieldConfig, locale: 'en', value });
 
     expect(result).toEqual({
-      count: 11,
-      hasMin: true,
-      hasMax: false,
-      invalid: false,
       validity: {
         tooShort: false,
         tooLong: false,
         typeMismatch: false,
+      },
+      detail: {
+        count: 11,
+        hasMin: true,
+        hasMax: false,
+        invalid: false,
       },
     });
   });
@@ -263,17 +279,19 @@ describe('Test validateStringField()', () => {
     };
 
     const value = 'any length string';
-    const result = validateStringField({ fieldConfig, value });
+    const result = validateStringField({ fieldConfig, locale: 'en', value });
 
     expect(result).toEqual({
-      count: 17,
-      hasMin: false,
-      hasMax: false,
-      invalid: false,
       validity: {
         tooShort: false,
         tooLong: false,
         typeMismatch: false,
+      },
+      detail: {
+        count: 17,
+        hasMin: false,
+        hasMax: false,
+        invalid: false,
       },
     });
   });
@@ -287,17 +305,19 @@ describe('Test validateStringField()', () => {
     };
 
     const value = 'hello';
-    const result = validateStringField({ fieldConfig, value });
+    const result = validateStringField({ fieldConfig, locale: 'en', value });
 
     expect(result).toEqual({
-      count: 5,
-      hasMin: false, // invalid constraint
-      hasMax: false, // invalid constraint
-      invalid: false,
       validity: {
         tooShort: false,
         tooLong: false,
         typeMismatch: false,
+      },
+      detail: {
+        count: 5,
+        hasMin: false, // invalid constraint
+        hasMax: false, // invalid constraint
+        invalid: false,
       },
     });
   });
@@ -311,17 +331,19 @@ describe('Test validateStringField()', () => {
     };
 
     const value = '🚀🌟✨'; // 3 emoji characters
-    const result = validateStringField({ fieldConfig, value });
+    const result = validateStringField({ fieldConfig, locale: 'en', value });
 
     expect(result).toEqual({
-      count: 3,
-      hasMin: true,
-      hasMax: true,
-      invalid: false,
       validity: {
         tooShort: false,
         tooLong: false,
         typeMismatch: false,
+      },
+      detail: {
+        count: 3,
+        hasMin: true,
+        hasMax: true,
+        invalid: false,
       },
     });
   });
@@ -346,17 +368,19 @@ describe('Test validateStringField()', () => {
       };
 
       const value = 'user@example.com';
-      const result = validateStringField({ fieldConfig, value });
+      const result = validateStringField({ fieldConfig, locale: 'en', value });
 
       expect(result).toEqual({
-        count: 16,
-        hasMin: false,
-        hasMax: false,
-        invalid: false,
         validity: {
           tooShort: false,
           tooLong: false,
           typeMismatch: false,
+        },
+        detail: {
+          count: 16,
+          hasMin: false,
+          hasMax: false,
+          invalid: false,
         },
       });
     });
@@ -380,17 +404,19 @@ describe('Test validateStringField()', () => {
       };
 
       const value = 'user@example';
-      const result = validateStringField({ fieldConfig, value });
+      const result = validateStringField({ fieldConfig, locale: 'en', value });
 
       expect(result).toEqual({
-        count: 12,
-        hasMin: false,
-        hasMax: false,
-        invalid: true,
         validity: {
           tooShort: false,
           tooLong: false,
           typeMismatch: true,
+        },
+        detail: {
+          count: 12,
+          hasMin: false,
+          hasMax: false,
+          invalid: true,
         },
       });
     });
@@ -414,17 +440,19 @@ describe('Test validateStringField()', () => {
       };
 
       const value = 'not-an-email';
-      const result = validateStringField({ fieldConfig, value });
+      const result = validateStringField({ fieldConfig, locale: 'en', value });
 
       expect(result).toEqual({
-        count: 12,
-        hasMin: false,
-        hasMax: false,
-        invalid: true,
         validity: {
           tooShort: false,
           tooLong: false,
           typeMismatch: true,
+        },
+        detail: {
+          count: 12,
+          hasMin: false,
+          hasMax: false,
+          invalid: true,
         },
       });
     });
@@ -448,17 +476,19 @@ describe('Test validateStringField()', () => {
       };
 
       const value = 'https://example.com';
-      const result = validateStringField({ fieldConfig, value });
+      const result = validateStringField({ fieldConfig, locale: 'en', value });
 
       expect(result).toEqual({
-        count: 19,
-        hasMin: false,
-        hasMax: false,
-        invalid: false,
         validity: {
           tooShort: false,
           tooLong: false,
           typeMismatch: false,
+        },
+        detail: {
+          count: 19,
+          hasMin: false,
+          hasMax: false,
+          invalid: false,
         },
       });
     });
@@ -482,17 +512,19 @@ describe('Test validateStringField()', () => {
       };
 
       const value = 'not a url';
-      const result = validateStringField({ fieldConfig, value });
+      const result = validateStringField({ fieldConfig, locale: 'en', value });
 
       expect(result).toEqual({
-        count: 9,
-        hasMin: false,
-        hasMax: false,
-        invalid: true,
         validity: {
           tooShort: false,
           tooLong: false,
           typeMismatch: true,
+        },
+        detail: {
+          count: 9,
+          hasMin: false,
+          hasMax: false,
+          invalid: true,
         },
       });
     });
@@ -522,17 +554,19 @@ describe('Test validateStringField()', () => {
       };
 
       const value = 'any text';
-      const result = validateStringField({ fieldConfig, value });
+      const result = validateStringField({ fieldConfig, locale: 'en', value });
 
       expect(result).toEqual({
-        count: 8,
-        hasMin: false,
-        hasMax: false,
-        invalid: false,
         validity: {
           tooShort: false,
           tooLong: false,
           typeMismatch: false,
+        },
+        detail: {
+          count: 8,
+          hasMin: false,
+          hasMax: false,
+          invalid: false,
         },
       });
     });
@@ -556,17 +590,19 @@ describe('Test validateStringField()', () => {
       };
 
       const value = '';
-      const result = validateStringField({ fieldConfig, value });
+      const result = validateStringField({ fieldConfig, locale: 'en', value });
 
       expect(result).toEqual({
-        count: 0,
-        hasMin: false,
-        hasMax: false,
-        invalid: false,
         validity: {
           tooShort: false,
           tooLong: false,
           typeMismatch: false,
+        },
+        detail: {
+          count: 0,
+          hasMin: false,
+          hasMax: false,
+          invalid: false,
         },
       });
     });
@@ -590,17 +626,19 @@ describe('Test validateStringField()', () => {
       };
 
       const value = undefined;
-      const result = validateStringField({ fieldConfig, value });
+      const result = validateStringField({ fieldConfig, locale: 'en', value });
 
       expect(result).toEqual({
-        count: 0,
-        hasMin: false,
-        hasMax: false,
-        invalid: false,
         validity: {
           tooShort: false,
           tooLong: false,
           typeMismatch: false,
+        },
+        detail: {
+          count: 0,
+          hasMin: false,
+          hasMax: false,
+          invalid: false,
         },
       });
     });
@@ -626,17 +664,19 @@ describe('Test validateStringField()', () => {
         };
 
         const value = 'Contact: user@example.com';
-        const result = validateStringField({ fieldConfig, value });
+        const result = validateStringField({ fieldConfig, locale: 'en', value });
 
         expect(result).toEqual({
-          count: 25,
-          hasMin: false,
-          hasMax: false,
-          invalid: false,
           validity: {
             tooShort: false,
             tooLong: false,
             typeMismatch: false,
+          },
+          detail: {
+            count: 25,
+            hasMin: false,
+            hasMax: false,
+            invalid: false,
           },
         });
       });
@@ -661,17 +701,19 @@ describe('Test validateStringField()', () => {
         };
 
         const value = 'https://example.com/page.html';
-        const result = validateStringField({ fieldConfig, value });
+        const result = validateStringField({ fieldConfig, locale: 'en', value });
 
         expect(result).toEqual({
-          count: 29,
-          hasMin: false,
-          hasMax: false,
-          invalid: false,
           validity: {
             tooShort: false,
             tooLong: false,
             typeMismatch: false,
+          },
+          detail: {
+            count: 29,
+            hasMin: false,
+            hasMax: false,
+            invalid: false,
           },
         });
       });
@@ -697,17 +739,19 @@ describe('Test validateStringField()', () => {
         };
 
         const value = '[user@example.com]';
-        const result = validateStringField({ fieldConfig, value });
+        const result = validateStringField({ fieldConfig, locale: 'en', value });
 
         expect(result).toEqual({
-          count: 18,
-          hasMin: false,
-          hasMax: false,
-          invalid: false,
           validity: {
             tooShort: false,
             tooLong: false,
             typeMismatch: false,
+          },
+          detail: {
+            count: 18,
+            hasMin: false,
+            hasMax: false,
+            invalid: false,
           },
         });
       });
@@ -720,9 +764,9 @@ describe('Test validateStringField()', () => {
         };
 
         const value = '$ 100';
-        const result = validateStringField({ fieldConfig, value });
+        const result = validateStringField({ fieldConfig, locale: 'en', value });
 
-        expect(result.count).toBe(5);
+        expect(result.detail.count).toBe(5);
       });
 
       test('should handle missing prefix gracefully', () => {
@@ -745,17 +789,19 @@ describe('Test validateStringField()', () => {
         };
 
         const value = 'user@example.com'; // prefix not present
-        const result = validateStringField({ fieldConfig, value });
+        const result = validateStringField({ fieldConfig, locale: 'en', value });
 
         expect(result).toEqual({
-          count: 16,
-          hasMin: false,
-          hasMax: false,
-          invalid: false,
           validity: {
             tooShort: false,
             tooLong: false,
             typeMismatch: false,
+          },
+          detail: {
+            count: 16,
+            hasMin: false,
+            hasMax: false,
+            invalid: false,
           },
         });
       });
@@ -780,17 +826,19 @@ describe('Test validateStringField()', () => {
         };
 
         const value = 'user@example.com'; // suffix not present
-        const result = validateStringField({ fieldConfig, value });
+        const result = validateStringField({ fieldConfig, locale: 'en', value });
 
         expect(result).toEqual({
-          count: 16,
-          hasMin: false,
-          hasMax: false,
-          invalid: false,
           validity: {
             tooShort: false,
             tooLong: false,
             typeMismatch: false,
+          },
+          detail: {
+            count: 16,
+            hasMin: false,
+            hasMax: false,
+            invalid: false,
           },
         });
       });
@@ -816,10 +864,10 @@ describe('Test validateStringField()', () => {
         };
 
         const value = 'user@localhost';
-        const result = validateStringField({ fieldConfig, value });
+        const result = validateStringField({ fieldConfig, locale: 'en', value });
 
         expect(result.validity.typeMismatch).toBe(true);
-        expect(result.invalid).toBe(true);
+        expect(result.detail.invalid).toBe(true);
       });
 
       test('should allow domain with multiple dots', () => {
@@ -841,10 +889,10 @@ describe('Test validateStringField()', () => {
         };
 
         const value = 'user@mail.example.co.uk';
-        const result = validateStringField({ fieldConfig, value });
+        const result = validateStringField({ fieldConfig, locale: 'en', value });
 
         expect(result.validity.typeMismatch).toBe(false);
-        expect(result.invalid).toBe(false);
+        expect(result.detail.invalid).toBe(false);
       });
 
       test('should allow domain with subdomain', () => {
@@ -866,10 +914,10 @@ describe('Test validateStringField()', () => {
         };
 
         const value = 'user@mail.example.com';
-        const result = validateStringField({ fieldConfig, value });
+        const result = validateStringField({ fieldConfig, locale: 'en', value });
 
         expect(result.validity.typeMismatch).toBe(false);
-        expect(result.invalid).toBe(false);
+        expect(result.detail.invalid).toBe(false);
       });
 
       test('should handle email with no @ symbol', () => {
@@ -891,10 +939,10 @@ describe('Test validateStringField()', () => {
         };
 
         const value = 'userexample.com';
-        const result = validateStringField({ fieldConfig, value });
+        const result = validateStringField({ fieldConfig, locale: 'en', value });
 
         expect(result.validity.typeMismatch).toBe(true);
-        expect(result.invalid).toBe(true);
+        expect(result.detail.invalid).toBe(true);
       });
     });
   });
