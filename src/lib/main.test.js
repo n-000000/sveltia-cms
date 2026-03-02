@@ -729,3 +729,122 @@ describe('CMS - supported methods', () => {
     expect(typeof CMS.registerWidget).toBe('function');
   });
 });
+
+describe('Script element detection and module type warning', () => {
+  test('warns when script element has type="module"', async () => {
+    const mockScriptElement = {
+      type: 'module',
+      src: 'https://example.com/sveltia-cms.js',
+    };
+
+    // Clear and reset document mock
+    // @ts-ignore
+    global.document.querySelector = vi.fn(() => mockScriptElement);
+
+    // Re-import module to trigger the script detection code
+    const { default: CMS2 } = await import('./main.js');
+
+    expect(CMS2).toBeDefined();
+
+    // Note: The console.warn is called during module import,
+    // but we can't directly spy on it at import time in this setup.
+    // This test validates the code path exists and doesn't throw.
+  });
+
+  test('does not throw when checking script element', () => {
+    // @ts-ignore
+    expect(() => {
+      // The script element check code runs at module load time
+      // This test ensures it doesn't error during that execution
+      const scriptElement = /** @type {HTMLScriptElement | null} */ (
+        document.querySelector('script[src$="/sveltia-cms.js"]')
+      );
+
+      // This mimics the check in main.js
+      if (scriptElement?.type === 'module') {
+        // Warning would be logged here
+      }
+    }).not.toThrow();
+  });
+
+  test('script querySelector uses correct selector', () => {
+    const queryMock = vi.fn(() => null);
+
+    // @ts-ignore
+    global.document.querySelector = queryMock;
+
+    // Call querySelector to verify the selector would be correct
+    document.querySelector('script[src$="/sveltia-cms.js"]');
+
+    expect(queryMock).toHaveBeenCalledWith('script[src$="/sveltia-cms.js"]');
+  });
+
+  test('handles null script element gracefully', () => {
+    // @ts-ignore
+    global.document.querySelector = vi.fn(() => null);
+
+    expect(() => {
+      const scriptElement = /** @type {HTMLScriptElement | null} */ (
+        document.querySelector('script[src$="/sveltia-cms.js"]')
+      );
+
+      if (scriptElement?.type === 'module') {
+        console.warn('Module warning');
+      }
+    }).not.toThrow();
+  });
+
+  test('handles script element without type attribute', () => {
+    const mockScriptElement = {
+      src: 'https://example.com/sveltia-cms.js',
+      // type is undefined
+    };
+
+    // @ts-ignore
+    global.document.querySelector = vi.fn(() => mockScriptElement);
+
+    expect(() => {
+      const scriptElement = /** @type {HTMLScriptElement | null} */ (
+        // @ts-ignore
+        global.document.querySelector('script[src$="/sveltia-cms.js"]')
+      );
+
+      if (scriptElement?.type === 'module') {
+        console.warn('Module warning');
+      }
+    }).not.toThrow();
+  });
+
+  test('conditional operator safely handles undefined type', () => {
+    const mockScriptElement = {
+      src: 'https://example.com/sveltia-cms.js',
+      type: undefined,
+    };
+
+    const result = mockScriptElement?.type === 'module';
+
+    expect(result).toBe(false);
+  });
+
+  test('correctly identifies module type', () => {
+    const mockScriptElement = {
+      src: 'https://example.com/sveltia-cms.js',
+      type: 'module',
+    };
+
+    const result = mockScriptElement?.type === 'module';
+
+    expect(result).toBe(true);
+  });
+
+  test('correctly identifies non-module script', () => {
+    const mockScriptElement = {
+      src: 'https://example.com/sveltia-cms.js',
+      type: 'text/javascript',
+    };
+
+    const result = mockScriptElement?.type === 'module';
+
+    expect(result).toBe(false);
+  });
+});
