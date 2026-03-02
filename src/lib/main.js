@@ -329,14 +329,25 @@ window.createClass = createClass;
 window.createElement = createElement;
 window.h = createElement;
 
+const scriptElement = /** @type {HTMLScriptElement | null} */ (
+  document.querySelector('script[src$="/sveltia-cms.js"]')
+);
+
+// Warn if the CMS script comes with `type="module"`. Earlier versions of Sveltia CMS were built and
+// shipped as ES modules. Therefore, some users may have added the attribute to the script tag.
+// Additionally, AI tools tend to add this attribute because they have outdated information about
+// Sveltia CMS being a module. This can cause unexpected behavior when using the JavaScript API.
+if (scriptElement?.type === 'module') {
+  // eslint-disable-next-line no-console
+  console.warn(
+    'The Sveltia CMS script is not an ES module. Remove the "type="module" attribute from the ' +
+      '`<script>` tag to avoid unexpected behavior.',
+  );
+}
+
 // Automatically initialize the CMS if manual initialization is not requested AND the script is NOT
 // a module; We can’t just use `document.currentScript` for module detection because the earlier
 // versions of Sveltia CMS were built and shipped as modules
-if (
-  !window.CMS_MANUAL_INIT &&
-  (!!document.currentScript ||
-    !!document.querySelector('script[src$="/sveltia-cms.js"]') ||
-    import.meta.env.DEV)
-) {
+if (!window.CMS_MANUAL_INIT && (document.currentScript || scriptElement || import.meta.env.DEV)) {
   init();
 }
