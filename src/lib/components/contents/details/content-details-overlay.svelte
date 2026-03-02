@@ -26,6 +26,7 @@
   import {
     editorFirstPane,
     editorSecondPane,
+    MIN_PANE_SIZE,
     showContentOverlay,
     showDuplicateToast,
   } from '$lib/services/contents/editor';
@@ -75,16 +76,6 @@
   const createDisabled = $derived(!canCreateEntry(collection));
 
   const [firstPaneSize, secondPaneSize, minPaneSize] = $derived.by(() => {
-    if (
-      typeof $editorFirstPane?.width === 'number' &&
-      typeof $editorSecondPane?.width === 'number' &&
-      $editorFirstPane.width >= 30 &&
-      $editorSecondPane.width >= 30 &&
-      $editorFirstPane.width + $editorSecondPane.width === 100
-    ) {
-      return [$editorFirstPane.width, $editorSecondPane.width, 30];
-    }
-
     if (!$editorFirstPane && !$editorSecondPane) {
       return [0, 0, 0];
     }
@@ -93,7 +84,17 @@
       return [$editorFirstPane ? 100 : 0, $editorSecondPane ? 100 : 0, 0];
     }
 
-    return [50, 50, 30];
+    if (
+      typeof $editorFirstPane.width === 'number' &&
+      typeof $editorSecondPane.width === 'number' &&
+      $editorFirstPane.width >= MIN_PANE_SIZE &&
+      $editorSecondPane.width >= MIN_PANE_SIZE &&
+      $editorFirstPane.width + $editorSecondPane.width === 100
+    ) {
+      return [$editorFirstPane.width, $editorSecondPane.width, MIN_PANE_SIZE];
+    }
+
+    return [50, 50, MIN_PANE_SIZE];
   });
 
   /**
@@ -327,22 +328,24 @@
       </EmptyState>
     {:else}
       {#key collection}
-        {#if $editorFirstPane && $editorSecondPane && firstPaneSize && secondPaneSize}
-          <ResizablePaneGroup
-            onResize={({ sizes }) => {
-              if ($editorFirstPane && $editorSecondPane) {
-                [$editorFirstPane.width, $editorSecondPane.width] = sizes;
-              }
-            }}
-          >
-            <ResizablePane defaultSize={firstPaneSize} minSize={minPaneSize}>
-              {@render firstPane()}
-            </ResizablePane>
-            <ResizableHandle />
-            <ResizablePane defaultSize={secondPaneSize} minSize={minPaneSize}>
-              {@render secondPane()}
-            </ResizablePane>
-          </ResizablePaneGroup>
+        {#if $editorFirstPane && $editorSecondPane}
+          {#if firstPaneSize && secondPaneSize}
+            <ResizablePaneGroup
+              onResize={({ sizes }) => {
+                if ($editorFirstPane && $editorSecondPane) {
+                  [$editorFirstPane.width, $editorSecondPane.width] = sizes;
+                }
+              }}
+            >
+              <ResizablePane defaultSize={firstPaneSize} minSize={minPaneSize}>
+                {@render firstPane()}
+              </ResizablePane>
+              <ResizableHandle />
+              <ResizablePane defaultSize={secondPaneSize} minSize={minPaneSize}>
+                {@render secondPane()}
+              </ResizablePane>
+            </ResizablePaneGroup>
+          {/if}
         {:else if $editorFirstPane}
           {@render firstPane()}
         {:else if $editorSecondPane}

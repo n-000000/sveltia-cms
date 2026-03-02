@@ -18,6 +18,13 @@ import { writable } from 'svelte/store';
  */
 
 /**
+ * Minimum width for entry editor panes in percentage. This ensures that panes remain usable and
+ * prevents them from being resized to an unusable width.
+ * @constant {number}
+ */
+export const MIN_PANE_SIZE = 30;
+
+/**
  * @type {Writable<boolean>}
  */
 export const showContentOverlay = writable(false);
