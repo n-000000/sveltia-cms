@@ -882,6 +882,8 @@
  * @typedef {object} EntryEditorPane
  * @property {'edit' | 'preview'} mode Mode.
  * @property {InternalLocaleCode} locale Locale.
+ * @property {number} [width] Percentage width of the pane in the editor layout. The sum of the
+ * widths of all panes should be 100.
  */
 
 /**

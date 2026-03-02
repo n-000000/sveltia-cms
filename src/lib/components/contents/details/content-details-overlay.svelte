@@ -1,5 +1,14 @@
 <script>
-  import { Alert, Button, EmptyState, Group, Toast } from '@sveltia/ui';
+  import {
+    Alert,
+    Button,
+    EmptyState,
+    Group,
+    ResizableHandle,
+    ResizablePane,
+    ResizablePaneGroup,
+    Toast,
+  } from '@sveltia/ui';
   import { onMount, tick, untrack } from 'svelte';
   import { _ } from 'svelte-i18n';
 
@@ -65,6 +74,28 @@
   const limit = $derived(entryCollection?.limit ?? Infinity);
   const createDisabled = $derived(!canCreateEntry(collection));
 
+  const [firstPaneSize, secondPaneSize, minPaneSize] = $derived.by(() => {
+    if (
+      typeof $editorFirstPane?.width === 'number' &&
+      typeof $editorSecondPane?.width === 'number' &&
+      $editorFirstPane.width >= 30 &&
+      $editorSecondPane.width >= 30 &&
+      $editorFirstPane.width + $editorSecondPane.width === 100
+    ) {
+      return [$editorFirstPane.width, $editorSecondPane.width, 30];
+    }
+
+    if (!$editorFirstPane && !$editorSecondPane) {
+      return [0, 0, 0];
+    }
+
+    if (!$editorFirstPane || !$editorSecondPane) {
+      return [$editorFirstPane ? 100 : 0, $editorSecondPane ? 100 : 0, 0];
+    }
+
+    return [50, 50, 30];
+  });
+
   /**
    * Restore the pane state from IndexedDB.
    * @returns {Promise<boolean>} Whether the panes are restored.
@@ -97,13 +128,9 @@
     restoring = true;
     await tick();
     $editorFirstPane = _editorFirstPane;
-    $editorSecondPane = _editorSecondPane;
+    $editorSecondPane = $isSmallScreen || $isMediumScreen ? null : _editorSecondPane;
     await tick();
     restoring = false;
-
-    if ($isSmallScreen || $isMediumScreen) {
-      $editorSecondPane = null;
-    }
 
     return true;
   };
@@ -212,6 +239,57 @@
   });
 </script>
 
+{#snippet firstPane()}
+  {#if $editorFirstPane}
+    {@const { locale, mode } = $editorFirstPane}
+    <div class="pane-wrapper">
+      <Group
+        class="pane"
+        aria-label={$_(mode === 'edit' ? 'edit_x_locale' : 'preview_x_locale', {
+          values: { locale: getLocaleLabel(locale) ?? locale },
+        })}
+        data-locale={locale}
+        data-mode={mode}
+      >
+        <PaneHeader id="first-pane-header" thisPane={editorFirstPane} thatPane={editorSecondPane} />
+        <PaneBody
+          id="first-pane-body"
+          thisPane={editorFirstPane}
+          bind:thisPaneContentArea={firstPaneContentArea}
+          bind:thatPaneContentArea={secondPaneContentArea}
+        />
+      </Group>
+    </div>
+  {/if}
+{/snippet}
+
+{#snippet secondPane()}
+  {#if $editorSecondPane}
+    {@const { locale, mode } = $editorSecondPane}
+    <div class="pane-wrapper">
+      <Group
+        aria-label={$_(mode === 'edit' ? 'edit_x_locale' : 'preview_x_locale', {
+          values: { locale: getLocaleLabel(locale) ?? locale },
+        })}
+        data-locale={locale}
+        data-mode={mode}
+      >
+        <PaneHeader
+          id="second-pane-header"
+          thisPane={editorSecondPane}
+          thatPane={editorFirstPane}
+        />
+        <PaneBody
+          id="second-pane-body"
+          thisPane={editorSecondPane}
+          bind:thisPaneContentArea={secondPaneContentArea}
+          bind:thatPaneContentArea={firstPaneContentArea}
+        />
+      </Group>
+    </div>
+  {/if}
+{/snippet}
+
 <div
   role="group"
   class="wrapper content-editor"
@@ -248,57 +326,29 @@
         </div>
       </EmptyState>
     {:else}
-      <div role="none" class="cols">
-        {#if collection}
-          {#if $editorFirstPane}
-            <!-- Somehow we need a fallback object or we’ll get a property destructuring error -->
-            {@const { locale, mode } = $editorFirstPane ?? {}}
-            <Group
-              class="pane"
-              aria-label={$_(mode === 'edit' ? 'edit_x_locale' : 'preview_x_locale', {
-                values: { locale: getLocaleLabel(locale) ?? locale },
-              })}
-              data-locale={locale}
-              data-mode={mode}
-            >
-              <PaneHeader
-                id="first-pane-header"
-                thisPane={editorFirstPane}
-                thatPane={editorSecondPane}
-              />
-              <PaneBody
-                id="first-pane-body"
-                thisPane={editorFirstPane}
-                bind:thisPaneContentArea={firstPaneContentArea}
-                bind:thatPaneContentArea={secondPaneContentArea}
-              />
-            </Group>
-          {/if}
-          {#if $editorSecondPane}
-            <!-- Ditto -->
-            {@const { locale, mode } = $editorSecondPane ?? {}}
-            <Group
-              aria-label={$_(mode === 'edit' ? 'edit_x_locale' : 'preview_x_locale', {
-                values: { locale: getLocaleLabel(locale) ?? locale },
-              })}
-              data-locale={locale}
-              data-mode={mode}
-            >
-              <PaneHeader
-                id="second-pane-header"
-                thisPane={editorSecondPane}
-                thatPane={editorFirstPane}
-              />
-              <PaneBody
-                id="second-pane-body"
-                thisPane={editorSecondPane}
-                bind:thisPaneContentArea={secondPaneContentArea}
-                bind:thatPaneContentArea={firstPaneContentArea}
-              />
-            </Group>
-          {/if}
+      {#key collection}
+        {#if $editorFirstPane && $editorSecondPane && firstPaneSize && secondPaneSize}
+          <ResizablePaneGroup
+            onResize={({ sizes }) => {
+              if ($editorFirstPane && $editorSecondPane) {
+                [$editorFirstPane.width, $editorSecondPane.width] = sizes;
+              }
+            }}
+          >
+            <ResizablePane defaultSize={firstPaneSize} minSize={minPaneSize}>
+              {@render firstPane()}
+            </ResizablePane>
+            <ResizableHandle />
+            <ResizablePane defaultSize={secondPaneSize} minSize={minPaneSize}>
+              {@render secondPane()}
+            </ResizablePane>
+          </ResizablePaneGroup>
+        {:else if $editorFirstPane}
+          {@render firstPane()}
+        {:else if $editorSecondPane}
+          {@render secondPane()}
         {/if}
-      </div>
+      {/key}
     {/if}
   {/key}
 </div>
@@ -320,33 +370,26 @@
     flex-direction: column;
     background-color: var(--sui-secondary-background-color);
 
-    .cols {
-      flex: auto;
-      overflow: hidden;
-      display: flex;
-      gap: 4px;
-      background-color: var(--sui-secondary-background-color); // same as toolbar
+    :global {
+      .sui.resizable-pane-group {
+        background-color: var(--sui-secondary-background-color); // same as toolbar
+      }
 
-      :global {
-        & > div {
-          display: flex;
-          flex-direction: column;
-          min-width: 480px;
-          background-color: var(--sui-primary-background-color);
-          transition: all 500ms;
+      .sui.resizable-pane {
+        background-color: var(--sui-primary-background-color);
+      }
+    }
+  }
 
-          &[data-mode='edit'] {
-            flex: 1 1;
-          }
+  .pane-wrapper {
+    display: contents;
 
-          &[data-mode='preview'] {
-            flex: 2 1;
-          }
-
-          @media (width < 768px) {
-            min-width: auto;
-          }
-        }
+    :global {
+      & > .group {
+        height: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
     }
   }
