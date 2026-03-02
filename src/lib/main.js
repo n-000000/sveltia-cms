@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { isObject } from '@sveltia/utils/object';
 import createClass from 'create-react-class';
 import { createElement } from 'react';
@@ -176,7 +178,6 @@ const registerEditorComponent = (definition) => {
 
   customComponentRegistry.set(definition.id, definition);
 
-  // eslint-disable-next-line no-console
   console.warn('Preview for custom editor components are not yet supported in Sveltia CMS.');
 };
 
@@ -243,7 +244,6 @@ const registerPreviewStyle = (style, { raw = false } = {}) => {
  * @see https://sveltiacms.app/en/docs/api/preview-templates
  */
 const registerPreviewTemplate = (name, component) => {
-  // eslint-disable-next-line no-console
   console.warn('Custom preview templates are not yet supported in Sveltia CMS.');
 
   if (typeof name !== 'string') {
@@ -269,7 +269,6 @@ const registerPreviewTemplate = (name, component) => {
  * @see https://sveltiacms.app/en/docs/api/field-types
  */
 const registerFieldType = (name, control, preview, schema) => {
-  // eslint-disable-next-line no-console
   console.warn('Custom field types (widgets) are not yet supported in Sveltia CMS.');
   void [name, control, preview, schema];
 };
@@ -301,7 +300,6 @@ const CMS = new Proxy(
       }
 
       if (message) {
-        // eslint-disable-next-line no-console
         console.warn(`${message} See %s for compatibility information.`, key, COMPATIBILITY_URL);
 
         // eslint-disable-next-line jsdoc/require-description
@@ -338,7 +336,6 @@ const scriptElement = /** @type {HTMLScriptElement | null} */ (
 // Additionally, AI tools tend to add this attribute because they have outdated information about
 // Sveltia CMS being a module. This can cause unexpected behavior when using the JavaScript API.
 if (scriptElement?.type === 'module') {
-  // eslint-disable-next-line no-console
   console.warn(
     'The Sveltia CMS script is not an ES module. Remove the "type="module" attribute from the ' +
       '`<script>` tag to avoid unexpected behavior.',
