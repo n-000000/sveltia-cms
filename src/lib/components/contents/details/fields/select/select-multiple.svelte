@@ -79,10 +79,7 @@
     {required}
     {invalid}
     {options}
-    {...{
-      // @todo Fix type in SelectTags
-      values: /** @type {any} */ (currentValue),
-    }}
+    {...{ values: /** @type {any} */ (currentValue) }}
     {max}
     aria-labelledby="{fieldId}-label"
     aria-errormessage="{fieldId}-error"
@@ -91,6 +88,11 @@
     }}
     onRemoveValue={({ detail: { value } }) => {
       removeValue(value);
+    }}
+    onReorder={({ detail: { values } }) => {
+      updateList(({ valueList }) => {
+        valueList.splice(0, valueList.length, ...values);
+      });
     }}
   />
 {:else}
