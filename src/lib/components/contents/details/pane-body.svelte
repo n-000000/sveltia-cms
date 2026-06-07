@@ -93,6 +93,17 @@
   /** @type {AddEventListenerOptions} */
   const eventOptions = { capture: true, passive: true };
 
+  let isSyncing = false;
+
+  const guardedSyncScrollPosition = () => {
+    if (isSyncing) return;
+    isSyncing = true;
+    syncScrollPosition();
+    window.requestAnimationFrame(() => {
+      isSyncing = false;
+    });
+  };
+
   /**
    * Initialize the scroll synchronization by setting up event listeners and ensuring the content
    * area is ready. The content area is either the main content area or the iframe’s content area.
@@ -105,8 +116,8 @@
 
     if (thisPaneContentArea) {
       // Remove previous event listeners if they exist
-      thisPaneContentArea.removeEventListener('wheel', syncScrollPosition, eventOptions);
-      thisPaneContentArea.removeEventListener('touchmove', syncScrollPosition, eventOptions);
+      thisPaneContentArea.removeEventListener('wheel', guardedSyncScrollPosition, eventOptions);
+      thisPaneContentArea.removeEventListener('touchmove', guardedSyncScrollPosition, eventOptions);
     }
 
     // Check if the preview iframe is used in the preview mode
@@ -125,8 +136,8 @@
     if (thisPaneContentArea) {
       thisPaneContentArea.scrollTop = 0;
       // Add event listeners manually to use passive mode
-      thisPaneContentArea.addEventListener('wheel', syncScrollPosition, eventOptions);
-      thisPaneContentArea.addEventListener('touchmove', syncScrollPosition, eventOptions);
+      thisPaneContentArea.addEventListener('wheel', guardedSyncScrollPosition, eventOptions);
+      thisPaneContentArea.addEventListener('touchmove', guardedSyncScrollPosition, eventOptions);
     }
   };
 
