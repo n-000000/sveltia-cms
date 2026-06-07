@@ -19,6 +19,7 @@
   import UploadButton from '$lib/components/contents/details/fields/file/upload-button.svelte';
   import { entryDraft } from '$lib/services/contents/draft';
   import { checkDuplicates } from '$lib/services/contents/fields/file/duplicates.svelte';
+  import { allAssets } from '$lib/services/assets';
   import {
     getAssetLibraryFolderMap,
     getTargetFolderPath,
@@ -109,7 +110,7 @@
     getTargetFolderPath({ entry: $entryDraft?.originalEntry, folder: targetFolder }),
   );
   const listedAssets = $derived(
-    listAssets({ kind, folder: targetFolder, folderPath: targetFolderPath, unsavedAssets }),
+    listAssets({ kind, folder: targetFolder, folderPath: targetFolderPath, unsavedAssets, assets: $allAssets }),
   );
   // Ignore the `multiple` option when the field is used in a rich text editor component
   const multiple = $derived(isMultiple(fieldConfig) && !inEditorComponent);

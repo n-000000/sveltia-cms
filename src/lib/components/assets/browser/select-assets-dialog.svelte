@@ -21,6 +21,7 @@
   import ViewSwitcher from '$lib/components/common/page-toolbar/view-switcher.svelte';
   import { selectAssetsView, showContentOverlay } from '$lib/services/contents/editor';
   import { checkDuplicates } from '$lib/services/contents/fields/file/duplicates.svelte';
+  import { allAssets } from '$lib/services/assets';
   import {
     getTargetFolderPath,
     hasSameAsset,
@@ -144,7 +145,7 @@
     getTargetFolderPath({ entry: $entryDraft?.originalEntry, folder: selectedFolder }),
   );
   const listedAssets = $derived(
-    listAssets({ kind, folder: selectedFolder, folderPath: targetFolderPath, unsavedAssets }),
+    listAssets({ kind, folder: selectedFolder, folderPath: targetFolderPath, unsavedAssets, assets: $allAssets }),
   );
   const enabledStockAssetProviderEntries = $derived.by(() => {
     const { providers = [] } = getStockAssetMediaLibraryOptions({ fieldConfig });
