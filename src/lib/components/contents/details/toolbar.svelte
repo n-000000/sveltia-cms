@@ -97,6 +97,11 @@
       ? getEntryPreviewURL(originalEntry, defaultLocale, collection, collectionFile)
       : undefined,
   );
+  const isDraft = $derived(
+    !!($entryDraft?.currentValues?.[
+      defaultLocale ?? Object.keys($entryDraft?.currentValues ?? {})[0]
+    ]?.draft),
+  );
 
   /**
    * Go back to the previous page. If the entry is a singleton file, go to the collections list.
@@ -229,7 +234,7 @@
       </TruncatedText>
     {/if}
   </h2>
-  {#if !disabled && previewURL}
+  {#if !disabled && previewURL && !isDraft}
     <Button
       variant="tertiary"
       label={_('view_on_live_site')}
