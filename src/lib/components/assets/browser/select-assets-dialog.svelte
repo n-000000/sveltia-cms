@@ -1,5 +1,6 @@
 <script>
   import { _ } from '@sveltia/i18n';
+  import { onDestroy } from 'svelte';
   import {
     Button,
     Dialog,
@@ -287,6 +288,18 @@
       pendingFiles = [];
     }
   });
+
+  {
+    const handler = (/** @type {KeyboardEvent} */ e) => {
+      if (open && multiple && !isDefaultLibrary && (e.ctrlKey || e.metaKey) && e.key === 'a') {
+        e.preventDefault();
+        externalAssetsPanel?.selectAll();
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    onDestroy(() => window.removeEventListener('keydown', handler));
+  }
 </script>
 
 {#snippet headerItems()}

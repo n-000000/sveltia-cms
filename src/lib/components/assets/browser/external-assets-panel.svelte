@@ -257,6 +257,12 @@
       }
     });
   });
+
+  export function selectAll() {
+    if (listedAssets?.length) {
+      selectedResources = listedAssets.map(({ downloadURL: url, credit }) => ({ url, credit }));
+    }
+  }
 </script>
 
 {#snippet content()}
