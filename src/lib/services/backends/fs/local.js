@@ -70,27 +70,12 @@ export const getRootDirHandle = async ({ forceReload = false, showPicker = true 
     throw new Error('unsupported');
   }
 
-  /** @type {FileSystemDirectoryHandle | null} */
-  let handle = forceReload ? null : ((await rootDirHandleDB?.get(ROOT_DIR_HANDLE_KEY)) ?? null);
-
-  if (handle) {
-    if ((await handle.requestPermission({ mode: 'readwrite' })) !== 'granted') {
-      handle = null;
-    } else {
-      try {
-        await handle.entries().next();
-      } catch (ex) {
-        // The directory may have been (re)moved. Let the user pick the directory again
-        handle = null;
-        // eslint-disable-next-line no-console
-        console.error(ex);
-      }
-    }
-  }
-
-  if (!handle && showPicker) {
-    // This will throw `AbortError` when the user dismissed the picker
-    handle = await window.showDirectoryPicker();
+  if (showPicker) {
+    // Call showDirectoryPicker() as the very first await — while the browser's transient
+    // user-activation window is still open. Any preceding macrotask (e.g. an IndexedDB
+    // read) would expire the activation, causing Chrome to throw AbortError.
+    // This will throw `AbortError` when the user dismissed the picker.
+    const handle = await window.showDirectoryPicker();
 
     if (handle) {
       // Verify this is a project root by checking for `.git`. In a standard repository, `.git` is
@@ -110,9 +95,30 @@ export const getRootDirHandle = async ({ forceReload = false, showPicker = true 
       // If it looks fine, cache the directory handle
       await rootDirHandleDB?.set(ROOT_DIR_HANDLE_KEY, handle);
     }
+
+    return /** @type {FileSystemDirectoryHandle | null} */ (handle ?? null);
   }
 
-  return /** @type {FileSystemDirectoryHandle | null} */ (handle);
+  // Auto sign-in path (showPicker: false): try the cached handle only, no picker shown.
+  /** @type {FileSystemDirectoryHandle | null} */
+  let handle = forceReload ? null : ((await rootDirHandleDB?.get(ROOT_DIR_HANDLE_KEY)) ?? null);
+
+  if (handle) {
+    if ((await handle.requestPermission({ mode: 'readwrite' })) !== 'granted') {
+      handle = null;
+    } else {
+      try {
+        await handle.entries().next();
+      } catch (ex) {
+        // The directory may have been (re)moved. Return null so the caller can re-prompt.
+        handle = null;
+        // eslint-disable-next-line no-console
+        console.error(ex);
+      }
+    }
+  }
+
+  return handle;
 };
 
 /**
