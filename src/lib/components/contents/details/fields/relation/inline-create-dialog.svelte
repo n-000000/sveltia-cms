@@ -79,7 +79,7 @@
   };
 </script>
 
-<Dialog title={createLabel} bind:open onClose={handleClose}>
+<Dialog title={createLabel} bind:open onClose={handleClose} showOk={false} showCancel={false}>
   {#each requiredFields as field (field.name)}
     <div role="none" class="field">
       <label for="inline-{field.name}">{field.label}</label>
