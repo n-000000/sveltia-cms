@@ -24,14 +24,13 @@
    * @property {boolean} readonly Whether the field is readonly.
    * @property {boolean} invalid Whether the field is invalid.
    * @property {boolean} required Whether the field is required.
+   * @property {boolean} [draggable] Whether to show a drag handle for reordering.
    * @property {string} collectionName The collection name.
    * @property {string | undefined} fileName The file name.
    * @property {string} [typedKeyPath] Field key path for field-level media folders.
    * @property {Entry | undefined} entry The entry object.
    * @property {() => void} [onReplace] Event handler for replace action.
    * @property {() => void} [onRemove] Event handler for remove action.
-   * @property {() => void} [onMoveUp] Event handler for move up action.
-   * @property {() => void} [onMoveDown] Event handler for move down action.
    */
 
   /** @type {Props} */
@@ -42,14 +41,13 @@
     readonly = false,
     invalid = false,
     required = false,
+    draggable = false,
     collectionName = '',
     fileName = undefined,
     typedKeyPath = undefined,
     entry = undefined,
     onReplace,
     onRemove,
-    onMoveUp,
-    onMoveDown,
   } = $props();
 
   /** @type {Asset | undefined} */
@@ -153,35 +151,9 @@
 </script>
 
 <div role="none" class="filled">
-  {#if (onMoveUp || onMoveDown) && !readonly}
-    <!-- @todo Support drag & drop sorting -->
-    <div role="toolbar" class="reorder-controls">
-      <Button
-        size="small"
-        iconic
-        disabled={!onMoveUp}
-        aria-label={_('move_up')}
-        onclick={() => {
-          onMoveUp?.();
-        }}
-      >
-        {#snippet startIcon()}
-          <Icon name="arrow_upward" />
-        {/snippet}
-      </Button>
-      <Button
-        size="small"
-        iconic
-        disabled={!onMoveDown}
-        aria-label={_('move_down')}
-        onclick={() => {
-          onMoveDown?.();
-        }}
-      >
-        {#snippet startIcon()}
-          <Icon name="arrow_downward" />
-        {/snippet}
-      </Button>
+  {#if draggable && !readonly}
+    <div role="none" class="drag-handle" title={_('reorder')}>
+      <Icon name="drag_indicator" />
     </div>
   {/if}
   {#if kind && src}
@@ -290,23 +262,18 @@
     }
   }
 
-  .reorder-controls {
-    flex: none !important;
+  .drag-handle {
+    flex: none;
     display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
     align-items: center;
-    gap: 4px;
-    border: 1px solid var(--sui-control-border-color);
-    border-radius: var(--sui-control-medium-border-radius);
-    height: -moz-available;
-    height: -webkit-fill-available;
-    height: stretch;
-    background-color: var(--sui-secondary-border-color);
+    justify-content: center;
+    width: 24px;
+    color: var(--sui-secondary-foreground-color);
+    cursor: grab;
+    touch-action: none;
 
-    :global(button) {
-      padding: 0;
-      height: 16px;
+    &:active {
+      cursor: grabbing;
     }
   }
 </style>
