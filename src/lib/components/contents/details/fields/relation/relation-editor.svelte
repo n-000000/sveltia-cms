@@ -7,6 +7,7 @@
 <script>
   import InlineCreateDialog from '$lib/components/contents/details/fields/relation/inline-create-dialog.svelte';
   import SelectEditor from '$lib/components/contents/details/fields/select/select-editor.svelte';
+  import { allEntries } from '$lib/services/contents';
   import { getEntriesByCollection } from '$lib/services/contents/collection/entries';
   import { getCollectionFileEntry } from '$lib/services/contents/collection/files';
   import { entryDraft } from '$lib/services/contents/draft';
@@ -47,11 +48,13 @@
     value_field: valueField = 'title',
   } = $derived(fieldConfig);
 
-  const refEntries = $derived(
-    fileName
+  const refEntries = $derived.by(() => {
+    // eslint-disable-next-line no-unused-expressions
+    $allEntries; // reactive touch — re-runs when allEntries changes after inline create
+    return fileName
       ? [getCollectionFileEntry(collectionName, fileName)].filter((entry) => !!entry)
-      : getEntriesByCollection(collectionName),
-  );
+      : getEntriesByCollection(collectionName);
+  });
   const currentLocaleValues = $derived($entryDraft?.currentValues[locale]);
   const currentSlug = $derived($entryDraft?.currentSlugs[locale] ?? $entryDraft?.currentSlugs._);
   /** @type {SelectField} */
