@@ -50,11 +50,13 @@
 
   $effect(() => {
     if (open && targetCollection) {
-      snapshot = get(entryDraft);
-      createDraft({
-        collection: targetCollection,
-        dynamicValues: prefillText ? { [valueField]: prefillText } : {},
-      });
+      if (!snapshot) {
+        snapshot = get(entryDraft);
+        createDraft({
+          collection: targetCollection,
+          dynamicValues: prefillText ? { [valueField]: prefillText } : {},
+        });
+      }
       saving = false;
       error = '';
     }
@@ -71,6 +73,7 @@
   };
 
   const handleSave = async () => {
+    if (saving) return;
     saving = true;
     error = '';
 
