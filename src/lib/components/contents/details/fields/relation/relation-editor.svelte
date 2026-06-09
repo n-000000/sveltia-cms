@@ -5,6 +5,7 @@
   @see https://sveltiacms.app/en/docs/fields/relation
 -->
 <script>
+  import InlineCreateDialog from '$lib/components/contents/details/fields/relation/inline-create-dialog.svelte';
   import SelectEditor from '$lib/components/contents/details/fields/select/select-editor.svelte';
   import { getEntriesByCollection } from '$lib/services/contents/collection/entries';
   import { getCollectionFileEntry } from '$lib/services/contents/collection/files';
@@ -39,10 +40,13 @@
   } = $props();
 
   const {
-    // Field type-specific options
     collection: collectionName,
     file: fileName,
+    inline_create: inlineCreate = false,
+    create_label: createLabel = 'Create new…',
+    value_field: valueField = 'title',
   } = $derived(fieldConfig);
+
   const refEntries = $derived(
     fileName
       ? [getCollectionFileEntry(collectionName, fileName)].filter((entry) => !!entry)
@@ -56,6 +60,15 @@
     widget: 'select',
     options: getOptions({ locale, fieldConfig, refEntries, currentLocaleValues, currentSlug }),
   });
+
+  let dialogOpen = $state(false);
+  let searchText = $state('');
+
+  /** @param {string} text */
+  const handleCreateNew = (text) => {
+    searchText = text;
+    dialogOpen = true;
+  };
 </script>
 
 <div role="none" class="wrapper">
@@ -71,5 +84,21 @@
     {required}
     {invalid}
     sortOptions={true}
+    onCreateNew={inlineCreate ? handleCreateNew : undefined}
+    {createLabel}
   />
+
+  {#if inlineCreate}
+    <InlineCreateDialog
+      bind:open={dialogOpen}
+      {collectionName}
+      {valueField}
+      {createLabel}
+      prefillText={searchText}
+      {locale}
+      onCreated={(value) => {
+        currentValue = value;
+      }}
+    />
+  {/if}
 </div>
