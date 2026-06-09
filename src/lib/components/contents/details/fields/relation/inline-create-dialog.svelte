@@ -1,12 +1,8 @@
 <script>
-  import { Alert, Button, Dialog } from '@sveltia/ui';
-  import { get } from 'svelte/store';
+  import { Alert, Button, Dialog, TextInput } from '@sveltia/ui';
 
-  import FieldEditor from '$lib/components/contents/details/editor/field-editor.svelte';
+  import { createInlineEntry } from '$lib/services/contents/entry/inline-create';
   import { getCollection } from '$lib/services/contents/collection';
-  import { createDraft } from '$lib/services/contents/draft/create';
-  import { entryDraft } from '$lib/services/contents/draft';
-  import { saveEntry } from '$lib/services/contents/draft/save';
   import { isFieldRequired } from '$lib/services/contents/entry/fields';
 
   /**
@@ -37,38 +33,33 @@
     /* eslint-enable prefer-const */
   } = $props();
 
-  /** @type {object | undefined} */
-  let snapshot = $state(undefined);
-  let saving = $state(false);
-  let error = $state('');
-
   const targetCollection = $derived(getCollection(collectionName));
 
   const requiredFields = $derived(
     (targetCollection?.fields ?? []).filter((f) => isFieldRequired({ fieldConfig: f, locale })),
   );
 
+  /** @type {Record<string, string>} */
+  let fieldValues = $state({});
+  let saving = $state(false);
+  let error = $state('');
+
   $effect(() => {
-    if (open && targetCollection) {
-      if (!snapshot) {
-        snapshot = get(entryDraft);
-        createDraft({
-          collection: targetCollection,
-          dynamicValues: prefillText ? { [valueField]: prefillText } : {},
-        });
-      }
+    if (open) {
+      /** @type {Record<string, string>} */
+      const initial = {};
+
+      requiredFields.forEach((f) => {
+        initial[f.name] = f.name === valueField ? prefillText : '';
+      });
+
+      fieldValues = initial;
       saving = false;
       error = '';
     }
   });
 
   const handleClose = () => {
-    if (snapshot) {
-      entryDraft.set(snapshot);
-      snapshot = undefined;
-    }
-    saving = false;
-    error = '';
     open = false;
   };
 
@@ -78,14 +69,8 @@
     error = '';
 
     try {
-      const draft = get(entryDraft);
-      const newValue = $state.snapshot(draft.currentValues[draft.defaultLocale])?.[valueField];
-
-      await saveEntry();
-
-      entryDraft.set(snapshot);
-      snapshot = undefined;
-      onCreated?.(newValue ?? '');
+      const newValue = await createInlineEntry({ collectionName, fieldValues, valueField });
+      onCreated?.(newValue);
       open = false;
     } catch (e) {
       saving = false;
@@ -95,13 +80,15 @@
 </script>
 
 <Dialog title={createLabel} bind:open onClose={handleClose}>
-  {#each requiredFields as fieldCfg (fieldCfg.name)}
-    <FieldEditor
-      keyPath={fieldCfg.name}
-      typedKeyPath={fieldCfg.name}
-      {locale}
-      fieldConfig={fieldCfg}
-    />
+  {#each requiredFields as field (field.name)}
+    <div role="none" class="field">
+      <label for="inline-{field.name}">{field.label}</label>
+      <TextInput
+        id="inline-{field.name}"
+        bind:value={fieldValues[field.name]}
+        disabled={saving}
+      />
+    </div>
   {/each}
 
   {#if error}
@@ -117,6 +104,18 @@
 </Dialog>
 
 <style>
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+
+  label {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
   .actions {
     display: flex;
     justify-content: flex-end;
