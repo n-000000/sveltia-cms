@@ -32,8 +32,7 @@
   const { dropdown_threshold: dropdownThreshold = 5 } = $derived(fieldConfig);
   /** @type {string | undefined} */
   let valueType = $state(undefined);
-  let pendingSearchText = $state('');
-  let lastGoodValue = $state(currentValue);
+  let lastGoodValue = $state(currentValue !== '__inline_create__' ? currentValue : undefined);
 
   $effect(() => {
     if (!valueType) {
@@ -70,35 +69,26 @@
 </script>
 
 {#if finalOptions.length > dropdownThreshold || onCreateNew}
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div
-    role="none"
-    style="display: contents"
-    oninput={(e) => {
-      if (e.target instanceof HTMLInputElement) pendingSearchText = e.target.value;
+  <Select
+    bind:value={currentValue}
+    {readonly}
+    {required}
+    {invalid}
+    aria-labelledby="{fieldId}-label"
+    aria-errormessage="{fieldId}-error"
+    onChange={() => {
+      if (currentValue === '__inline_create__') {
+        const text =
+          document.querySelector('.content.combobox .sui.search-bar input')?.value ?? '';
+        currentValue = lastGoodValue;
+        onCreateNew?.(text);
+      }
     }}
   >
-    <Select
-      bind:value={currentValue}
-      {readonly}
-      {required}
-      {invalid}
-      aria-labelledby="{fieldId}-label"
-      aria-errormessage="{fieldId}-error"
-      onChange={() => {
-        if (currentValue === '__inline_create__') {
-          const text = pendingSearchText;
-          currentValue = lastGoodValue;
-          pendingSearchText = '';
-          onCreateNew?.(text);
-        }
-      }}
-    >
-      {#each finalOptions as { label, value, searchValue } (value)}
-        <Option {label} {value} {valueType} {searchValue} selected={value === currentValue} wrap />
-      {/each}
-    </Select>
-  </div>
+    {#each finalOptions as { label, value, searchValue } (value)}
+      <Option {label} {value} {valueType} {searchValue} selected={value === currentValue} wrap />
+    {/each}
+  </Select>
 {:else}
   <RadioGroup
     {readonly}
