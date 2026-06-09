@@ -10,6 +10,8 @@
   /**
    * @typedef {object} Props
    * @property {SelectFieldValue | undefined} currentValue Field value.
+   * @property {((searchText: string) => void) | undefined} [onCreateNew] Inline-create callback.
+   * @property {string} [createLabel] Label for the sentinel option.
    */
 
   /** @type {SelectFieldSelectorProps & Props} */
@@ -22,12 +24,16 @@
     readonly = false,
     invalid = false,
     options,
+    onCreateNew = undefined,
+    createLabel = 'Create new…',
     /* eslint-enable prefer-const */
   } = $props();
 
   const { dropdown_threshold: dropdownThreshold = 5 } = $derived(fieldConfig);
   /** @type {string | undefined} */
   let valueType = $state(undefined);
+  let pendingSearchText = $state('');
+  let lastGoodValue = $state(currentValue);
 
   $effect(() => {
     if (!valueType) {
@@ -36,33 +42,63 @@
   });
 
   $effect(() => {
-    // Allow to deselect an option if the field is optional
-    if (!required && !options.some(({ value }) => !value)) {
-      options = [
+    if (currentValue !== '__inline_create__') {
+      lastGoodValue = currentValue;
+    }
+  });
+
+  const finalOptions = $derived.by(() => {
+    let opts = [...options];
+
+    if (!required && !opts.some(({ value }) => !value)) {
+      opts = [
         {
           label: _('unselected_option'),
           value: valueType === 'number' ? null : '',
           searchValue: '',
         },
-        ...options,
+        ...opts,
       ];
     }
+
+    if (onCreateNew) {
+      opts = [...opts, { label: createLabel, value: '__inline_create__', searchValue: '' }];
+    }
+
+    return opts;
   });
 </script>
 
-{#if options.length > dropdownThreshold}
-  <Select
-    bind:value={currentValue}
-    {readonly}
-    {required}
-    {invalid}
-    aria-labelledby="{fieldId}-label"
-    aria-errormessage="{fieldId}-error"
+{#if finalOptions.length > dropdownThreshold || onCreateNew}
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div
+    role="none"
+    style="display: contents"
+    oninput={(e) => {
+      if (e.target instanceof HTMLInputElement) pendingSearchText = e.target.value;
+    }}
   >
-    {#each options as { label, value, searchValue } (value)}
-      <Option {label} {value} {valueType} {searchValue} selected={value === currentValue} wrap />
-    {/each}
-  </Select>
+    <Select
+      bind:value={currentValue}
+      {readonly}
+      {required}
+      {invalid}
+      aria-labelledby="{fieldId}-label"
+      aria-errormessage="{fieldId}-error"
+      onChange={() => {
+        if (currentValue === '__inline_create__') {
+          const text = pendingSearchText;
+          currentValue = lastGoodValue;
+          pendingSearchText = '';
+          onCreateNew?.(text);
+        }
+      }}
+    >
+      {#each finalOptions as { label, value, searchValue } (value)}
+        <Option {label} {value} {valueType} {searchValue} selected={value === currentValue} wrap />
+      {/each}
+    </Select>
+  </div>
 {:else}
   <RadioGroup
     {readonly}
@@ -74,7 +110,7 @@
       currentValue = value;
     }}
   >
-    {#each options as { label, value } (value)}
+    {#each finalOptions as { label, value } (value)}
       <Radio {label} {value} {valueType} checked={value === currentValue} />
     {/each}
   </RadioGroup>
