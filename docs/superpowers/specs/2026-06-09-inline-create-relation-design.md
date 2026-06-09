@@ -58,7 +58,7 @@ Two new optional properties on any `relation` widget:
 relation-editor.svelte
   ├── reads fieldConfig.inline_create and fieldConfig.create_label
   ├── owns: let dialogOpen = $state(false)
-  ├── passes onCreateNew callback + createLabel to SelectEditor
+  ├── passes onCreateNew(searchText) callback + createLabel to SelectEditor
   └── mounts InlineCreateDialog (new component)
 
 select-editor.svelte
@@ -67,9 +67,11 @@ select-editor.svelte
 select-single.svelte
   ├── when onCreateNew is defined:
   │     appends { label: createLabel, value: '__inline_create__' } to options
-  │     uses local value intermediary to intercept sentinel selection
-  │     calls onCreateNew() instead of propagating '__inline_create__' to currentValue
-  └── sentinel never leaves this component
+  │     binds a ref to the Select wrapper element (bind:this={selectEl})
+  │     uses local value intermediary to intercept sentinel selection:
+  │       searchText = selectEl?.querySelector('input')?.value ?? ''
+  │       calls onCreateNew(searchText) instead of propagating '__inline_create__'
+  └── sentinel never leaves this component; searchText read from DOM at interception time
 
 inline-create-dialog.svelte  ← NEW
   └── all save logic isolated here (see Save Flow)
@@ -97,14 +99,15 @@ Field rendering reuses the existing `FieldEditor` component. No custom field ren
 
 ```
 1. User selects "Create new…" in dropdown
-   → relation-editor sets dialogOpen = true
+   → select-single captures searchText from combobox input at that moment
+   → relation-editor receives onCreateNew(searchText), sets dialogOpen = true
 
 2. Dialog mounts / opens:
    a. snapshot = get(entryDraft)
    b. targetCollection = getCollection(fieldConfig.collection)
       // from $lib/services/contents/collection — already imported in relation-editor.svelte context
-   c. createDraft({ collection: targetCollection, dynamicValues: {} })
-      // entryDraft is now the new empty draft for the target collection
+   c. createDraft({ collection: targetCollection, dynamicValues: { [value_field]: searchText } })
+      // pre-populates value_field (e.g. title) with the user's search text if non-empty
       // non-required fields get their schema defaults (e.g. draft: false on authors)
    d. render FieldEditor for each required field
 
@@ -142,7 +145,7 @@ After step 3f, `currentValue` on the relation field is set to `newValue` (the `v
 | `src/lib/components/contents/details/fields/relation/relation-editor.svelte` | modify | read `inline_create`/`create_label`; pass `onCreateNew` to SelectEditor; mount dialog |
 | `src/lib/components/contents/details/fields/relation/inline-create-dialog.svelte` | **new** | entryDraft swap + FieldEditor rendering + saveEntry flow |
 | `src/lib/components/contents/details/fields/select/select-editor.svelte` | modify | thread `onCreateNew` + `createLabel` optional props |
-| `src/lib/components/contents/details/fields/select/select-single.svelte` | modify | sentinel option + local value interceptor |
+| `src/lib/components/contents/details/fields/select/select-single.svelte` | modify | sentinel option + DOM ref + local value interceptor; passes searchText to onCreateNew |
 | `/home/n0xx/Code/infra/service/musictide/static/admin/config.yaml` | modify | `inline_create: true` + `create_label` on 4 relation fields |
 
 ---
@@ -150,6 +153,5 @@ After step 3f, `currentValue` on the relation field is set to `newValue` (the `v
 ## Out-of-scope / Future
 
 - **Multi-select inline create** — not needed for musictide; omitted intentionally
-- **Pre-fill from search text** — if the user typed "Ana" in the combobox before selecting "Create new…", pre-populating the title field with "Ana" would be a nice touch; deferred
 - **Nested inline create** — creating an entry that itself has a relation field; not handled, not needed
 - **PT-PT i18n string for default label** — "Create new…" default falls back to English; musictide fields all specify `create_label` explicitly in Portuguese so this is a non-issue in practice
