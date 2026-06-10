@@ -84,9 +84,17 @@
         return;
       }
 
-      // Scroll the other pane to the corresponding element, adjusting for the current scroll
-      // position and the ratio of the scroll position within the element.
-      thatPaneContentArea.scrollTop = thatElement.offsetTop - y + thatElement.clientHeight * ratio;
+      const newScrollTop = thatElement.offsetTop - y + thatElement.clientHeight * ratio;
+
+      // If the element-based calculation would cause a large jump (e.g. crossing a section
+      // boundary where the two panes have different heights), fall back to ratio-based sync to
+      // avoid jarring movement. Threshold: half a viewport height.
+      if (Math.abs(newScrollTop - thatPaneContentArea.scrollTop) > thatPaneContentArea.clientHeight * 0.5) {
+        thatPaneContentArea.scrollTop = thatPaneContentArea.scrollHeight * scrollRatio;
+        return;
+      }
+
+      thatPaneContentArea.scrollTop = newScrollTop;
     });
   };
 
