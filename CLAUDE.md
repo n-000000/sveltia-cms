@@ -100,13 +100,13 @@ These are the issues this fork exists to fix:
 | Preview↔edit pane scroll sync feedback loop | ✅ done | `c378756d` |
 | Local repo AbortError — `showDirectoryPicker` before IndexedDB | ✅ done | `43b08161` |
 | Sign In with Google button (`hasGoogleAuth` gated on `base_url`) | ✅ done | `5bbf472b` |
-| PT-PT locale (`src/lib/locales/pt.yaml`) | owner: user | — |
+| PT-PT locale (`src/lib/locales/pt.yaml`) | ✅ done | `9502772e` |
 | Scroll broken in thumbnail/grid mode (`simple-image-grid.svelte`) | ✅ resolved (incidental) | — |
 | Pre-select uploaded images after upload completes | deferred | — |
 | Multi-select + drag-drop gallery ordering | ✅ done | `527de591` |
 | DropZone false-positive on SortableJS drop (type mismatch dialog) | ✅ done | `ab6f2f3b` |
-| Preview↔image selection link | backlog | — |
-| Scroll sync jump — section entering/leaving viewport moves edit pane | backlog | — |
+| Preview↔image selection link (click syncs preview pane back) | ✅ done | `c9718110` |
+| Scroll sync jump — section entering/leaving viewport moves edit pane | ✅ done | `d5b00f35` |
 | Inline create Events/Authors from relation field | ✅ done | `ee075e7b` |
 | CMS user auth — HMAC tokens, no emails in repo | ✅ done | musictide `2bbe7d5` |
 
