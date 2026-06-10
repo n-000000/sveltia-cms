@@ -81,6 +81,8 @@ The photographer (early 50s, primary content editor) uses the CMS mid-event, pos
 
 **Google SSO (`musictide-auth` Worker):** Sveltia is configured with `base_url: https://musictide-auth.leftfield.workers.dev`. The Worker serves a Google sign-in page at `/auth?provider=github&site_id=<domain>`, verifies the Google JWT against KV, and posts `authorization:github:success:{token}` back. Sveltia's existing OAuth message handler picks this up — no additional plumbing needed.
 
+**Auth architecture (as of 2026-06-10):** KV keys are `HMAC-SHA256(GLOBAL_SALT, google_sub)` — opaque, stable, no PII in the repo. No raw emails anywhere in git history (purged via `git filter-repo`). KV values are `{"name":"..."}` only; email comes from Google JWT at login time. Legacy email-token entries (pre-migration) are auto-upgraded to sub-token on first login. Worker endpoints: `/verify` (dual-path lookup), `/compute-token` (PAT-auth'd, also upserts KV so new users can log in immediately without waiting for the sync webhook). `data/cms-users/*.json` files contain `{name, token}` — token is `HMAC(salt, email)` bootstrapped at creation, replaced by sub-token in KV after first login. Tests: `workers/musictide-auth/src/index.test.js` (18 tests).
+
 **Security constraint:** Do NOT add `localhost` to the Worker's `ALLOWED_DOMAINS`. A local attacker could steal the service-account GitHub PAT. Local dev uses the "Work with Local Repository" path (File System Access API, no auth).
 
 ---
@@ -104,7 +106,8 @@ These are the issues this fork exists to fix:
 | Multi-select + drag-drop gallery ordering | ✅ done | `527de591` |
 | DropZone false-positive on SortableJS drop (type mismatch dialog) | ✅ done | `ab6f2f3b` |
 | Preview↔image selection link | deferred | — |
-| Inline create Events/Authors from relation field | next | — |
+| Inline create Events/Authors from relation field | ✅ done | `ee075e7b` |
+| CMS user auth — HMAC tokens, no emails in repo | ✅ done | musictide `2bbe7d5` |
 
 Design specs and implementation plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 
