@@ -102,10 +102,11 @@ These are the issues this fork exists to fix:
 | Sign In with Google button (`hasGoogleAuth` gated on `base_url`) | ✅ done | `5bbf472b` |
 | PT-PT locale (`src/lib/locales/pt.yaml`) | owner: user | — |
 | Scroll broken in thumbnail/grid mode (`simple-image-grid.svelte`) | ✅ resolved (incidental) | — |
-| Pre-select uploaded images after upload completes | backlog | — |
+| Pre-select uploaded images after upload completes | deferred | — |
 | Multi-select + drag-drop gallery ordering | ✅ done | `527de591` |
 | DropZone false-positive on SortableJS drop (type mismatch dialog) | ✅ done | `ab6f2f3b` |
-| Preview↔image selection link | deferred | — |
+| Preview↔image selection link | backlog | — |
+| Scroll sync jump — section entering/leaving viewport moves edit pane | backlog | — |
 | Inline create Events/Authors from relation field | ✅ done | `ee075e7b` |
 | CMS user auth — HMAC tokens, no emails in repo | ✅ done | musictide `2bbe7d5` |
 
