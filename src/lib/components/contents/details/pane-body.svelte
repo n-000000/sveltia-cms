@@ -67,7 +67,8 @@
 
       if (!thisElement) {
         // Calculate the scroll position based on the current scroll position of the this pane
-        thatPaneContentArea.scrollTop = thatPaneContentArea.scrollHeight * scrollRatio;
+        thatPaneContentArea.scrollTop =
+          (thatPaneContentArea.scrollHeight - thatPaneContentArea.clientHeight) * scrollRatio;
 
         return;
       }
@@ -84,13 +85,23 @@
         return;
       }
 
-      const newScrollTop = thatElement.offsetTop - y + thatElement.clientHeight * ratio;
+      // Use getBoundingClientRect for non-iframe panes: offsetTop is relative to offsetParent
+      // (which may not be the scrollable container), causing wrong scroll targets.
+      const thatY = isIframe ? 0 : thatPaneContentArea.getBoundingClientRect().y;
+      const newScrollTop = isIframe
+        ? thatElement.offsetTop - thatY + thatElement.clientHeight * ratio
+        : thatPaneContentArea.scrollTop +
+          (thatElement.getBoundingClientRect().top - thatY) +
+          thatElement.clientHeight * ratio;
+      const delta = Math.abs(newScrollTop - thatPaneContentArea.scrollTop);
+      const threshold = thatPaneContentArea.clientHeight * 0.5;
 
       // If the element-based calculation would cause a large jump (e.g. crossing a section
       // boundary where the two panes have different heights), fall back to ratio-based sync to
       // avoid jarring movement. Threshold: half a viewport height.
-      if (Math.abs(newScrollTop - thatPaneContentArea.scrollTop) > thatPaneContentArea.clientHeight * 0.5) {
-        thatPaneContentArea.scrollTop = thatPaneContentArea.scrollHeight * scrollRatio;
+      if (delta > threshold) {
+        thatPaneContentArea.scrollTop =
+          (thatPaneContentArea.scrollHeight - thatPaneContentArea.clientHeight) * scrollRatio;
         return;
       }
 

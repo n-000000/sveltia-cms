@@ -52,7 +52,7 @@ git fetch upstream --tags
 | Path | What it is |
 |------|-----------|
 | `src/lib/locales/en.yaml` | English UI strings (source of truth for PT-PT translation) |
-| `src/lib/locales/pt.yaml` | **Create this** — PT-PT translation |
+| `src/lib/locales/pt.yaml` | PT-PT translation (370 keys) |
 | `src/lib/components/entrance/sign-in.svelte` | Sign-in UI; Google SSO button (`hasGoogleAuth` derived, gates on `base_url`) |
 | `src/lib/services/backends/fs/local.js` | Local backend; `getRootDirHandle` calls `showDirectoryPicker` before any IndexedDB read |
 | `src/lib/services/backends/fs/local.test.js` | Unit tests for local backend (34 passing, including ordering-guarantee test) |
@@ -93,22 +93,23 @@ These are the issues this fork exists to fix:
 
 | Task | Status | Commit |
 |------|--------|--------|
-| Hide "View on live site" when `draft: true` | ✅ done | `cb680d1c` |
-| Ctrl+A selects all assets in media picker (internal) | ✅ done | `e1bfee20` |
-| Ctrl+A selects all assets in external/R2 media picker | ✅ done | `848e0068` |
+| Hide "View on live site" when `draft: true` | ✅ validated | `cb680d1c` |
+| Ctrl+A selects all assets in media picker (internal) | ✅ validated | `e1bfee20` |
+| Ctrl+A selects all assets in external/R2 media picker | ✅ validated | `848e0068` |
 | Media list cache — allAssets reactive to store updates | ✅ done | `7dd4c149` |
 | Preview↔edit pane scroll sync feedback loop | ✅ done | `c378756d` |
-| Local repo AbortError — `showDirectoryPicker` before IndexedDB | ✅ done | `43b08161` |
-| Sign In with Google button (`hasGoogleAuth` gated on `base_url`) | ✅ done | `5bbf472b` |
-| PT-PT locale (`src/lib/locales/pt.yaml`) | ✅ done | `9502772e` |
+| Local repo AbortError — `showDirectoryPicker` before IndexedDB | ✅ validated | `43b08161` |
+| Sign In with Google button (`hasGoogleAuth` gated on `base_url`) | ✅ validated | `5bbf472b` |
+| PT-PT locale (`src/lib/locales/pt.yaml`) | ✅ validated | `9502772e` |
 | Scroll broken in thumbnail/grid mode (`simple-image-grid.svelte`) | ✅ resolved (incidental) | — |
 | Pre-select uploaded images after upload completes | deferred | — |
-| Multi-select + drag-drop gallery ordering | ✅ done | `527de591` |
-| DropZone false-positive on SortableJS drop (type mismatch dialog) | ✅ done | `ab6f2f3b` |
-| Preview↔image selection link (click syncs preview pane back) | ✅ done | `c9718110` |
-| Scroll sync jump — section entering/leaving viewport moves edit pane | ✅ done | `d5b00f35` |
-| Inline create Events/Authors from relation field | ✅ done | `ee075e7b` |
-| CMS user auth — HMAC tokens, no emails in repo | ✅ done | musictide `2bbe7d5` |
+| Multi-select + drag-drop gallery ordering | ✅ validated | `527de591` |
+| DropZone false-positive on SortableJS drop (type mismatch dialog) | ✅ validated | `ab6f2f3b` |
+| Preview↔image selection link (click syncs preview pane back) | ✅ done | `c9718110` + current |
+| Scroll sync jump — offsetTop wrong ancestor, ratio fallback overflow | ✅ done | `d5b00f35` + current |
+| Inline create Events/Authors from relation field | ✅ validated | `ee075e7b` |
+| CMS user auth — HMAC tokens, no emails in repo | ✅ validated | musictide `2bbe7d5` |
+| Toast Alert guard when message undefined | ✅ done (untestable in single-locale setup) | `f4d632d4` |
 
 Design specs and implementation plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 
@@ -154,3 +155,33 @@ ls -lh package/dist/sveltia-cms.js  # expect ~1.8–2.2 MB
 ```
 
 No errors = good. Warnings about unused exports are acceptable.
+
+---
+
+## Environment / Tooling
+
+`pnpm` is already installed in this environment. Do not interrupt builds to install or verify it.
+
+---
+
+## Security
+
+Before committing any plan, doc, or config file, scan for secrets (PATs, OAuth tokens, API keys, emails) and never commit them. Use placeholders or env vars instead. A leaked PAT in a committed plan doc has previously required a `git filter-repo` history rewrite to scrub.
+
+---
+
+## Build & Deploy
+
+Never assume Cloudflare Pages does clean builds. The `public/` directory can be stale — verify build artifacts and clear them when debugging unexpected output.
+
+---
+
+## Sveltia CMS / Frontend
+
+When fixing Sveltia CMS UI bugs (toasts, thumbnails, selectors, etc.), inspect the actual rendered DOM via Playwright `browser_evaluate` to find correct query selectors rather than guessing from component structure. Guessed selectors have consistently missed Sveltia's real DOM layout.
+
+---
+
+## Documentation
+
+Validate documentation against the actual implemented code, not just plan docs. Features and field names described in plans may never have been built — cross-check against source before documenting.
