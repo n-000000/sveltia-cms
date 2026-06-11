@@ -344,14 +344,16 @@
 
 <Toast id={$copyFromLocaleToast.id} bind:show={$copyFromLocaleToast.show}>
   {@const { status, message, count, sourceLanguage } = $copyFromLocaleToast}
-  <Alert {status}>
-    {_(`editor.${message}`, {
-      values: {
-        count,
-        source: sourceLanguage ? (getLocaleLabel(sourceLanguage) ?? sourceLanguage) : '',
-      },
-    })}
-  </Alert>
+  {#if message}
+    <Alert {status}>
+      {_(`editor.${message}`, {
+        values: {
+          count,
+          source: sourceLanguage ? (getLocaleLabel(sourceLanguage) ?? sourceLanguage) : '',
+        },
+      })}
+    </Alert>
+  {/if}
 </Toast>
 
 <EditSlugDialog bind:open={showEditSlugDialog} />
