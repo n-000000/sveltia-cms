@@ -77,7 +77,7 @@ The photographer (early 50s, primary content editor) uses the CMS mid-event, pos
 
 **Musictide's `admin/index.html` monkey-patches:** The fetch interceptor, author injection, credential pre-seeding, preSave hook, and stock photo hack are permanent integrations and stay in `index.html`. UX patches (Ctrl+A select-all, upload toast, thumbnail fix) will move into the fork — once a fork fix supersedes one, remove the corresponding block from `index.html` in the musictide repo.
 
-**Note:** Ctrl+A select-all (`e1bfee20`) is now handled by the fork. The corresponding monkey-patch in `index.html` can be removed.
+**Note:** Ctrl+A select-all (`e1bfee20`) is now handled by the fork. The corresponding monkey-patch has been removed from musictide's `index.html` (musictide `b76c50f`).
 
 **Google SSO (`musictide-auth` Worker):** Sveltia is configured with `base_url: https://musictide-auth.leftfield.workers.dev`. The Worker serves a Google sign-in page at `/auth?provider=github&site_id=<domain>`, verifies the Google JWT against KV, and posts `authorization:github:success:{token}` back. Sveltia's existing OAuth message handler picks this up — no additional plumbing needed.
 
@@ -102,7 +102,7 @@ These are the issues this fork exists to fix:
 | Sign In with Google button (`hasGoogleAuth` gated on `base_url`) | ✅ validated | `5bbf472b` |
 | PT-PT locale (`src/lib/locales/pt.yaml`) | ✅ validated | `9502772e` |
 | Scroll broken in thumbnail/grid mode (`simple-image-grid.svelte`) | ✅ resolved (incidental) | — |
-| Pre-select uploaded images after upload completes | deferred | — |
+| Gallery picker auto-selects all R2 files when opened (no Ctrl+A needed) | ✅ validated | `414e215d` |
 | Multi-select + drag-drop gallery ordering | ✅ validated | `527de591` |
 | DropZone false-positive on SortableJS drop (type mismatch dialog) | ✅ validated | `ab6f2f3b` |
 | Preview↔image selection link (click syncs preview pane back) | ✅ done | `c9718110` + current |
@@ -110,6 +110,7 @@ These are the issues this fork exists to fix:
 | Inline create Events/Authors from relation field | ✅ validated | `ee075e7b` |
 | CMS user auth — HMAC tokens, no emails in repo | ✅ validated | musictide `2bbe7d5` |
 | Toast Alert guard when message undefined | ✅ done (untestable in single-locale setup) | `f4d632d4` |
+| Unify "Colaboradores" and "Utilizadores" collections into Sveltia | pending | — |
 
 Design specs and implementation plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 
