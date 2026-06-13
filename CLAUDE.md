@@ -118,9 +118,16 @@ These are the issues this fork exists to fix:
 
 ### Backlog notes
 
-**Unify Colaboradores / Utilizadores:**
-- Both collections have an email field. The **Colaboradores** (Authors) email is public-facing (shown on the site). The **Utilizadores** (CMS users) email is for auth/login only and must never appear in git history.
-- The top-priority issue (cms-users email read-only from JWT) is a prerequisite — resolve it first to understand how the unified model handles auth email vs public email.
+**Unify Colaboradores / Utilizadores — agreed design:**
+- **Colaboradores is removed entirely.** Utilizadores/Users becomes the single collection covering both CMS access and public contributor profiles.
+- All Colaboradores fields are added to Users as optional: `photo` (image), `body` (bio text), `public_email` (string — the old Colaboradores `email`, renamed; completely independent of auth), `instagram`, `facebook`, `x_twitter`, `bluesky`, `tiktok`, `youtube`, `spotify`, `draft`.
+- `name` unifies both (`cms-users.name` = git commit author = `authors.title` = display name).
+- The auth email field and its preSave hook remain as-is — `public_email` is a separate field.
+
+**Open questions before implementation:**
+1. **Storage location:** `cms-users` is `data/cms-users/*.json`; `authors` is `content/authors/*.md` (Hugo taxonomy). Merging means choosing one. Moving to `data/` breaks Hugo author taxonomy pages. Recommended: keep `content/authors/` as the merged folder, change format to markdown frontmatter, drop the JSON-specific cms-users folder (requires migrating existing `data/cms-users/*.json` files).
+2. **Article relation migration:** Articles currently reference the `authors` collection by `title`. After merge the relation field stays pointing at authors (unchanged if we keep `content/authors/`), but the value field must align with the new identifier (`name` or `title` — pick one consistently).
+3. **Existing file migration:** `content/authors/*.md` stays. `data/cms-users/*.json` files need to be migrated into `content/authors/` with a new auth-specific frontmatter block (`token:`). Auth Worker KV entries are unaffected.
 
 **Disable inline creation of Colaboradores/Utilizadores from Article form:**
 - Adding people to the platform mid-article is an accident waiting to happen. Inline creation (`ee075e7b`) should be scoped to Events only; the relation fields pointing at Authors/Users should be lookup-only.

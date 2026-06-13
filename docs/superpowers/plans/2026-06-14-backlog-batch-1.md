@@ -401,30 +401,37 @@ Mark the gallery click row as `✅ validated` in `sveltia-cms/CLAUDE.md`. Commit
 
 ---
 
-## Task 5 — Unify Colaboradores/Utilizadores (design only — invoke brainstorming)
+## Task 5 — Unify Colaboradores/Utilizadores (design clarification + brainstorm)
 
-**This task produces a design doc, not code. Do NOT write implementation code in this task.**
+**This task produces a design doc, not code.**
 
-**Prerequisite:** Task 3 Phase A must be complete. The brainstorming should be informed by the actual state of the email/token split.
+**Agreed design (confirmed by user):**
+- Colaboradores collection is removed; Utilizadores/Users becomes the single collection.
+- All Colaboradores fields are added to Users as optional: `photo`, `body` (bio), `public_email` (the old Colaboradores `email` — completely independent from auth), plus all social fields (`instagram`, `facebook`, `x_twitter`, `bluesky`, `tiktok`, `youtube`, `spotify`) and `draft`.
+- `name` unifies both (`cms-users.name` = `authors.title`).
+- The auth email preSave hook and `token` field remain untouched — `public_email` is a separate, committable field.
+
+**Open questions the brainstorm must resolve before implementation:**
+
+1. **Storage format and location.** `cms-users` lives in `data/cms-users/*.json`. `authors` lives in `content/authors/*.md` (Hugo markdown+frontmatter). Hugo generates author taxonomy pages from `content/authors/` — moving to `data/` would break them. Recommended path: keep `content/authors/` as the merged folder with markdown+frontmatter format; retire `data/cms-users/`. Brainstorm must confirm this and plan the migration of existing `data/cms-users/*.json` entries into `content/authors/`.
+
+2. **Article relation field.** Posts currently use a relation widget pointing at the `authors` collection, value field `title`. After merge the collection name changes to `cms-users` (or a new name). Decide: rename the merged collection to `authors` in config (keeping `content/authors/` folder, minimal article impact) or rename to `users` and update all relation fields. Pick one.
+
+3. **Auth token in markdown frontmatter.** The `token:` field must move from JSON (`data/cms-users/`) to markdown frontmatter (`content/authors/`). Hugo will expose it via `.Params.token` — confirm it won't be rendered anywhere in templates. If risk exists, use Hugo's `_build: { list: never, render: never }` on the authors section or a custom output format that omits the token.
+
+4. **Migration script.** Existing `data/cms-users/*.json` entries need to be merged into their matching `content/authors/*.md` file (match by `name`). Entries with no matching author file need a new file created. The brainstorm should decide whether this is a one-shot bash script or a manual step.
 
 - [ ] **Step 1: Invoke brainstorming skill**
 
-Start a fresh conversation (or continuation) and invoke:
 ```
-/brainstorm Unify "Colaboradores" (authors, public-facing) and "Utilizadores" (CMS users, auth-only) collections into a single Sveltia-managed model. Key constraints: auth email must never be committed to git; public email (on Colaboradores) is fine to commit; current auth uses HMAC(salt, google_sub) tokens. Investigate whether the two collections can share a linked record or should merge. The inline_create for authors is now disabled in the article form.
+/brainstorm Unify Colaboradores (content/authors/*.md, Hugo taxonomy, public profiles) and Utilizadores (data/cms-users/*.json, auth tokens) into a single CMS collection. Agreed: keep content/authors/ folder and markdown+frontmatter format; add all Colaboradores fields to Users as optional; public_email is separate from auth email. Resolve: storage format, collection name in config, article relation field impact, token-in-frontmatter Hugo template safety, and migration plan for existing data/cms-users/*.json files.
 ```
 
-- [ ] **Step 2: Ensure design doc covers these questions**
+- [ ] **Step 2: Confirm the design doc answers all four open questions above**
 
-The brainstorming output must answer:
-1. Single collection or two linked collections?
-2. How does the public email (Colaboradores) coexist with the auth token (Utilizadores) without ever landing in git?
-3. Who can edit what — photographer only, or self-service by contributors?
-4. What happens to existing `data/cms-users/*.json` and `content/authors/*.md` files on migration?
+Review the spec before approving it. If any question is unanswered or marked TBD, push back before committing.
 
 - [ ] **Step 3: Save and commit design doc**
-
-The brainstorming skill will write the spec to `docs/superpowers/specs/YYYY-MM-DD-unify-users-authors-design.md`. Commit it:
 
 ```bash
 cd /home/n0xx/Code/infra/service/sveltia-cms
