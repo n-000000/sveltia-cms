@@ -112,8 +112,18 @@ These are the issues this fork exists to fix:
 | Toast Alert guard when message undefined | ✅ done (untestable in single-locale setup) | `f4d632d4` |
 | cms-users email field: show as read-only label pre-populated from auth JWT; prefer over silently clearing on save | **next** | — |
 | Unify "Colaboradores" and "Utilizadores" collections into Sveltia | pending | — |
+| Disable inline creation of Colaboradores/Utilizadores from Article editing form | pending | — |
 | Clicking gallery image in preview pane should scroll edit pane to that image, not to gallery section start | pending | — |
 | Force PT-PT locale regardless of browser language (config option or hardcoded for musictide) | pending | — |
+
+### Backlog notes
+
+**Unify Colaboradores / Utilizadores:**
+- Both collections have an email field. The **Colaboradores** (Authors) email is public-facing (shown on the site). The **Utilizadores** (CMS users) email is for auth/login only and must never appear in git history.
+- The top-priority issue (cms-users email read-only from JWT) is a prerequisite — resolve it first to understand how the unified model handles auth email vs public email.
+
+**Disable inline creation of Colaboradores/Utilizadores from Article form:**
+- Adding people to the platform mid-article is an accident waiting to happen. Inline creation (`ee075e7b`) should be scoped to Events only; the relation fields pointing at Authors/Users should be lookup-only.
 
 Design specs and implementation plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 
