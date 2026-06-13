@@ -50,6 +50,7 @@
    * @property {MediaLibraryService} serviceProps Media library service details.
    * @property {string} [gridId] The `id` attribute of the inner listbox.
    * @property {SelectedResource[]} selectedResources Selected resources.
+   * @property {boolean} [autoSelectAll] Pre-select all assets as soon as they load.
    */
 
   /** @type {Props} */
@@ -62,6 +63,7 @@
     serviceProps,
     gridId = undefined,
     selectedResources = $bindable([]),
+    autoSelectAll = false,
     /* eslint-enable prefer-const */
   } = $props();
 
@@ -263,6 +265,12 @@
       selectedResources = listedAssets.map(({ downloadURL: url, credit }) => ({ url, credit }));
     }
   }
+
+  $effect(() => {
+    if (autoSelectAll && listedAssets?.length) {
+      selectAll();
+    }
+  });
 </script>
 
 {#snippet content()}

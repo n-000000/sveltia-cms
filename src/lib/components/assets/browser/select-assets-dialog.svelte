@@ -486,6 +486,7 @@
             gridId="select-assets-grid"
             bind:selectedResources
             bind:this={externalAssetsPanel}
+            autoSelectAll={multiple && open && !isDefaultLibrary}
           />
         {/if}
       {/each}
