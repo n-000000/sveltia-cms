@@ -110,6 +110,7 @@ These are the issues this fork exists to fix:
 | Inline create Events/Authors from relation field | ✅ validated | `ee075e7b` |
 | CMS user auth — HMAC tokens, no emails in repo | ✅ validated | musictide `2bbe7d5` |
 | Toast Alert guard when message undefined | ✅ done (untestable in single-locale setup) | `f4d632d4` |
+| cms-users email field: show as read-only label pre-populated from auth JWT; prefer over silently clearing on save | **next** | — |
 | Unify "Colaboradores" and "Utilizadores" collections into Sveltia | pending | — |
 | Clicking gallery image in preview pane should scroll edit pane to that image, not to gallery section start | pending | — |
 | Force PT-PT locale regardless of browser language (config option or hardcoded for musictide) | pending | — |
