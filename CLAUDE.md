@@ -111,6 +111,7 @@ These are the issues this fork exists to fix:
 | CMS user auth — HMAC tokens, no emails in repo | ✅ validated | musictide `2bbe7d5` |
 | Toast Alert guard when message undefined | ✅ done (untestable in single-locale setup) | `f4d632d4` |
 | Unify "Colaboradores" and "Utilizadores" collections into Sveltia | pending | — |
+| Clicking gallery image in preview pane should scroll edit pane to that image, not to gallery section start | pending | — |
 
 Design specs and implementation plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 
