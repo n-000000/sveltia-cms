@@ -371,7 +371,7 @@
       {#if Array.isArray(currentValue)}
         <div role="none" class="item-list" bind:this={listEl}>
           {#each currentValue as value, index (value)}
-            <div role="none" class="sort-item" data-sort-index={index}>
+            <div role="none" class="sort-item" data-sort-index={index} data-key-path="{keyPath}.{index}">
               <FileEditorItem
                 {...itemArgs}
                 {value}

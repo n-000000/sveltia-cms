@@ -24,6 +24,8 @@
   /** @type {FieldPreviewProps & Props} */
   let {
     /* eslint-disable prefer-const */
+    keyPath,
+    locale,
     typedKeyPath,
     fieldConfig,
     currentValue,
@@ -34,7 +36,20 @@
 {#if isMultiple(fieldConfig)}
   {#if Array.isArray(currentValue)}
     {#each currentValue as value, index (`${value}-${index}`)}
-      <FilePreviewItem {value} {fieldConfig} {typedKeyPath} />
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div
+        role="none"
+        onclick={(e) => {
+          e.stopPropagation();
+          window.postMessage(
+            { type: 'highlight-editor-field', payload: { locale, keyPath: `${keyPath}.${index}` } },
+            window.location.origin,
+          );
+        }}
+      >
+        <FilePreviewItem {value} {fieldConfig} {typedKeyPath} />
+      </div>
     {/each}
   {/if}
 {:else if typeof currentValue === 'string' && currentValue}
