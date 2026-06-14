@@ -40,6 +40,7 @@
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         role="none"
+        data-key-path="{keyPath}.{index}"
         onclick={(e) => {
           e.stopPropagation();
           window.postMessage(
