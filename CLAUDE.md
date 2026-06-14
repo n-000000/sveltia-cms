@@ -113,7 +113,7 @@ These are the issues this fork exists to fix:
 | cms-users email field: show as read-only label pre-populated from auth JWT; prefer over silently clearing on save | ✅ Phase A done | musictide `4bd0b15` |
 | Unify "Colaboradores" and "Utilizadores" collections into Sveltia | pending | — |
 | Disable inline creation of Colaboradores/Utilizadores from Article editing form | ✅ validated | musictide `a962521` |
-| Clicking gallery image in preview pane should scroll edit pane to that image, not to gallery section start | pending | — |
+| Clicking gallery image in preview pane should scroll edit pane to that image, not to gallery section start | ✅ done | `6c8c7ef7` |
 | Force PT-PT locale from `locale: pt` in config.yml | ✅ validated | `c4441290` |
 
 **Locale config wiring notes (`c4441290`):**
