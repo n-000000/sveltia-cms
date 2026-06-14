@@ -114,7 +114,13 @@ These are the issues this fork exists to fix:
 | Unify "Colaboradores" and "Utilizadores" collections into Sveltia | pending | — |
 | Disable inline creation of Colaboradores/Utilizadores from Article editing form | pending | — |
 | Clicking gallery image in preview pane should scroll edit pane to that image, not to gallery section start | pending | — |
-| Force PT-PT locale regardless of browser language (config option or hardcoded for musictide) | pending | — |
+| Force PT-PT locale from `locale: pt` in config.yml | ✅ validated | `c4441290` |
+
+**Locale config wiring notes (`c4441290`):**
+- `locale` removed from `UNSUPPORTED_OPTIONS` in `src/lib/services/config/parser/index.js`.
+- `setConfigLocale(locale)` exported from `src/lib/services/app/i18n.js` — stores config locale in a module-level variable so `initAppLocale` uses it on re-runs triggered by prefs loading.
+- `initCmsConfig` calls `setConfigLocale(rawConfig.locale)` then `appLocale.set(rawConfig.locale)` — the direct set handles the current session, the stored variable handles the prefs re-run timing issue (prefs `$effect.pre` calls `initAppLocale` again asynchronously after LocalStorage loads).
+- User's explicit `prefs.locale` still wins over config locale (correct UX precedence).
 
 ### Backlog notes
 
