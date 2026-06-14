@@ -156,7 +156,7 @@ export const initCmsConfig = async (manualConfig) => {
     if (rawConfig.locale) {
       setConfigLocale(rawConfig.locale);
 
-      if (appLocales.includes(rawConfig.locale)) {
+      if (!prefs.locale && appLocales.includes(rawConfig.locale)) {
         appLocale.set(rawConfig.locale);
       }
     }
