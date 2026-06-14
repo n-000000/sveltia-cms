@@ -15,6 +15,22 @@ import { prefs } from '$lib/services/user/prefs.svelte';
 export const appLocaleStore = toStore(() => appLocale.current);
 
 /**
+ * Locale override from the CMS `config.yml` `locale:` key. Set once after config is parsed;
+ * takes precedence over browser locale but can still be overridden by the user's prefs.
+ * @type {string}
+ */
+let configLocale = '';
+
+/**
+ * Store the config-specified locale so that `initAppLocale` can use it on subsequent calls.
+ * Call this from the config service after parsing `rawConfig.locale`.
+ * @param {string} locale Locale code (e.g. `'pt'`).
+ */
+export const setConfigLocale = (locale) => {
+  configLocale = locale;
+};
+
+/**
  * Load strings and initialize the locales.
  * @see https://github.com/sveltia/sveltia-i18n
  * @see https://vitejs.dev/guide/features.html#glob-import
@@ -31,6 +47,8 @@ export const initAppLocale = () => {
 
   init({
     fallbackLocale: 'en',
-    initialLocale: prefs.locale || (getLocaleFromNavigator() ?? '').split('-')[0] || 'en',
+    // prefs.locale (user's explicit choice) wins; then config locale; then browser locale.
+    initialLocale:
+      prefs.locale || configLocale || (getLocaleFromNavigator() ?? '').split('-')[0] || 'en',
   });
 };

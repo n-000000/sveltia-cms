@@ -1,4 +1,4 @@
-import { _ } from '@sveltia/i18n';
+import { _, locale as appLocale, locales as appLocales } from '@sveltia/i18n';
 import { getHash } from '@sveltia/utils/crypto';
 import { isObject } from '@sveltia/utils/object';
 import { isURL } from '@sveltia/utils/string';
@@ -11,6 +11,7 @@ import { getAllAssetFolders } from '$lib/services/config/folders/assets';
 import { getAllEntryFolders } from '$lib/services/config/folders/entries';
 import { fetchCmsConfig } from '$lib/services/config/loader';
 import { parseCmsConfig } from '$lib/services/config/parser';
+import { setConfigLocale } from '$lib/services/app/i18n';
 import { allEntryFolders } from '$lib/services/contents';
 import { prefs } from '$lib/services/user/prefs.svelte';
 
@@ -151,6 +152,15 @@ export const initCmsConfig = async (manualConfig) => {
     });
 
     cmsConfig.set(config);
+
+    if (rawConfig.locale) {
+      setConfigLocale(rawConfig.locale);
+
+      if (appLocales.includes(rawConfig.locale)) {
+        appLocale.set(rawConfig.locale);
+      }
+    }
+
     cmsConfigVersion.set(await getHash(stringify(config)));
   } catch (/** @type {any} */ ex) {
     cmsConfigErrors.set(
