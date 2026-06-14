@@ -110,7 +110,7 @@ These are the issues this fork exists to fix:
 | Inline create Events/Authors from relation field | ✅ validated | `ee075e7b` |
 | CMS user auth — HMAC tokens, no emails in repo | ✅ validated | musictide `2bbe7d5` |
 | Toast Alert guard when message undefined | ✅ done (untestable in single-locale setup) | `f4d632d4` |
-| cms-users email field: show as read-only label pre-populated from auth JWT; prefer over silently clearing on save | **next** | — |
+| cms-users email field: show as read-only label pre-populated from auth JWT; prefer over silently clearing on save | ✅ Phase A done | musictide `4bd0b15` |
 | Unify "Colaboradores" and "Utilizadores" collections into Sveltia | pending | — |
 | Disable inline creation of Colaboradores/Utilizadores from Article editing form | ✅ validated | musictide `a962521` |
 | Clicking gallery image in preview pane should scroll edit pane to that image, not to gallery section start | pending | — |
@@ -123,6 +123,8 @@ These are the issues this fork exists to fix:
 - User's explicit `prefs.locale` still wins over config locale (correct UX precedence).
 
 ### Backlog notes
+
+**cms-users email Phase B (JWT auto-populate):** Deferred — investigate `default:` field config and `compute` widget support before attempting. Research findings: `fieldConfig.default` IS supported for string widgets (`defaults.js` line 69: `dynamicValue || defaultValue || ''`). A `compute` widget exists (`fields/compute/compute-editor.svelte`) — it evaluates `{{fields.fieldname}}` templates reactively. Most importantly: `dynamicValues` is populated from URL query params (`contents-page.svelte` line 170) — pre-populating email for a new cms-user entry requires only a link like `?email=user@example.com`. No fork work needed for URL-based pre-population; JWT auto-populate would require fork changes to inject at entry-creation time.
 
 **Unify Colaboradores / Utilizadores — agreed design:**
 - **Colaboradores is removed entirely.** Utilizadores/Users becomes the single collection covering both CMS access and public contributor profiles.
