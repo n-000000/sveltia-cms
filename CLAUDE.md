@@ -112,7 +112,7 @@ These are the issues this fork exists to fix:
 | Toast Alert guard when message undefined | ✅ done (untestable in single-locale setup) | `f4d632d4` |
 | cms-users email field: show as read-only label pre-populated from auth JWT; prefer over silently clearing on save | **next** | — |
 | Unify "Colaboradores" and "Utilizadores" collections into Sveltia | pending | — |
-| Disable inline creation of Colaboradores/Utilizadores from Article editing form | pending | — |
+| Disable inline creation of Colaboradores/Utilizadores from Article editing form | ✅ validated | musictide `a962521` |
 | Clicking gallery image in preview pane should scroll edit pane to that image, not to gallery section start | pending | — |
 | Force PT-PT locale from `locale: pt` in config.yml | ✅ validated | `c4441290` |
 
