@@ -59,7 +59,7 @@ git fetch upstream --tags
 | `src/lib/components/assets/browser/` | Media picker components |
 | `src/lib/components/assets/browser/assets-panel.svelte` | Main picker panel; `selectedAssets` state lives here |
 | `src/lib/components/assets/browser/select-assets-dialog.svelte` | Dialog wrapper; controls open/close, cache refresh |
-| `src/lib/components/assets/browser/simple-image-grid.svelte` | Grid/thumbnail view (scroll bug here — still pending) |
+| `src/lib/components/assets/browser/simple-image-grid.svelte` | Grid/thumbnail view |
 | `src/lib/components/assets/browser/internal-assets-panel.svelte` | R2/internal asset list panel |
 | `src/lib/components/assets/shared/upload-assets-dialog.svelte` | Upload dialog; post-upload callback |
 | `src/lib/components/contents/details/toolbar.svelte` | Entry toolbar; "View on live site" button |
@@ -105,16 +105,16 @@ These are the issues this fork exists to fix:
 | Gallery picker auto-selects all R2 files when opened (no Ctrl+A needed) | ✅ validated | `414e215d` |
 | Multi-select + drag-drop gallery ordering | ✅ validated | `527de591` |
 | DropZone false-positive on SortableJS drop (type mismatch dialog) | ✅ validated | `ab6f2f3b` |
-| Preview↔image selection link (click syncs preview pane back) | ✅ done | `c9718110` + current |
-| Scroll sync jump — offsetTop wrong ancestor, ratio fallback overflow | ✅ done | `d5b00f35` + current |
+| Preview↔image selection link (click syncs preview pane back) | ✅ validated | `c9718110` |
+| Scroll sync jump — offsetTop wrong ancestor, ratio fallback overflow | ✅ validated | `d5b00f35`, `5fd57c9b` |
 | Inline create Events/Authors from relation field | ✅ validated | `ee075e7b` |
 | CMS user auth — HMAC tokens, no emails in repo | ✅ validated | musictide `2bbe7d5` |
 | Toast Alert guard when message undefined | ✅ done (untestable in single-locale setup) | `f4d632d4` |
 | cms-users email field: show as read-only label pre-populated from auth JWT; prefer over silently clearing on save | ✅ Phase A done | musictide `4bd0b15` |
 | Unify "Colaboradores" and "Utilizadores" collections into Sveltia | ✅ done | musictide `17b1c34`, `da14dc7` |
 | Disable inline creation of Colaboradores/Utilizadores from Article editing form | ✅ validated | musictide `a962521` |
-| Clicking gallery image in preview pane should scroll edit pane to that image, not to gallery section start | ✅ done | `6c8c7ef7`, `a37166d4` |
-| Force PT-PT locale from `locale: pt` in config.yml | ✅ validated | `c4441290` |
+| Clicking gallery image in preview pane should scroll edit pane to that image, not to gallery section start | ✅ validated | `6c8c7ef7`, `a37166d4` |
+| Force PT-PT locale from `locale: pt` in config.yml | ✅ validated | `c4441290`, `45ab837f` |
 
 **Locale config wiring notes (`c4441290`):**
 - `locale` removed from `UNSUPPORTED_OPTIONS` in `src/lib/services/config/parser/index.js`.
@@ -126,19 +126,14 @@ These are the issues this fork exists to fix:
 
 **cms-users email Phase B (JWT auto-populate):** Deferred — investigate `default:` field config and `compute` widget support before attempting. Research findings: `fieldConfig.default` IS supported for string widgets (`defaults.js` line 69: `dynamicValue || defaultValue || ''`). A `compute` widget exists (`fields/compute/compute-editor.svelte`) — it evaluates `{{fields.fieldname}}` templates reactively. Most importantly: `dynamicValues` is populated from URL query params (`contents-page.svelte` line 170) — pre-populating email for a new cms-user entry requires only a link like `?email=user@example.com`. No fork work needed for URL-based pre-population; JWT auto-populate would require fork changes to inject at entry-creation time.
 
-**Unify Colaboradores / Utilizadores — agreed design:**
-- **Colaboradores is removed entirely.** Utilizadores/Users becomes the single collection covering both CMS access and public contributor profiles.
-- All Colaboradores fields are added to Users as optional: `photo` (image), `body` (bio text), `public_email` (string — the old Colaboradores `email`, renamed; completely independent of auth), `instagram`, `facebook`, `x_twitter`, `bluesky`, `tiktok`, `youtube`, `spotify`, `draft`.
-- `name` unifies both (`cms-users.name` = git commit author = `authors.title` = display name).
-- The auth email field and its preSave hook remain as-is — `public_email` is a separate field.
+**Colaboradores / Utilizadores unification — implemented design:**
+- Two collections remain separate (auth data must never touch public `content/`).
+- `authors` collection relabeled **"Biografias"** (public profiles, `content/authors/*.md`). No structural changes — Hugo taxonomy, article relation fields, and existing files all unchanged.
+- `cms-users` collection gains an optional **`biography`** relation field (`value_field: title`, no inline_create) linking a Utilizador to their Biografia. Auth-only users (no public profile) leave this blank.
+- Auth fields (`name`, `email`, `token`) in `data/cms-users/` are unchanged.
+- Spec: `musictide/docs/superpowers/specs/2026-06-15-biografias-utilizadores-design.md`
 
-**Open questions before implementation:**
-1. **Storage location:** `cms-users` is `data/cms-users/*.json`; `authors` is `content/authors/*.md` (Hugo taxonomy). Merging means choosing one. Moving to `data/` breaks Hugo author taxonomy pages. Recommended: keep `content/authors/` as the merged folder, change format to markdown frontmatter, drop the JSON-specific cms-users folder (requires migrating existing `data/cms-users/*.json` files).
-2. **Article relation migration:** Articles currently reference the `authors` collection by `title`. After merge the relation field stays pointing at authors (unchanged if we keep `content/authors/`), but the value field must align with the new identifier (`name` or `title` — pick one consistently).
-3. **Existing file migration:** `content/authors/*.md` stays. `data/cms-users/*.json` files need to be migrated into `content/authors/` with a new auth-specific frontmatter block (`token:`). Auth Worker KV entries are unaffected.
-
-**Disable inline creation of Colaboradores/Utilizadores from Article form:**
-- Adding people to the platform mid-article is an accident waiting to happen. Inline creation (`ee075e7b`) should be scoped to Events only; the relation fields pointing at Authors/Users should be lookup-only.
+**cms-users email Phase B (JWT auto-populate):** Deferred. Research findings: `dynamicValues` is populated from URL query params (`contents-page.svelte` line 170) — pre-populating email for a new cms-user entry requires only a link like `?email=user@example.com`. No fork work needed for URL-based pre-population; JWT auto-populate at entry-creation time would require fork changes.
 
 Design specs and implementation plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 
