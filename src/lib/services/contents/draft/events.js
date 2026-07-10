@@ -111,7 +111,6 @@ export const callEventHooks = async ({ type, draft, savingEntry }) => {
 
   const { slug, locales } = savingEntry;
   const otherLocales = Object.keys(locales).filter((locale) => locale !== defaultLocale);
-  const { content, path } = locales[defaultLocale];
   const associatedAssets = getAssociatedAssets({ entry: savingEntry, collectionName, fileName });
 
   // We need to use a for loop here to call handlers sequentially
@@ -121,6 +120,11 @@ export const callEventHooks = async ({ type, draft, savingEntry }) => {
       // eslint-disable-next-line no-continue
       continue;
     }
+
+    // Re-read content each iteration so hooks chain: a prior hook's changes are written
+    // back to `locales[defaultLocale].content`, and the next hook must build its entry
+    // from that, not from a stale copy captured before the loop.
+    const { content, path } = locales[defaultLocale];
 
     // eslint-disable-next-line no-await-in-loop
     const updatedMap = await hook.handler({
