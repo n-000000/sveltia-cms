@@ -1,4 +1,4 @@
-import { _ } from '@sveltia/i18n';
+import { _, locale as appLocale, locales as appLocales } from '@sveltia/i18n';
 import { getHash } from '@sveltia/utils/crypto';
 import { isObject } from '@sveltia/utils/object';
 import { isURL } from '@sveltia/utils/string';
@@ -151,6 +151,13 @@ export const initCmsConfig = async (manualConfig) => {
     });
 
     cmsConfig.set(config);
+
+    // Honour the config.yml `locale:` key: force it as the active UI locale unless the
+    // user has an explicit preference. (Sveltia otherwise only reads the browser locale.)
+    if (rawConfig.locale && !prefs.locale && appLocales.includes(rawConfig.locale)) {
+      appLocale.set(rawConfig.locale);
+    }
+
     cmsConfigVersion.set(await getHash(stringify(config)));
   } catch (/** @type {any} */ ex) {
     cmsConfigErrors.set(
