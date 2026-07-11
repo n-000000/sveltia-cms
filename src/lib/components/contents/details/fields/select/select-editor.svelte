@@ -21,6 +21,8 @@
    * @property {SelectField} fieldConfig Field configuration.
    * @property {any} currentValue Field value.
    * @property {boolean} [sortOptions] Whether to sort the options by label.
+   * @property {((searchText: string) => void) | undefined} [onCreateNew] Inline-create callback.
+   * @property {string} [createLabel] Label for the inline-create option.
    */
 
   /** @type {FieldEditorProps & Props} */
@@ -35,6 +37,8 @@
     readonly = false,
     invalid = false,
     sortOptions = false,
+    onCreateNew = undefined,
+    createLabel = 'Create new…',
     /* eslint-enable prefer-const */
   } = $props();
 
@@ -71,5 +75,6 @@
     {required}
     {invalid}
     {options}
+    {...(!multiple ? { onCreateNew, createLabel } : {})}
   />
 {/key}

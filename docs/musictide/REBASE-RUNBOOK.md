@@ -36,15 +36,23 @@ This directory holds the rewrite-proof artifacts:
 | **D. Gallery / file-editor UX** | Ctrl+A select-all, DnD reorder (`sortablejs`), gallery auto-select, DropZone guard across `file-editor*.svelte`, `select-assets-dialog.svelte`, `assets-panel.svelte`, `external-assets-panel.svelte`, `drop-zone.svelte`, `file/helper.js` | `sortablejs` dep must be present. `reorderItems(newOrder)` uses a `$state.snapshot` permutation — a 3-way merge may splice upstream's adjacent-swap (which references an out-of-scope `index`); keep our permutation loop. |
 | **F. preSave hook chaining** | `contents/api/events.js` (was `contents/draft/events.js`) — re-read `content`/`path` **inside** the hook loop so hooks chain | The whole file gets rewritten/moved upstream. Behavioral, not mechanical: **must** re-run the `events.test.js` "chain multiple preSave hooks" regression test. This is the hashtag→`tags` bug. |
 
-## Deferred: Group E — inline-create-from-relation
+## Group E — inline-create-from-relation — **PORTED 2026-07-11**
 
-**Not ported to v0.170.5.** Upstream split `relation/helper.js` into a 9-file `relation/helper/`
-module and did **not** add native inline-create, so this is the highest-coupling, highest-cost
-patch. Files it needs: new `relation/inline-create-dialog.svelte` + `contents/entry/inline-create.js`,
-plus edits to `relation-editor.svelte`, `select-single.svelte`, `select-editor.svelte`.
-The last known-good version lives on the old `musictide-patches` branch (base `76c154e7`).
-Revisit options: (a) upstream may add it natively; (b) re-implement decoupled from the new
-`relation/helper/` internals; (c) drop it (editors create categories/events as separate entries).
+Feared to be the highest-cost patch (upstream split `relation/helper.js` into a 9-file
+`relation/helper/` module), but the re-derivation was cheap: **every internal API the patch depends
+on kept its signature** in v0.170.5 — `createEntryPath({draft,locale,slug})`,
+`formatEntryFile({content,_file})`, `saveChanges(...)`, `slugify`, `getCollection`,
+`isFieldRequired`, `allEntries` (still `get()`-read, so the reactive-touch workaround is still
+needed). New files `relation/inline-create-dialog.svelte` + `contents/entry/inline-create.js` port
+verbatim. Only `select-single.svelte` needed real work: upstream left the "deselect option" logic as
+an `$effect` and re-keyed the `{#each}` to `` `${index}-${value}` `` — re-derived the `finalOptions`
+$derived + sentinel option while preserving the new keying. `relation-editor.svelte` keeps the new
+`valueStoreKey` context form. Build clean (2.05 MB), full suite 6902 passed.
+
+**Not covered by unit tests** (matches the old fork — the original patch shipped no test either): the
+feature is Svelte-component + Select-DOM-interaction heavy. Verify manually in `/admin/`: a relation
+field with `inline_create: true` shows a "Create new…" sentinel; picking it opens the dialog
+pre-filled with the combobox search text; saving commits the entry and auto-selects it.
 
 ## Manual verification (not covered by unit tests)
 
