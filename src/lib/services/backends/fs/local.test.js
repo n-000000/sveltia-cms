@@ -390,6 +390,30 @@ describe('Local Backend Service', () => {
       expect(mockDirHandle.getDirectoryHandle).toHaveBeenCalledWith('.git');
       expect(mockDirHandle.getFileHandle).toHaveBeenCalledWith('.git');
     });
+
+    it('calls showDirectoryPicker before any IndexedDB read when showPicker is true', async () => {
+      const callOrder = [];
+
+      mockDBGet.mockImplementation(() => {
+        callOrder.push('indexeddb');
+        return Promise.resolve(null);
+      });
+
+      mockDirHandle.getDirectoryHandle.mockResolvedValue({});
+      /** @type {any} */ (global.window).showDirectoryPicker.mockImplementation(() => {
+        callOrder.push('picker');
+        return Promise.resolve(mockDirHandle);
+      });
+
+      const { getRootDirHandle } = localBackend;
+
+      localBackend.default.init();
+
+      await getRootDirHandle({ showPicker: true });
+
+      expect(callOrder[0]).toBe('picker');
+      expect(callOrder).not.toContain('indexeddb');
+    });
   });
 
   describe('Service Structure', () => {
