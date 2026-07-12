@@ -157,6 +157,11 @@
 
     dragging = false;
 
+    // Ignore DOM-element drags (e.g. SortableJS reorder) — no files means not a file drop
+    if (!event.dataTransfer.files.length) {
+      return;
+    }
+
     const filteredFileList = await scanFiles(event.dataTransfer, { accept });
 
     if (filteredFileList.length) {

@@ -1,5 +1,6 @@
 <script>
   import { _ } from '@sveltia/i18n';
+  import { onDestroy } from 'svelte';
   import {
     Button,
     Dialog,
@@ -21,6 +22,7 @@
   import ViewSwitcher from '$lib/components/common/page-toolbar/view-switcher.svelte';
   import { selectAssetsView, showContentOverlay } from '$lib/services/contents/editor';
   import { checkDuplicates } from '$lib/services/contents/fields/file/duplicates.svelte';
+  import { allAssets } from '$lib/services/assets';
   import {
     getTargetFolderPath,
     hasSameAsset,
@@ -144,7 +146,7 @@
     getTargetFolderPath({ entry: $entryDraft?.originalEntry, folder: selectedFolder }),
   );
   const listedAssets = $derived(
-    listAssets({ kind, folder: selectedFolder, folderPath: targetFolderPath, unsavedAssets }),
+    listAssets({ kind, folder: selectedFolder, folderPath: targetFolderPath, unsavedAssets, assets: $allAssets }),
   );
   const enabledStockAssetProviderEntries = $derived.by(() => {
     const { providers = [] } = getStockAssetMediaLibraryOptions({ fieldConfig });
@@ -286,6 +288,18 @@
       pendingFiles = [];
     }
   });
+
+  {
+    const handler = (/** @type {KeyboardEvent} */ e) => {
+      if (open && multiple && !isDefaultLibrary && (e.ctrlKey || e.metaKey) && e.key === 'a') {
+        e.preventDefault();
+        externalAssetsPanel?.selectAll();
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    onDestroy(() => window.removeEventListener('keydown', handler));
+  }
 </script>
 
 {#snippet headerItems()}
@@ -472,6 +486,7 @@
             gridId="select-assets-grid"
             bind:selectedResources
             bind:this={externalAssetsPanel}
+            autoSelectAll={multiple && open && !isDefaultLibrary}
           />
         {/if}
       {/each}
