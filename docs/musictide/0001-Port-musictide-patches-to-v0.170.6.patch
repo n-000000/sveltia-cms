@@ -1,0 +1,1994 @@
+From efafa04af5b43fb5a13acb9f457b60fe17eb4275 Mon Sep 17 00:00:00 2001
+From: n0xx <29106114+n-000000@users.noreply.github.com>
+Date: Sun, 12 Jul 2026 12:21:20 +0100
+Subject: [PATCH] Port musictide-patches to v0.170.6
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Re-derive the musictide fork patches (groups A–F) onto upstream v0.170.6,
+carried over from the v0.170.5 port via the squashed patch.
+
+v0.170.6 pins @sveltia/ui ^0.42.1, which fixes the raw `_sui.cancel` render
+on the file-uploader Cancel button: 0.41.5's initLocales() loaded its own
+locale strings via an `import.meta.glob(..., ?raw)` that registered nothing
+when the CMS re-bundled the dep, so every `_sui.*` key resolved to its raw
+name. 0.42.1 imports the YAML as parsed objects. Proven in the built bundle:
+`Previous Decade`/`Next Decade`/`Previous Month` (strings that exist only in
+@sveltia/ui locales) go 0 -> 1 occurrences after the bump.
+
+One 3-way conflict resolved: toolbar.svelte's $copyFromLocaleToast keeps our
+{#if message} guard on top of 0.170.6's {@const}->{const} syntax switch.
+
+Build clean (901 modules, 2.06 MB); full suite 6901 passed (248 files).
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_015n5e4iGe4XNnr52fWi6RYP
+---
+ package.json                                  |   2 +
+ pnpm-lock.yaml                                |  16 +
+ .../assets/browser/assets-panel.svelte        |   9 +
+ .../browser/external-assets-panel.svelte      |  14 +
+ .../browser/select-assets-dialog.svelte       |  17 +-
+ .../components/assets/shared/drop-zone.svelte |   5 +
+ .../details/content-details-overlay.svelte    |  33 +-
+ .../fields/file/file-editor-item.svelte       |  63 +-
+ .../details/fields/file/file-editor.svelte    |  95 +-
+ .../details/fields/file/file-preview.svelte   |  18 +-
+ .../contents/details/pane-body.svelte         |  46 +-
+ .../contents/details/toolbar.svelte           |  25 +-
+ src/lib/components/entrance/sign-in.svelte    |  21 +-
+ src/lib/locales/en.yaml                       |   1 +
+ src/lib/locales/pt.yaml                       | 972 ++++++++++++++++++
+ src/lib/services/app/i18n.test.js             |   3 +-
+ src/lib/services/backends/fs/local.js         |  50 +-
+ src/lib/services/config/index.js              |   9 +-
+ src/lib/services/config/parser/index.js       |   6 +-
+ src/lib/services/contents/api/events.js       |   6 +-
+ src/lib/services/contents/api/events.test.js  |  35 +
+ .../services/contents/fields/file/helper.js   |   6 +-
+ 22 files changed, 1320 insertions(+), 132 deletions(-)
+ create mode 100644 src/lib/locales/pt.yaml
+
+diff --git a/package.json b/package.json
+index 90feb5a9..b6dcdc36 100644
+--- a/package.json
++++ b/package.json
+@@ -69,6 +69,7 @@
+     "react-dom": "^19.2.7",
+     "sanitize-filename": "^1.6.4",
+     "smol-toml": "^1.7.0",
++    "sortablejs": "^1.15.7",
+     "svgo": "^4.0.1",
+     "terra-draw": "^1.31.2",
+     "terra-draw-leaflet-adapter": "1.0.3",
+@@ -83,6 +84,7 @@
+     "@types/qrcode": "^1.5.6",
+     "@types/react": "^19.2.17",
+     "@types/react-dom": "^19.2.3",
++    "@types/sortablejs": "^1.15.9",
+     "@vitest/coverage-v8": "^4.1.10",
+     "cspell": "^10.0.1",
+     "eslint": "^9.39.5",
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 1f6de468..13bdb71f 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -86,6 +86,9 @@ importers:
+       smol-toml:
+         specifier: ^1.7.0
+         version: 1.7.0
++      sortablejs:
++        specifier: ^1.15.7
++        version: 1.15.7
+       svgo:
+         specifier: ^4.0.1
+         version: 4.0.1
+@@ -123,6 +126,9 @@ importers:
+       '@types/react-dom':
+         specifier: ^19.2.3
+         version: 19.2.3(@types/react@19.2.17)
++      '@types/sortablejs':
++        specifier: ^1.15.9
++        version: 1.15.9
+       '@vitest/coverage-v8':
+         specifier: ^4.1.10
+         version: 4.1.10(vitest@4.1.10)
+@@ -1254,6 +1260,9 @@ packages:
+   '@types/react@19.2.17':
+     resolution: {integrity: sha512-MXfmqaVPEVgkBT/aY0aGCkRWWtByiYQXo3xdQ8r5RzuFrPiRn8Gar2tQdXSUQ2GKV3bkXckek89V8wQBY2Q/Aw==}
+ 
++  '@types/sortablejs@1.15.9':
++    resolution: {integrity: sha512-7HP+rZGE2p886PKV9c9OJzLBI6BBJu1O7lJGYnPyG3fS4/duUCcngkNCjsLwIMV+WMqANe3tt4irrXHSIe68OQ==}
++
+   '@types/trusted-types@2.0.7':
+     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
+ 
+@@ -3435,6 +3444,9 @@ packages:
+     engines: {node: '>=22'}
+     hasBin: true
+ 
++  sortablejs@1.15.7:
++    resolution: {integrity: sha512-Kk8wLQPlS+yi1ZEf48a4+fzHa4yxjC30M/Sr2AnQu+f/MPwvvX9XjZ6OWejiz8crBsLwSq8GHqaxaET7u6ux0A==}
++
+   source-map-js@1.2.1:
+     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
+     engines: {node: '>=0.10.0'}
+@@ -4945,6 +4957,8 @@ snapshots:
+     dependencies:
+       csstype: 3.2.3
+ 
++  '@types/sortablejs@1.15.9': {}
++
+   '@types/trusted-types@2.0.7': {}
+ 
+   '@types/unist@2.0.11': {}
+@@ -7328,6 +7342,8 @@ snapshots:
+       sort-object-keys: 2.1.0
+       tinyglobby: 0.2.17
+ 
++  sortablejs@1.15.7: {}
++
+   source-map-js@1.2.1: {}
+ 
+   spdx-correct@3.2.0:
+diff --git a/src/lib/components/assets/browser/assets-panel.svelte b/src/lib/components/assets/browser/assets-panel.svelte
+index a4b6d85c..15469dbc 100644
+--- a/src/lib/components/assets/browser/assets-panel.svelte
++++ b/src/lib/components/assets/browser/assets-panel.svelte
+@@ -100,6 +100,15 @@
+   };
+ </script>
+ 
++<svelte:window
++  onkeydown={(e) => {
++    if (multiple && (e.ctrlKey || e.metaKey) && e.key === 'a') {
++      e.preventDefault();
++      selectedResources = filteredAssets.map((asset) => ({ asset }));
++    }
++  }}
++/>
++
+ {#if filteredAssets.length}
+   <div role="none" class="grid-wrapper">
+     <SimpleImageGrid {multiple} {gridId} {viewType}>
+diff --git a/src/lib/components/assets/browser/external-assets-panel.svelte b/src/lib/components/assets/browser/external-assets-panel.svelte
+index 83e2a2cd..691c2571 100644
+--- a/src/lib/components/assets/browser/external-assets-panel.svelte
++++ b/src/lib/components/assets/browser/external-assets-panel.svelte
+@@ -50,6 +50,7 @@
+    * @property {MediaLibraryService} serviceProps Media library service details.
+    * @property {string} [gridId] The `id` attribute of the inner listbox.
+    * @property {SelectedResource[]} selectedResources Selected resources.
++   * @property {boolean} [autoSelectAll] Pre-select all assets as soon as they load.
+    */
+ 
+   /** @type {Props} */
+@@ -62,6 +63,7 @@
+     serviceProps,
+     gridId = undefined,
+     selectedResources = $bindable([]),
++    autoSelectAll = false,
+     /* eslint-enable prefer-const */
+   } = $props();
+ 
+@@ -257,6 +259,18 @@
+       }
+     });
+   });
++
++  export function selectAll() {
++    if (listedAssets?.length) {
++      selectedResources = listedAssets.map(({ downloadURL: url, credit }) => ({ url, credit }));
++    }
++  }
++
++  $effect(() => {
++    if (autoSelectAll && listedAssets?.length) {
++      selectAll();
++    }
++  });
+ </script>
+ 
+ {#snippet content()}
+diff --git a/src/lib/components/assets/browser/select-assets-dialog.svelte b/src/lib/components/assets/browser/select-assets-dialog.svelte
+index ab074f86..cc58509f 100644
+--- a/src/lib/components/assets/browser/select-assets-dialog.svelte
++++ b/src/lib/components/assets/browser/select-assets-dialog.svelte
+@@ -1,5 +1,6 @@
+ <script>
+   import { _ } from '@sveltia/i18n';
++  import { onDestroy } from 'svelte';
+   import {
+     Button,
+     Dialog,
+@@ -21,6 +22,7 @@
+   import ViewSwitcher from '$lib/components/common/page-toolbar/view-switcher.svelte';
+   import { selectAssetsView, showContentOverlay } from '$lib/services/contents/editor';
+   import { checkDuplicates } from '$lib/services/contents/fields/file/duplicates.svelte';
++  import { allAssets } from '$lib/services/assets';
+   import {
+     getTargetFolderPath,
+     hasSameAsset,
+@@ -144,7 +146,7 @@
+     getTargetFolderPath({ entry: $entryDraft?.originalEntry, folder: selectedFolder }),
+   );
+   const listedAssets = $derived(
+-    listAssets({ kind, folder: selectedFolder, folderPath: targetFolderPath, unsavedAssets }),
++    listAssets({ kind, folder: selectedFolder, folderPath: targetFolderPath, unsavedAssets, assets: $allAssets }),
+   );
+   const enabledStockAssetProviderEntries = $derived.by(() => {
+     const { providers = [] } = getStockAssetMediaLibraryOptions({ fieldConfig });
+@@ -286,6 +288,18 @@
+       pendingFiles = [];
+     }
+   });
++
++  {
++    const handler = (/** @type {KeyboardEvent} */ e) => {
++      if (open && multiple && !isDefaultLibrary && (e.ctrlKey || e.metaKey) && e.key === 'a') {
++        e.preventDefault();
++        externalAssetsPanel?.selectAll();
++      }
++    };
++
++    window.addEventListener('keydown', handler);
++    onDestroy(() => window.removeEventListener('keydown', handler));
++  }
+ </script>
+ 
+ {#snippet headerItems()}
+@@ -472,6 +486,7 @@
+             gridId="select-assets-grid"
+             bind:selectedResources
+             bind:this={externalAssetsPanel}
++            autoSelectAll={multiple && open && !isDefaultLibrary}
+           />
+         {/if}
+       {/each}
+diff --git a/src/lib/components/assets/shared/drop-zone.svelte b/src/lib/components/assets/shared/drop-zone.svelte
+index d4411949..b85c5da1 100644
+--- a/src/lib/components/assets/shared/drop-zone.svelte
++++ b/src/lib/components/assets/shared/drop-zone.svelte
+@@ -157,6 +157,11 @@
+ 
+     dragging = false;
+ 
++    // Ignore DOM-element drags (e.g. SortableJS reorder) — no files means not a file drop
++    if (!event.dataTransfer.files.length) {
++      return;
++    }
++
+     const filteredFileList = await scanFiles(event.dataTransfer, { accept });
+ 
+     if (filteredFileList.length) {
+diff --git a/src/lib/components/contents/details/content-details-overlay.svelte b/src/lib/components/contents/details/content-details-overlay.svelte
+index cc3ca564..32fc8d2a 100644
+--- a/src/lib/components/contents/details/content-details-overlay.svelte
++++ b/src/lib/components/contents/details/content-details-overlay.svelte
+@@ -281,10 +281,12 @@
+     syncExpanderStates(Object.fromEntries(expanderKeys.map((key) => [key, true])));
+ 
+     window.requestAnimationFrame(() => {
+-      const targetField = document.querySelector(
+-        `.content-editor .pane[data-mode="edit"][data-locale="${CSS.escape(locale)}"] ` +
+-          `.field[data-key-path="${CSS.escape(keyPath)}"]`,
+-      );
++      const paneSelector =
++        `.content-editor .pane[data-mode="edit"][data-locale="${CSS.escape(locale)}"]`;
++
++      const targetField =
++        document.querySelector(`${paneSelector} .field[data-key-path="${CSS.escape(keyPath)}"]`) ??
++        document.querySelector(`${paneSelector} [data-key-path="${CSS.escape(keyPath)}"]`);
+ 
+       if (targetField) {
+         if (typeof targetField.scrollIntoViewIfNeeded === 'function') {
+@@ -293,6 +295,29 @@
+           targetField.scrollIntoView();
+         }
+ 
++        // Align the preview pane to the same field so scroll sync doesn't snap the edit pane back
++        // when the user next scrolls. Without this, the preview pane's position is stale and the
++        // first wheel event recalculates back to the old edit-pane position.
++        const previewPaneSelector =
++          `.content-editor .pane[data-mode="preview"][data-locale="${CSS.escape(locale)}"]`;
++
++        const previewField = /** @type {HTMLElement | null} */ (
++          document.querySelector(
++            `${previewPaneSelector} .field[data-key-path="${CSS.escape(keyPath)}"]`,
++          ) ??
++          document.querySelector(
++            `${previewPaneSelector} [data-key-path="${CSS.escape(keyPath)}"]`,
++          )
++        );
++
++        if (previewField) {
++          if (typeof previewField.scrollIntoViewIfNeeded === 'function') {
++            previewField.scrollIntoViewIfNeeded();
++          } else {
++            previewField.scrollIntoView({ block: 'nearest' });
++          }
++        }
++
+         const widgetWrapper = targetField.querySelector('.field-wrapper');
+ 
+         /** @type {HTMLElement | null} */ (
+diff --git a/src/lib/components/contents/details/fields/file/file-editor-item.svelte b/src/lib/components/contents/details/fields/file/file-editor-item.svelte
+index 9c86cfc4..2bb580aa 100644
+--- a/src/lib/components/contents/details/fields/file/file-editor-item.svelte
++++ b/src/lib/components/contents/details/fields/file/file-editor-item.svelte
+@@ -24,6 +24,7 @@
+    * @property {boolean} readonly Whether the field is readonly.
+    * @property {boolean} invalid Whether the field is invalid.
+    * @property {boolean} required Whether the field is required.
++   * @property {boolean} [draggable] Whether to show a drag handle for reordering.
+    * @property {string} collectionName The collection name.
+    * @property {string | undefined} fileName The file name.
+    * @property {string} [typedKeyPath] Field key path for field-level media folders.
+@@ -31,8 +32,6 @@
+    * @property {Entry | undefined} entry The entry object.
+    * @property {() => void} [onReplace] Event handler for replace action.
+    * @property {() => void} [onRemove] Event handler for remove action.
+-   * @property {() => void} [onMoveUp] Event handler for move up action.
+-   * @property {() => void} [onMoveDown] Event handler for move down action.
+    */
+ 
+   /** @type {Props} */
+@@ -43,6 +42,7 @@
+     readonly = false,
+     invalid = false,
+     required = false,
++    draggable = false,
+     collectionName = '',
+     fileName = undefined,
+     typedKeyPath = undefined,
+@@ -50,8 +50,6 @@
+     entry = undefined,
+     onReplace,
+     onRemove,
+-    onMoveUp,
+-    onMoveDown,
+   } = $props();
+ 
+   /** @type {Asset | undefined} */
+@@ -163,35 +161,9 @@
+ </script>
+ 
+ <div role="none" class="filled">
+-  {#if (onMoveUp || onMoveDown) && !readonly}
+-    <!-- @todo Support drag & drop sorting -->
+-    <div role="toolbar" class="reorder-controls">
+-      <Button
+-        size="small"
+-        iconic
+-        disabled={!onMoveUp}
+-        aria-label={_('move_up')}
+-        onclick={() => {
+-          onMoveUp?.();
+-        }}
+-      >
+-        {#snippet startIcon()}
+-          <Icon name="arrow_upward" />
+-        {/snippet}
+-      </Button>
+-      <Button
+-        size="small"
+-        iconic
+-        disabled={!onMoveDown}
+-        aria-label={_('move_down')}
+-        onclick={() => {
+-          onMoveDown?.();
+-        }}
+-      >
+-        {#snippet startIcon()}
+-          <Icon name="arrow_downward" />
+-        {/snippet}
+-      </Button>
++  {#if draggable && !readonly}
++    <div role="none" class="drag-handle" title={_('reorder')}>
++      <Icon name="drag_indicator" />
+     </div>
+   {/if}
+   {#if kind && src}
+@@ -300,23 +272,18 @@
+     }
+   }
+ 
+-  .reorder-controls {
+-    flex: none !important;
++  .drag-handle {
++    flex: none;
+     display: flex;
+-    flex-direction: column;
+-    justify-content: space-evenly;
+     align-items: center;
+-    gap: 4px;
+-    border: 1px solid var(--sui-control-border-color);
+-    border-radius: var(--sui-control-medium-border-radius);
+-    height: -moz-available;
+-    height: -webkit-fill-available;
+-    height: stretch;
+-    background-color: var(--sui-secondary-border-color);
+-
+-    :global(button) {
+-      padding: 0;
+-      height: 16px;
++    justify-content: center;
++    width: 24px;
++    color: var(--sui-secondary-foreground-color);
++    cursor: grab;
++    touch-action: none;
++
++    &:active {
++      cursor: grabbing;
+     }
+   }
+ </style>
+diff --git a/src/lib/components/contents/details/fields/file/file-editor.svelte b/src/lib/components/contents/details/fields/file/file-editor.svelte
+index 06607bed..1d1e3800 100644
+--- a/src/lib/components/contents/details/fields/file/file-editor.svelte
++++ b/src/lib/components/contents/details/fields/file/file-editor.svelte
+@@ -10,6 +10,7 @@
+   import { _ } from '@sveltia/i18n';
+   import { ConfirmationDialog, TextArea } from '@sveltia/ui';
+   import { flushSync, getContext } from 'svelte';
++  import Sortable from 'sortablejs/modular/sortable.complete.esm.js';
+ 
+   import SelectAssetsDialog from '$lib/components/assets/browser/select-assets-dialog.svelte';
+   import ConflictResolutionDialog from '$lib/components/assets/shared/conflict-resolution-dialog.svelte';
+@@ -19,6 +20,7 @@
+   import UploadButton from '$lib/components/contents/details/fields/file/upload-button.svelte';
+   import { entryDraft } from '$lib/services/contents/draft';
+   import { checkDuplicates } from '$lib/services/contents/fields/file/duplicates.svelte';
++  import { allAssets } from '$lib/services/assets';
+   import {
+     getAssetLibraryFolderMap,
+     getTargetFolderPath,
+@@ -74,6 +76,8 @@
+   let showSelectAssetsDialog = $state(false);
+   let replaceMode = $state(false);
+   let replaceIndex = $state(-1);
++  /** @type {HTMLElement | undefined} */
++  let listEl = $state();
+   let showOversizeAlert = $state(false);
+   let showPhotoCreditDialog = $state(false);
+   let photoCredit = $state('');
+@@ -120,7 +124,7 @@
+     getTargetFolderPath({ entry: $entryDraft?.originalEntry, folder: targetFolder }),
+   );
+   const listedAssets = $derived(
+-    listAssets({ kind, folder: targetFolder, folderPath: targetFolderPath, unsavedAssets }),
++    listAssets({ kind, folder: targetFolder, folderPath: targetFolderPath, unsavedAssets, assets: $allAssets }),
+   );
+   const multiple = $derived(isMultiple(fieldConfig));
+   const maxSize = $derived(/** @type {number} */ (libraryConfig.max_file_size));
+@@ -310,23 +314,41 @@
+   };
+ 
+   /**
+-   * Move an item down in the list.
+-   * @param {number} index Index of the item to move down.
++   * Reorder gallery items given the new permutation read from the DOM after a drag.
++   * @param {number[]} newOrder Array where newOrder[newIdx] = originalIdx.
+    */
+-  const moveDown = (index) => {
+-    if (!$entryDraft) {
+-      return;
+-    }
++  const reorderItems = (newOrder) => {
++    if (!$entryDraft) return;
++
++    const snapshot = $state.snapshot($entryDraft.currentValues[locale]);
+ 
+-    [
+-      $entryDraft[valueStoreKey][locale][`${keyPath}.${index}`],
+-      $entryDraft[valueStoreKey][locale][`${keyPath}.${index + 1}`],
+-    ] = [
+-      $entryDraft[valueStoreKey][locale][`${keyPath}.${index + 1}`],
+-      $entryDraft[valueStoreKey][locale][`${keyPath}.${index}`],
+-    ];
++    newOrder.forEach((originalIdx, newIdx) => {
++      $entryDraft.currentValues[locale][`${keyPath}.${newIdx}`] =
++        snapshot[`${keyPath}.${originalIdx}`];
++    });
+   };
+ 
++  $effect(() => {
++    if (!listEl || !multiple || readonly) return;
++
++    const sortable = Sortable.create(listEl, {
++      multiDrag: true,
++      selectedClass: 'sortable-selected',
++      handle: '.drag-handle',
++      animation: 150,
++      onEnd: () => {
++        // Read the permutation from data-sort-index before Svelte re-renders
++        const newOrder = [...listEl.children].map((el) =>
++          parseInt(/** @type {HTMLElement} */ (el).dataset.sortIndex ?? '0', 10),
++        );
++
++        reorderItems(newOrder);
++      },
++    });
++
++    return () => sortable.destroy();
++  });
++
+   $effect(() => {
+     (async () => {
+       if ($entryDraft?.files) {
+@@ -358,21 +380,22 @@
+   {#if !!currentValue?.length && !processing}
+     {#if multiple}
+       {#if Array.isArray(currentValue)}
+-        <div role="none" class="item-list">
+-          {#each currentValue as value, index (`${value}|${index}`)}
+-            <FileEditorItem
+-              {...itemArgs}
+-              {value}
+-              fieldId="{fieldId}-{index}"
+-              onReplace={() => {
+-                replaceMode = true;
+-                replaceIndex = index;
+-                showSelectAssetsDialog = true;
+-              }}
+-              onRemove={() => removeItem(index)}
+-              onMoveUp={index > 0 ? () => moveDown(index - 1) : undefined}
+-              onMoveDown={index < currentValue.length - 1 ? () => moveDown(index) : undefined}
+-            />
++        <div role="none" class="item-list" bind:this={listEl}>
++          {#each currentValue as value, index (value)}
++            <div role="none" class="sort-item" data-sort-index={index} data-key-path="{keyPath}.{index}">
++              <FileEditorItem
++                {...itemArgs}
++                {value}
++                draggable={!readonly}
++                fieldId="{fieldId}-{index}"
++                onReplace={() => {
++                  replaceMode = true;
++                  replaceIndex = index;
++                  showSelectAssetsDialog = true;
++                }}
++                onRemove={() => removeItem(index)}
++              />
++            </div>
+           {/each}
+         </div>
+         {#if currentValue.length < max}
+@@ -457,4 +480,18 @@
+     flex-direction: column;
+     gap: 4px;
+   }
++
++  .sort-item {
++    border-radius: var(--sui-control-medium-border-radius);
++    transition: opacity 0.15s;
++
++    &:global(.sortable-selected) {
++      outline: 2px solid var(--sui-primary-accent-color-light);
++      outline-offset: 1px;
++    }
++
++    &:global(.sortable-ghost) {
++      opacity: 0.3;
++    }
++  }
+ </style>
+diff --git a/src/lib/components/contents/details/fields/file/file-preview.svelte b/src/lib/components/contents/details/fields/file/file-preview.svelte
+index 87e6038d..43812403 100644
+--- a/src/lib/components/contents/details/fields/file/file-preview.svelte
++++ b/src/lib/components/contents/details/fields/file/file-preview.svelte
+@@ -24,6 +24,8 @@
+   /** @type {FieldPreviewProps & Props} */
+   let {
+     /* eslint-disable prefer-const */
++    keyPath,
++    locale,
+     typedKeyPath,
+     fieldConfig,
+     currentValue,
+@@ -34,7 +36,21 @@
+ {#if isMultiple(fieldConfig)}
+   {#if Array.isArray(currentValue)}
+     {#each currentValue as value, index (`${value}-${index}`)}
+-      <FilePreviewItem {value} {fieldConfig} {typedKeyPath} />
++      <!-- svelte-ignore a11y_click_events_have_key_events -->
++      <!-- svelte-ignore a11y_no_static_element_interactions -->
++      <div
++        role="none"
++        data-key-path="{keyPath}.{index}"
++        onclick={(e) => {
++          e.stopPropagation();
++          window.postMessage(
++            { type: 'highlight-editor-field', payload: { locale, keyPath: `${keyPath}.${index}` } },
++            window.location.origin,
++          );
++        }}
++      >
++        <FilePreviewItem {value} {fieldConfig} {typedKeyPath} />
++      </div>
+     {/each}
+   {/if}
+ {:else if typeof currentValue === 'string' && currentValue}
+diff --git a/src/lib/components/contents/details/pane-body.svelte b/src/lib/components/contents/details/pane-body.svelte
+index 7aa7f89b..88ae2c8e 100644
+--- a/src/lib/components/contents/details/pane-body.svelte
++++ b/src/lib/components/contents/details/pane-body.svelte
+@@ -67,7 +67,8 @@
+ 
+       if (!thisElement) {
+         // Calculate the scroll position based on the current scroll position of the this pane
+-        thatPaneContentArea.scrollTop = thatPaneContentArea.scrollHeight * scrollRatio;
++        thatPaneContentArea.scrollTop =
++          (thatPaneContentArea.scrollHeight - thatPaneContentArea.clientHeight) * scrollRatio;
+ 
+         return;
+       }
+@@ -84,15 +85,44 @@
+         return;
+       }
+ 
+-      // Scroll the other pane to the corresponding element, adjusting for the current scroll
+-      // position and the ratio of the scroll position within the element.
+-      thatPaneContentArea.scrollTop = thatElement.offsetTop - y + thatElement.clientHeight * ratio;
++      // Use getBoundingClientRect for non-iframe panes: offsetTop is relative to offsetParent
++      // (which may not be the scrollable container), causing wrong scroll targets.
++      const thatY = isIframe ? 0 : thatPaneContentArea.getBoundingClientRect().y;
++      const newScrollTop = isIframe
++        ? thatElement.offsetTop - thatY + thatElement.clientHeight * ratio
++        : thatPaneContentArea.scrollTop +
++          (thatElement.getBoundingClientRect().top - thatY) +
++          thatElement.clientHeight * ratio;
++      const delta = Math.abs(newScrollTop - thatPaneContentArea.scrollTop);
++      const threshold = thatPaneContentArea.clientHeight * 0.5;
++
++      // If the element-based calculation would cause a large jump (e.g. crossing a section
++      // boundary where the two panes have different heights), fall back to ratio-based sync to
++      // avoid jarring movement. Threshold: half a viewport height.
++      if (delta > threshold) {
++        thatPaneContentArea.scrollTop =
++          (thatPaneContentArea.scrollHeight - thatPaneContentArea.clientHeight) * scrollRatio;
++        return;
++      }
++
++      thatPaneContentArea.scrollTop = newScrollTop;
+     });
+   };
+ 
+   /** @type {AddEventListenerOptions} */
+   const eventOptions = { capture: true, passive: true };
+ 
++  let isSyncing = false;
++
++  const guardedSyncScrollPosition = () => {
++    if (isSyncing) return;
++    isSyncing = true;
++    syncScrollPosition();
++    window.requestAnimationFrame(() => {
++      isSyncing = false;
++    });
++  };
++
+   /**
+    * Initialize the scroll synchronization by setting up event listeners and ensuring the content
+    * area is ready. The content area is either the main content area or the iframe’s content area.
+@@ -105,8 +135,8 @@
+ 
+     if (thisPaneContentArea) {
+       // Remove previous event listeners if they exist
+-      thisPaneContentArea.removeEventListener('wheel', syncScrollPosition, eventOptions);
+-      thisPaneContentArea.removeEventListener('touchmove', syncScrollPosition, eventOptions);
++      thisPaneContentArea.removeEventListener('wheel', guardedSyncScrollPosition, eventOptions);
++      thisPaneContentArea.removeEventListener('touchmove', guardedSyncScrollPosition, eventOptions);
+     }
+ 
+     // Check if the preview iframe is used in the preview mode
+@@ -125,8 +155,8 @@
+     if (thisPaneContentArea) {
+       thisPaneContentArea.scrollTop = 0;
+       // Add event listeners manually to use passive mode
+-      thisPaneContentArea.addEventListener('wheel', syncScrollPosition, eventOptions);
+-      thisPaneContentArea.addEventListener('touchmove', syncScrollPosition, eventOptions);
++      thisPaneContentArea.addEventListener('wheel', guardedSyncScrollPosition, eventOptions);
++      thisPaneContentArea.addEventListener('touchmove', guardedSyncScrollPosition, eventOptions);
+     }
+   };
+ 
+diff --git a/src/lib/components/contents/details/toolbar.svelte b/src/lib/components/contents/details/toolbar.svelte
+index 0bd12656..af88cdcf 100644
+--- a/src/lib/components/contents/details/toolbar.svelte
++++ b/src/lib/components/contents/details/toolbar.svelte
+@@ -97,6 +97,11 @@
+       ? getEntryPreviewURL(originalEntry, defaultLocale, collection, collectionFile)
+       : undefined,
+   );
++  const isDraft = $derived(
++    !!($entryDraft?.currentValues?.[
++      defaultLocale ?? Object.keys($entryDraft?.currentValues ?? {})[0]
++    ]?.draft),
++  );
+ 
+   /**
+    * Go back to the previous page. If the entry is a singleton file, go to the collections list.
+@@ -229,7 +234,7 @@
+       </TruncatedText>
+     {/if}
+   </h2>
+-  {#if !disabled && previewURL}
++  {#if !disabled && previewURL && !isDraft}
+     <Button
+       variant="tertiary"
+       label={_('view_on_live_site')}
+@@ -339,14 +344,16 @@
+ 
+ <Toast id={$copyFromLocaleToast.id} bind:show={$copyFromLocaleToast.show}>
+   {const { status, message, count, sourceLanguage } = $copyFromLocaleToast}
+-  <Alert {status}>
+-    {_(`editor.${message}`, {
+-      values: {
+-        count,
+-        source: sourceLanguage ? (getLocaleLabel(sourceLanguage) ?? sourceLanguage) : '',
+-      },
+-    })}
+-  </Alert>
++  {#if message}
++    <Alert {status}>
++      {_(`editor.${message}`, {
++        values: {
++          count,
++          source: sourceLanguage ? (getLocaleLabel(sourceLanguage) ?? sourceLanguage) : '',
++        },
++      })}
++    </Alert>
++  {/if}
+ </Toast>
+ 
+ <EditSlugDialog bind:open={showEditSlugDialog} />
+diff --git a/src/lib/components/entrance/sign-in.svelte b/src/lib/components/entrance/sign-in.svelte
+index 9c28f0b5..d65c23f1 100644
+--- a/src/lib/components/entrance/sign-in.svelte
++++ b/src/lib/components/entrance/sign-in.svelte
+@@ -68,6 +68,15 @@
+     return false;
+   });
+ 
++  /**
++   * Whether to show a dedicated "Sign In with Google" button. True when a custom OAuth base_url
++   * is configured — musictide points this at the musictide-auth Worker, which serves a Google
++   * sign-in page and returns the service-account GitHub PAT via the standard OAuth postMessage.
++   */
++  const hasGoogleAuth = $derived(
++    !isTestRepo && !!/** @type {GitBackend} */ (configuredBackend).base_url,
++  );
++
+   onMount(() => {
+     // Skip automatic sign-in if there’s already an error (e.g. repository access denied), so the
+     // error message is preserved and the user can try again with different credentials
+@@ -112,8 +121,18 @@
+       {/if}
+       <Spacer />
+     {/if}
++    {#if hasGoogleAuth}
++      <Button
++        variant={showLocalBackendOption ? 'secondary' : 'primary'}
++        label={_('sign_in_with_google')}
++        disabled={signInDisabled}
++        onclick={async () => {
++          await signInManually(backendName);
++        }}
++      />
++    {/if}
+     <Button
+-      variant={showLocalBackendOption ? 'secondary' : 'primary'}
++      variant={showLocalBackendOption || hasGoogleAuth ? 'secondary' : 'primary'}
+       label={isTestRepo
+         ? _('work_with_test_repo')
+         : _('sign_in_with_x', { values: { service: signInServiceLabel } })}
+diff --git a/src/lib/locales/en.yaml b/src/lib/locales/en.yaml
+index 9f97dbda..d4b6ff4d 100644
+--- a/src/lib/locales/en.yaml
++++ b/src/lib/locales/en.yaml
+@@ -71,6 +71,7 @@ loading_cms_config: Loading CMS Configuration…
+ loading_site_data: Loading Site Data…
+ loading_site_data_error: There was an error while loading site data.
+ sign_in_with_x: Sign In with {$service}
++sign_in_with_google: Sign In with Google
+ sign_in_using_access_token: Sign In Using Access Token
+ sign_in_using_access_token_description: Enter your token below. It must have read/write access to the repository content.
+ sign_in_using_access_token_link: You can generate a token on the <a>{$service} user settings page</a>.
+diff --git a/src/lib/locales/pt.yaml b/src/lib/locales/pt.yaml
+new file mode 100644
+index 00000000..efa61b38
+--- /dev/null
++++ b/src/lib/locales/pt.yaml
+@@ -0,0 +1,972 @@
++collections: Coleções
++contents: Conteúdos
++entries: Entradas
++files: Ficheiros
++assets: Recursos
++media: Média
++workflow: Fluxo de trabalho
++editorial_workflow: Fluxo Editorial
++menu: Menu
++user_name: Nome de Utilizador
++password: Palavra-passe
++sign_in: Iniciar Sessão
++sign_in_with_mobile: Iniciar Sessão com Telemóvel
++sign_in_with_mobile_instruction: Leia o código QR abaixo com o seu telemóvel ou tablet para iniciar sessão sem palavra-passe. As suas definições serão copiadas automaticamente.
++signed_in_as_x: Sessão iniciada como {$name}
++working_with_local_repo: A trabalhar com Repositório Local
++working_with_test_repo: A trabalhar com Repositório de Teste
++sign_out: Terminar Sessão
++create: Novo
++select: Selecionar
++select_all: Selecionar Tudo
++upload: Carregar
++copy: Copiar
++download: Descarregar
++duplicate: Duplicar
++delete: Eliminar
++reorder: Reordenar
++cancel: Cancelar
++done: Concluído
++save: Guardar
++saving: A guardar…
++publish: Publicar
++publishing: A publicar…
++rename: Renomear
++update: Atualizar
++replace: Substituir
++add: Adicionar
++remove: Remover
++remove_x: Remover {$name}
++clear: Limpar
++expand: Expandir
++expand_all: Expandir Tudo
++collapse: Recolher
++collapse_all: Recolher Tudo
++insert: Inserir
++restore: Restaurar
++discard: Descartar
++searching: A pesquisar…
++no_results: Sem resultados.
++global: Global
++primary: Principal
++secondary: Secundário
++collection: Coleção
++folder: Pasta
++api_key: Chave API
++details: Detalhes
++back: Voltar
++loading: A carregar…
++later: Mais tarde
++slug: Slug
++singleton: Singleton
++singletons: Singletons
++clipboard_error: Ocorreu um erro ao copiar os dados.
++welcome_message: Bem-vindo ao {$name}
++powered_by: Desenvolvido por {$name}
++loading_cms_config: A carregar Configuração do CMS…
++loading_site_data: A carregar Dados do Site…
++loading_site_data_error: Ocorreu um erro ao carregar os dados do site.
++sign_in_with_x: Iniciar Sessão com {$service}
++sign_in_with_google: Iniciar Sessão com o Google
++sign_in_using_access_token: Iniciar Sessão com Token de Acesso
++sign_in_using_access_token_description: Introduza o seu token abaixo. Deve ter acesso de leitura/escrita ao conteúdo do repositório.
++sign_in_using_access_token_link: Pode gerar um token na <a>página de definições do utilizador do {$service}</a>.
++personal_access_token: Token de Acesso Pessoal
++authorizing: A autorizar…
++signing_in: A iniciar sessão…
++work_with_local_repo: Trabalhar com Repositório Local
++work_with_local_repo_description: Quando solicitado, selecione o diretório raiz do repositório "{$repo}".
++work_with_local_repo_description_no_repo: Quando solicitado, selecione o diretório raiz do seu repositório Git.
++work_with_test_repo: Trabalhar com Repositório de Teste
++sign_in_error:
++  not_project_root: A pasta selecionada não é um diretório raiz de repositório. Tente novamente.
++  picker_dismissed: Não foi possível selecionar um diretório raiz de repositório. Tente novamente.
++  authentication_aborted: Autenticação cancelada. Tente novamente.
++  invalid_token: O token fornecido é inválido. Verifique e tente novamente.
++  UNSUPPORTED_BACKEND: O seu backend Git não é suportado pelo autenticador.
++  UNSUPPORTED_DOMAIN: O seu domínio não está autorizado a utilizar o autenticador.
++  MISCONFIGURED_CLIENT: O ID ou segredo do cliente OAuth não está configurado.
++  AUTH_CODE_REQUEST_FAILED: Falha ao receber um código de autorização. Tente novamente mais tarde.
++  CSRF_DETECTED: Potencial ataque CSRF detetado. Fluxo de autenticação cancelado.
++  TOKEN_REQUEST_FAILED: Falha ao solicitar um token de acesso. Tente novamente mais tarde.
++  TOKEN_REFRESH_FAILED: Falha ao atualizar o token de acesso. Tente novamente mais tarde.
++  MALFORMED_RESPONSE: O servidor respondeu com dados incorretos. Tente novamente mais tarde.
++backend_unsupported_version: O backend {$name} requer {$name} {$version} ou superior.
++repository_no_access: Não tem acesso ao repositório "{$repo}".
++repository_not_found: O repositório "{$repo}" não existe.
++repository_empty: O repositório "{$repo}" não tem ramos.
++branch_not_found: O repositório "{$repo}" não tem o ramo "{$branch}".
++unexpected_error: Erro Inesperado
++entry_parse_errors: |
++  .input {$count :integer}
++  .match $count
++    one {{ Ocorreu um erro ao analisar um ficheiro de entrada. Verifique a consola do browser para obter detalhes. }}
++    *   {{ Ocorreram erros ao analisar ficheiros de entrada. Verifique a consola do browser para obter detalhes. }}
++mobile_promo_title: O Sveltia CMS já está disponível no telemóvel!
++mobile_promo_button: Experimente
++visit_live_site: Visitar Site em Direto
++switch_page: Mudar de Página
++search_placeholder_contents: Pesquisar conteúdos…
++search_placeholder_assets: Pesquisar recursos…
++search_placeholder_all: Pesquisar conteúdos e recursos…
++create_entry_or_assets: Criar Entrada ou Recursos
++publish_changes: Publicar Alterações
++publishing_changes: A Publicar Alterações…
++publishing_changes_failed: Não foi possível publicar as alterações. Tente novamente mais tarde.
++show_notifications: Mostrar Notificações
++notifications: Notificações
++show_account_menu: Mostrar Menu de Conta
++account: Conta
++live_site: Site em Direto
++git_repository: Repositório Git
++settings: Definições
++cms_config: Configuração do CMS
++show_help_menu: Mostrar Menu de Ajuda
++help: Ajuda
++keyboard_shortcuts: Atalhos de Teclado
++documentation: Documentação
++release_notes: Notas de Versão
++announcements: Anúncios
++version_x: Versão {$version}
++report_issue: Reportar Problema
++share_feedback: Partilhar Opinião
++get_help: Obter Ajuda
++donate: Fazer Doação
++join_discord: Junte-se a Nós no Discord
++bluesky: Siga-nos no Bluesky
++update_available: A versão mais recente do Sveltia CMS está disponível.
++update_now: Atualizar Agora
++backend_status:
++  minor_incident: "O {$service} está a experienciar um incidente menor. O seu fluxo de trabalho pode ser afetado."
++  major_incident: "O {$service} está a experienciar um incidente grave. Pode querer aguardar até que a situação melhore."
++content_library: Biblioteca de Conteúdos
++asset_library: Biblioteca de Recursos
++asset_location:
++  repository: O Seu Site
++  external: Localizações Externas
++  stock_photos: Fotografias de Stock
++collection_assets: Recursos da Coleção
++entry_list: Lista de Entradas
++file_list: Lista de Ficheiros
++asset_list: Lista de Recursos
++x_collection: "Coleção \"{$collection}\""
++x_asset_folder: "Pasta de Recursos \"{$folder}\""
++viewing_collection_list: Está a visualizar a lista de coleções.
++viewing_asset_folder_list: Está a visualizar a lista de pastas de recursos.
++viewing_x_collection: |
++  .input {$count :integer}
++  .match $count
++    0   {{ Está a visualizar a coleção "{$collection}", que ainda não tem entradas. }}
++    one {{ Está a visualizar a coleção "{$collection}", que tem uma entrada. }}
++    *   {{ Está a visualizar a coleção "{$collection}", que tem {$count} entradas. }}
++viewing_x_asset_folder: |
++  .input {$count :integer}
++  .match $count
++    0   {{ Está a visualizar a pasta de recursos "{$folder}", que ainda não tem recursos. }}
++    one {{ Está a visualizar a pasta de recursos "{$folder}", que tem um recurso. }}
++    *   {{ Está a visualizar a pasta de recursos "{$folder}", que tem {$count} recursos. }}
++singleton_selected_announcement: Prima Enter para editar o ficheiro "{$file}".
++collection_not_found: Coleção não encontrada
++file_not_found: Ficheiro não encontrado.
++x_of_x_selected: "{$selected} de {$total} selecionado(s)"
++switch_view: Mudar Vista
++list_view: Vista em Lista
++grid_view: Vista em Grelha
++switch_to_list_view: Mudar para Vista em Lista
++switch_to_grid_view: Mudar para Vista em Grelha
++sort: Ordenar
++sorting_options: Opções de Ordenação
++sort_keys:
++  none: Nenhum
++  name: Nome
++  slug: Slug
++  commit_author: Atualizado por
++  commit_date: Atualizado em
++  _summary: Resumo
++  _manual: Manual
++ascending: "{$label}, A a Z"
++ascending_date: "{$label}, mais antigo primeiro"
++descending: "{$label}, Z a A"
++descending_date: "{$label}, mais recente primeiro"
++filter: Filtrar
++filtering_options: Opções de Filtragem
++group: Agrupar
++grouping_options: Opções de Agrupamento
++type: Tipo
++all: Todos
++image: Imagem
++video: Vídeo
++audio: Áudio
++document: Documento
++other: Outro
++show_assets: Mostrar Recursos
++hide_assets: Ocultar Recursos
++show_info: Mostrar Informação
++hide_info: Ocultar Informação
++all_assets: Todos os Recursos
++global_assets: Recursos Globais
++entry_not_found: Entrada não encontrada.
++creating_entries_disabled_by_admin: A criação de novas entradas nesta coleção está desativada pelo administrador.
++creating_entries_disabled_by_quota: Não pode adicionar novas entradas a esta coleção porque atingiu o limite de {$quota} entradas.
++creating_entries_nearing_quota: |
++  .input {$remaining :integer}
++  .match $remaining
++    one {{ Esta coleção está a aproximar-se do limite de {$quota} entradas. Só pode criar mais {$remaining} entrada. }}
++    *   {{ Esta coleção está a aproximar-se do limite de {$quota} entradas. Só pode criar mais {$remaining} entradas. }}
++back_to_collection: Voltar à Coleção
++collection_list: Lista de Coleções
++back_to_collection_list: Voltar à Lista de Coleções
++asset_folder_list: Lista de Pastas de Recursos
++back_to_asset_folder_list: Voltar à Lista de Pastas de Recursos
++search_results: Resultados da Pesquisa
++search_results_for_x: "Resultados da Pesquisa para \"{$terms}\""
++viewing_entry_search_results: |
++  .input {$count :integer}
++  .match $count
++    0   {{ Está a ver os resultados da pesquisa para "{$terms}". Não foram encontradas entradas. }}
++    one {{ Está a ver os resultados da pesquisa para "{$terms}". Foi encontrada uma entrada. }}
++    *   {{ Está a ver os resultados da pesquisa para "{$terms}". Foram encontradas {$count} entradas. }}
++viewing_asset_search_results: |
++  .input {$count :integer}
++  .match $count
++    0   {{ Está a ver os resultados da pesquisa para "{$terms}". Não foram encontrados recursos. }}
++    one {{ Está a ver os resultados da pesquisa para "{$terms}". Foi encontrado um recurso. }}
++    *   {{ Está a ver os resultados da pesquisa para "{$terms}". Foram encontrados {$count} recursos. }}
++x_entries: |
++  .input {$count :integer}
++  .match $count
++    0   {{ Sem entradas }}
++    one {{ {$count} entrada }}
++    *   {{ {$count} entradas }}
++x_assets: |
++  .input {$count :integer}
++  .match $count
++    0   {{ Sem recursos }}
++    one {{ {$count} recurso }}
++    *   {{ {$count} recursos }}
++no_files_found: Nenhum ficheiro encontrado.
++no_entries_found: Nenhuma entrada encontrada.
++upload_assets: Carregar Novos Recursos
++edit_options: Opções de Edição
++show_edit_options: Mostrar Opções de Edição
++edit_asset: Editar Recurso
++edit_x: Editar {$name}
++wrap_long_lines: Quebrar Linhas Longas
++rename_asset: Renomear Recurso
++rename_x: Renomear {$name}
++enter_new_name_for_asset: |
++  .input {$count :integer}
++  .match $count
++    0   {{ Introduza um novo nome abaixo. }}
++    one {{ Introduza um novo nome abaixo. Uma entrada que utiliza o recurso também será atualizada. }}
++    *   {{ Introduza um novo nome abaixo. {$count} entradas que utilizam o recurso também serão atualizadas. }}
++enter_new_name_for_asset_error:
++  empty: O nome do ficheiro não pode estar vazio.
++  character: O nome do ficheiro não pode conter caracteres especiais.
++  duplicate: Este nome de ficheiro já está a ser usado por outro recurso.
++replace_asset: Substituir Recurso
++replace_x: Substituir {$name}
++click_to_browse: Clique para navegar…
++tap_to_browse: Toque para navegar…
++drop_files_or_click_to_browse: |
++  .input {$count :integer}
++  .match $count
++    one {{ Arraste um ficheiro para aqui ou clique para navegar… }}
++    *   {{ Arraste ficheiros para aqui ou clique para navegar… }}
++drop_files_or: |
++  .input {$count :integer}
++  .match $count
++    one {{ Arraste um ficheiro para aqui ou }}
++    *   {{ Arraste ficheiros para aqui ou }}
++drop_image_files_or: |
++  .input {$count :integer}
++  .match $count
++    one {{ Arraste um ficheiro de imagem para aqui ou }}
++    *   {{ Arraste ficheiros de imagem para aqui ou }}
++browse: Navegar
++paste: Colar
++paste_image: Colar Imagem
++no_image_in_clipboard: Nenhuma imagem encontrada na área de transferência.
++clipboard_access_denied: Acesso à área de transferência negado.
++drop_files_here: |
++  .input {$count :integer}
++  .match $count
++    one {{ Arraste um ficheiro para aqui }}
++    *   {{ Arraste ficheiros para aqui }}
++unsupported_file_type: Tipo de Ficheiro Não Suportado
++dropped_file_type_mismatch: O ficheiro arrastado não é do tipo {$type}. Tente novamente.
++dropped_image_type_mismatch: O ficheiro arrastado não é suportado. Apenas imagens AVIF, GIF, JPEG, PNG, WebP ou SVG são aceites. Tente novamente.
++choose_files: |
++  .input {$count :integer}
++  .match $count
++    one {{ Escolher Ficheiro }}
++    *   {{ Escolher Ficheiros }}
++delete_assets: |
++  .input {$count :integer}
++  .match $count
++    one {{ Eliminar Recurso }}
++    *   {{ Eliminar Recursos }}
++delete_selected_assets: |
++  .input {$count :integer}
++  .match $count
++    one {{ Eliminar Recurso Selecionado }}
++    *   {{ Eliminar Recursos Selecionados }}
++confirm_deleting_this_asset: Tem a certeza de que pretende eliminar este recurso?
++confirm_deleting_selected_assets: |
++  .input {$count :integer}
++  .match $count
++    one {{ Tem a certeza de que pretende eliminar o recurso selecionado? }}
++    *   {{ Tem a certeza de que pretende eliminar os {$count} recursos selecionados? }}
++confirm_deleting_all_assets: Tem a certeza de que pretende eliminar todos os recursos?
++delete_entries: |
++  .input {$count :integer}
++  .match $count
++    one {{ Eliminar Entrada }}
++    *   {{ Eliminar Entradas }}
++delete_selected_entries: |
++  .input {$count :integer}
++  .match $count
++    one {{ Eliminar Entrada Selecionada }}
++    *   {{ Eliminar Entradas Selecionadas }}
++confirm_deleting_this_entry: Tem a certeza de que pretende eliminar esta entrada?
++confirm_deleting_this_entry_with_assets: Tem a certeza de que pretende eliminar esta entrada e os recursos associados?
++confirm_deleting_selected_entries: |
++  .input {$count :integer}
++  .match $count
++    one {{ Tem a certeza de que pretende eliminar a entrada selecionada? }}
++    *   {{ Tem a certeza de que pretende eliminar as {$count} entradas selecionadas? }}
++confirm_deleting_selected_entries_with_assets: |
++  .input {$count :integer}
++  .match $count
++    one {{ Tem a certeza de que pretende eliminar a entrada selecionada e os recursos associados? }}
++    *   {{ Tem a certeza de que pretende eliminar as {$count} entradas selecionadas e os recursos associados? }}
++confirm_deleting_all_entries: Tem a certeza de que pretende eliminar todas as entradas?
++confirm_deleting_all_entries_with_assets: Tem a certeza de que pretende eliminar todas as entradas e os recursos associados?
++reorder_entries: Reordenar Entradas
++done_reordering_entries: Concluir Reordenação de Entradas
++cancel_reordering_entries: Cancelar Reordenação de Entradas
++saving_reorder_failed: Falha ao guardar a nova ordem das entradas. Tente novamente.
++processing_files: |
++  .input {$count :integer}
++  .match $count
++    one {{ A processar um ficheiro. Isto pode demorar algum tempo. }}
++    *   {{ A processar ficheiros. Isto pode demorar algum tempo. }}
++uploading_files: A Carregar Ficheiros
++confirm_replacing_file: '"{$name}" será substituído por este ficheiro:'
++confirm_uploading_files: |
++  .input {$count :integer}
++  .match $count
++    one {{ Este ficheiro será guardado na pasta "{$folder}": }}
++    *   {{ Estes {$count} ficheiros serão guardados na pasta "{$folder}": }}
++oversized_files: Ficheiros Demasiado Grandes
++warning_oversized_files: |
++  .input {$count :integer}
++  .match $count
++    one {{ Este ficheiro não pode ser carregado porque excede o tamanho máximo de {$size}. Por favor, reduza o tamanho ou selecione um ficheiro diferente. }}
++    *   {{ Estes ficheiros não podem ser carregados porque excedem o tamanho máximo de {$size}. Por favor, reduza os tamanhos ou selecione ficheiros diferentes. }}
++file_name_conflict_confirmation: |
++  .input {$count :integer}
++  .match $count
++    one {{ Já existe um ficheiro com o mesmo nome nesta pasta. Pretende substituí-lo? }}
++    *   {{ Já existem {$count} ficheiros com os mesmos nomes nesta pasta. Pretende substituí-los? }}
++file_name_conflict_confirmation_with_name: |
++  .input {$count :integer}
++  .input {$name :string}
++  .match $count
++    one {{ Já existe um ficheiro com o nome "{$name}" nesta pasta. Pretende substituí-lo? }}
++    *   {{ Já existem {$count} ficheiros com os mesmos nomes nesta pasta. Pretende substituí-los? }}
++file_name_conflict_resolution: Resolução de Conflito de Nome de Ficheiro
++keep_both: Manter Ambos
++uploading_files_progress: |
++  .input {$count :integer}
++  .match $count
++    one {{ A carregar ficheiro… }}
++    *   {{ A carregar ficheiros… }}
++uploading_files_failed: |
++  .input {$count :integer}
++  .match $count
++    one {{ Não foi possível carregar o ficheiro }}
++    *   {{ Não foi possível carregar os ficheiros }}
++file_meta: "{$type} · {$size}"
++file_meta_converted_from_x: (convertido de {$type})
++no_entries_created: Esta coleção ainda não tem entradas.
++create_new_entry: Criar Nova Entrada
++entry: Entrada
++index_file: Ficheiro Índice
++no_files_in_collection: Nenhum ficheiro disponível nesta coleção.
++asset_info: Informação do Recurso
++select_asset_show_info: Selecione um recurso para ver a informação.
++duplicate_entry: Duplicar Entrada
++entry_duplicated: A entrada foi duplicada. É agora um novo rascunho.
++entry_validation_errors: |
++  .input {$count :integer}
++  .match $count
++    one {{ Um campo tem um erro. Corrija-o para guardar a entrada. }}
++    *   {{ {$count} campos têm erros. Corrija-os para guardar a entrada. }}
++entry_saved: |
++  .input {$count :integer}
++  .match $count
++    one {{ Entrada guardada. }}
++    *   {{ {$count} entradas guardadas. }}
++entry_saved_and_published: |
++  .input {$count :integer}
++  .match $count
++    one {{ Entrada guardada e publicada. }}
++    *   {{ {$count} entradas guardadas e publicadas. }}
++entries_deleted: |
++  .input {$count :integer}
++  .match $count
++    one {{ Entrada eliminada. }}
++    *   {{ {$count} entradas eliminadas. }}
++assets_saved: |
++  .input {$count :integer}
++  .match $count
++    one {{ Recurso guardado. }}
++    *   {{ {$count} recursos guardados. }}
++assets_saved_and_published: |
++  .input {$count :integer}
++  .match $count
++    one {{ Recurso guardado e publicado. }}
++    *   {{ {$count} recursos guardados e publicados. }}
++asset_urls_copied: |
++  .input {$count :integer}
++  .match $count
++    one {{ URL do recurso copiado para a área de transferência. }}
++    *   {{ {$count} URLs de recursos copiados para a área de transferência. }}
++asset_paths_copied: |
++  .input {$count :integer}
++  .match $count
++    one {{ Caminho do ficheiro do recurso copiado para a área de transferência. }}
++    *   {{ {$count} caminhos de ficheiros de recursos copiados para a área de transferência. }}
++asset_data_copied: |
++  .input {$count :integer}
++  .match $count
++    one {{ Ficheiro do recurso copiado para a área de transferência. }}
++    *   {{ {$count} ficheiros de recursos copiados para a área de transferência. }}
++assets_downloaded: |
++  .input {$count :integer}
++  .match $count
++    one {{ Ficheiro do recurso descarregado. }}
++    *   {{ {$count} ficheiros de recursos descarregados. }}
++assets_moved: |
++  .input {$count :integer}
++  .match $count
++    one {{ Recurso movido. }}
++    *   {{ {$count} recursos movidos. }}
++assets_renamed: |
++  .input {$count :integer}
++  .match $count
++    one {{ Recurso renomeado. }}
++    *   {{ {$count} recursos renomeados. }}
++assets_deleted: |
++  .input {$count :integer}
++  .match $count
++    one {{ Recurso eliminado. }}
++    *   {{ {$count} recursos eliminados. }}
++content_editor: Editor de Conteúdo
++restore_backup_title: Restaurar Rascunho
++restore_backup_description: Esta entrada tem uma cópia de segurança de {$datetime}. Pretende restaurar o rascunho editado?
++draft_backup_saved: Cópia de segurança do rascunho guardada.
++draft_backup_restored: Cópia de segurança do rascunho restaurada.
++draft_backup_deleted: Cópia de segurança do rascunho eliminada.
++cancel_editing: Cancelar Edição
++create_entry_title: A criar {$name}
++create_entry_announcement: Está agora a criar uma nova entrada na coleção "{$collection}".
++edit_entry_title: "{$collection} › {$entry}"
++edit_entry_announcement: Está agora a editar a entrada "{$entry}" na coleção "{$collection}".
++edit_file_announcement: Está agora a editar o ficheiro "{$file}" na coleção "{$collection}".
++edit_singleton_announcement: Está agora a editar o ficheiro "{$file}".
++save_and_publish: Guardar e Publicar
++save_without_publishing: Guardar sem Publicar
++show_editor_options: Mostrar Opções do Editor
++editor_options: Opções do Editor
++show_preview: Mostrar Pré-visualização
++sync_scrolling: Sincronizar Deslocamento
++switch_locale: Mudar Idioma
++locale_content_disabled_short: (desativado)
++locale_content_error_short: (erro)
++edit: Editar
++preview: Pré-visualização
++swap_panes: Trocar Painéis
++edit_x_locale: Editar Conteúdo em {$locale}
++preview_x_locale: Pré-visualizar Conteúdo em {$locale}
++content_preview: Pré-visualização de Conteúdo
++show_content_options_x_locale: Mostrar Opções de Conteúdo em {$locale}
++content_options_x_locale: "Opções de Conteúdo em {$locale}"
++x_field: "Campo \"{$field}\""
++show_field_options: Mostrar Opções do Campo
++field_options: Opções do Campo
++unsupported_field_type_x: "Tipo de campo não suportado: {$name}"
++enable_x_locale: Ativar {$locale}
++reenable_x_locale: Reativar {$locale}
++disable_x_locale: Desativar {$locale}
++locale_x_has_been_disabled: O conteúdo em {$locale} foi desativado.
++locale_x_now_disabled: O conteúdo em {$locale} está agora desativado. Será eliminado quando guardar a entrada.
++view_in_repository: Ver no Repositório
++view_on_x: Ver em {$service}
++view_on_live_site: Ver no Site em Direto
++copy_from: Copiar de…
++copy_from_x: Copiar de {$locale}
++translation_options: Opções de Tradução
++translate: Traduzir
++translate_fields: |
++  .input {$count :integer}
++  .match $count
++    one {{ Traduzir Campo }}
++    *   {{ Traduzir Campos }}
++translate_from: Traduzir de…
++translate_from_x: Traduzir de {$locale}
++revert_changes: Reverter Alterações
++revert_all_changes: Reverter Todas as Alterações
++edit_slug: Editar Slug
++edit_slug_warning: Alterar o slug pode quebrar ligações internas e externas para a entrada. Atualmente, o Sveltia CMS não atualiza referências criadas com campos de Relação, por isso terá de atualizar manualmente essas referências e outras ligações.
++edit_slug_error:
++  empty: O slug não pode estar vazio.
++  duplicate: Este slug já está a ser usado por outra entrada.
++required: Obrigatório
++editor:
++  translation:
++    none: Nada foi traduzido.
++    started: A traduzir…
++    error: Ocorreu um erro durante a tradução.
++    complete: |
++      .input {$count :integer}
++      .match $count
++        0   {{ Nenhum campo foi traduzido de {$source}. }}
++        one {{ Traduzido um campo de {$source}. }}
++        *   {{ {$count} campos traduzidos de {$source}. }}
++  copy:
++    none: Nada foi copiado.
++    complete: |
++      .input {$count :integer}
++      .match $count
++        0   {{ Nenhum campo foi copiado de {$source}. }}
++        one {{ Copiado um campo de {$source}. }}
++        *   {{ {$count} campos copiados de {$source}. }}
++validation:
++  value_missing: Este campo é obrigatório.
++  range_underflow:
++    datetime-local: A data/hora deve ser igual ou posterior a {$min}.
++    date: A data deve ser igual ou posterior a {$min}.
++    time: A hora deve ser igual ou posterior a {$min}.
++    number: O valor deve ser maior ou igual a {$min}.
++    select: |
++      .input {$min :integer}
++      .match $min
++        one {{ Deve selecionar pelo menos {$min} opção. }}
++        *   {{ Deve selecionar pelo menos {$min} opções. }}
++    add: |
++      .input {$min :integer}
++      .match $min
++        one {{ Deve adicionar pelo menos {$min} item. }}
++        *   {{ Deve adicionar pelo menos {$min} itens. }}
++  range_overflow:
++    datetime-local: A data/hora deve ser igual ou anterior a {$max}.
++    date: A data deve ser igual ou anterior a {$max}.
++    time: A hora deve ser igual ou anterior a {$max}.
++    number: O valor deve ser menor ou igual a {$max}.
++    select: |
++      .input {$max :integer}
++      .match $max
++        one {{ Não pode selecionar mais de {$max} opção. }}
++        *   {{ Não pode selecionar mais de {$max} opções. }}
++    add: |
++      .input {$max :integer}
++      .match $max
++        one {{ Não pode adicionar mais de {$max} item. }}
++        *   {{ Não pode adicionar mais de {$max} itens. }}
++  too_short: |
++    .input {$min :integer}
++    .match $min
++      one {{ Deve introduzir pelo menos {$min} carácter. }}
++      *   {{ Deve introduzir pelo menos {$min} carácteres. }}
++  too_long: |
++    .input {$max :integer}
++    .match $max
++      one {{ Não pode introduzir mais de {$max} carácter. }}
++      *   {{ Não pode introduzir mais de {$max} carácteres. }}
++  type_mismatch:
++    number: Por favor, introduza um número.
++    email: Por favor, introduza um email válido.
++    url: Por favor, introduza um URL válido.
++entry_sidebar:
++  sidebar_panels: Painéis da Barra Lateral
++  validation:
++    title: Validação
++    placeholder: Os resultados da validação serão mostrados aqui.
++    no_errors_found: Nenhum erro encontrado.
++  history:
++    title: Histórico
++    fetch_failed: Falha ao carregar o histórico.
++    no_history: Nenhum histórico encontrado.
++  backlinks:
++    title: Retroligações
++    no_entries: Nenhuma entrada faz referência a esta entrada.
++saving_entry:
++  error:
++    title: Erro
++    description: Ocorreu um erro ao guardar a entrada. Tente novamente mais tarde.
++viewing_x_asset_details: Está a ver os detalhes do recurso "{$name}".
++asset_editor: Editor de Recursos
++preview_unavailable: Pré-visualização Indisponível.
++public_urls: |
++  .input {$count :integer}
++  .match $count
++    one {{ URL Público }}
++    *   {{ URLs Públicos }}
++file_paths: |
++  .input {$count :integer}
++  .match $count
++    one {{ Caminho do Ficheiro }}
++    *   {{ Caminhos dos Ficheiros }}
++file_data: Dados do Ficheiro
++kind: Tipo
++size: Tamanho
++dimensions: Dimensões
++duration: Duração
++used_in: Usado em
++created_date: Data de Criação
++location: Localização
++map_lat_lng: Mapa mostrando latitude {$latitude}, longitude {$longitude}
++remove_this_item: Remover Este Item
++move_up: Mover para Cima
++move_down: Mover para Baixo
++add_x: Adicionar {$name}
++add_item_above: Adicionar Item Acima
++add_item_below: Adicionar Item Abaixo
++select_list_type: Selecionar Tipo de Lista
++opacity: Opacidade
++unselected_option: (Nenhum)
++assets_dialog:
++  title:
++    file: Selecionar Ficheiro
++    image: Selecionar Imagem
++  search_for_file: Pesquisar Ficheiros
++  search_for_image: Pesquisar Imagens
++  locations: Localizações
++  folder:
++    field: Recursos do Campo
++    entry: Recursos da Entrada
++    file: Recursos do Ficheiro
++    collection: Recursos da Coleção
++    global: Recursos Globais
++  error:
++    invalid_key: A sua Chave API é inválida ou expirou. Por favor, verifique e tente novamente.
++    search_fetch_failed: Ocorreu um erro ao pesquisar recursos. Tente novamente mais tarde.
++    image_fetch_failed: Ocorreu um erro ao descarregar o recurso selecionado. Tente novamente mais tarde.
++  available_images: Imagens Disponíveis
++  enter_url: Introduzir URL
++  enter_file_url: "Introduzir URL do ficheiro:"
++  enter_image_url: "Introduzir URL da imagem:"
++  large_file:
++    title: Ficheiro Grande
++  photo_credit:
++    title: Crédito de Fotografia
++    description: "Utilize o seguinte crédito se possível:"
++  unsaved: Não guardado
++character_counter:
++  min_max: |
++    .input {$count :integer}
++    .match $count
++      0   {{ Nenhum carácter introduzido. Mínimo: {$min}. Máximo: {$max}. }}
++      one {{ {$count} carácter introduzido. Mínimo: {$min}. Máximo: {$max}. }}
++      *   {{ {$count} carácteres introduzidos. Mínimo: {$min}. Máximo: {$max}. }}
++  min: |
++    .input {$count :integer}
++    .match $count
++      0   {{ Nenhum carácter introduzido. Mínimo: {$min}. }}
++      one {{ {$count} carácter introduzido. Mínimo: {$min}. }}
++      *   {{ {$count} carácteres introduzidos. Mínimo: {$min}. }}
++  max: |
++    .input {$count :integer}
++    .match $count
++      0   {{ Nenhum carácter introduzido. Máximo: {$max}. }}
++      one {{ {$count} carácter introduzido. Máximo: {$max}. }}
++      *   {{ {$count} carácteres introduzidos. Máximo: {$max}. }}
++youtube_video_player: Player de vídeo do YouTube
++today: Hoje
++now: Agora
++editor_components:
++  image: Imagem
++  src: Fonte
++  alt: Texto Alternativo
++  title: Título
++  link: Ligação
++key_value:
++  key: Chave
++  value: Valor
++  action: Ação
++  empty_key: A chave é obrigatória.
++  duplicate_key: A chave deve ser única.
++find_place: Encontrar um Lugar
++use_your_location: Usar a Sua Localização
++geolocation_error_title: Erro de Geolocalização
++geolocation_error_body: Ocorreu um erro ao obter a sua localização.
++geolocation_unsupported: A API de Geolocalização não é suportada por este browser.
++boolean:
++  "true": Sim
++  "false": Não
++cloud_storage:
++  invalid: O serviço não está configurado corretamente.
++  auth:
++    api_key:
++      key_label: Chave API
++      initial: Introduza a sua {$key} para {$service}.
++      requested: A validar…
++      error: A {$key} fornecida é inválida. Por favor, verifique e tente novamente.
++    password:
++      initial: Introduza a sua palavra-passe para {$service}.
++      requested: A iniciar sessão…
++      error: Nome de utilizador ou palavra-passe incorretos. Por favor, verifique e tente novamente.
++  cloudinary:
++    iframe_title: Biblioteca de média Cloudinary
++    activate:
++      button_label: Ativar Cloudinary
++      description: Após iniciar sessão, clique novamente no botão Iniciar Sessão para continuar.
++    auth_key_label: Segredo da API
++  uploadcare:
++    auth_key_label: Chave Secreta da API
++  aws_s3:
++    auth_key_label: Chave de Acesso Secreta
++  cloudflare_r2:
++    auth_key_label: Chave de Acesso Secreta
++  digitalocean_spaces:
++    auth_key_label: Chave de Acesso Secreta
++config:
++  errors: |
++    .input {$count :integer}
++    .match $count
++      one {{ Existe um erro na configuração do CMS. Por favor, resolva o problema e tente novamente. }}
++      *   {{ Existem erros na configuração do CMS. Por favor, resolva os problemas e tente novamente. }}
++  error_locator:
++    collection: "coleção {$collection}"
++    file: "ficheiro {$file}"
++    field: "campo `{$field}`"
++  error:
++    no_secure_context: O Sveltia CMS só funciona com URLs HTTPS ou localhost.
++    insecure_url: O URL do ficheiro de configuração deve usar o protocolo HTTPS ou um endereço localhost.
++    insecure_urls: |
++      .input {$count :integer}
++      .match $count
++        one {{ O URL do ficheiro de configuração deve usar o protocolo HTTPS ou um endereço localhost. }}
++        *   {{ Os URLs dos ficheiros de configuração devem usar o protocolo HTTPS ou endereços localhost. }}
++    fetch_failed: O ficheiro de configuração não pôde ser obtido.
++    fetch_failed_not_ok: A resposta HTTP retornou com o estado {$status}.
++    fetch_failed_with_manual_init: "O ficheiro de configuração não pôde ser obtido. Para evitar que o ficheiro `config.yml` seja carregado, adicione [`load_config_file: false`](https://sveltiacms.app/en/docs/api/initialization#providing-a-full-configuration) ao objeto de configuração passado a `CMS.init()`."
++    parse_failed: O ficheiro de configuração não pôde ser analisado.
++    parse_failed_invalid_object: O ficheiro de configuração não é um objeto JavaScript válido.
++    parse_failed_unsupported_type: O ficheiro de configuração não é um tipo de ficheiro válido. Apenas YAML, TOML e JSON são suportados.
++    no_collection: As coleções não estão definidas.
++    missing_backend: O backend não está definido.
++    missing_backend_name: O nome do backend não está definido.
++    unsupported_known_backend: O backend {$name} [não é suportado](https://sveltiacms.app/en/docs/migration/netlify-decap-cms#features-not-to-be-implemented) no Sveltia CMS.
++    unsupported_deprecated_backend: O backend obsoleto {$name} [não é suportado](https://sveltiacms.app/en/docs/migration/netlify-decap-cms#features-not-to-be-implemented) no Sveltia CMS.
++    unsupported_custom_backend: Backends personalizados [não são suportados](https://sveltiacms.app/en/docs/migration/netlify-decap-cms#features-not-to-be-implemented) no Sveltia CMS.
++    unsupported_backend_suggestion: Use um dos [backends suportados](https://sveltiacms.app/en/docs/backends#supported-backends) em vez disso.
++    missing_repository: O repositório não está definido.
++    invalid_repository: O repositório configurado é inválido. Deve estar no formato "proprietário/repo".
++    oauth_implicit_flow: O método de autenticação configurado (fluxo implícito) não é suportado no Sveltia CMS. Use um [método de autenticação](https://sveltiacms.app/en/docs/backends/BACKEND_NAME#authentication) diferente.
++    github_pkce_unsupported: A autorização PKCE ainda não é suportada devido a limitações do GitHub. Use um [método de autenticação](https://sveltiacms.app/en/docs/backends/github#authentication) diferente.
++    oauth_no_app_id: O ID da aplicação OAuth não está definido.
++    no_auth_methods: A opção `auth_methods` deve conter pelo menos um método.
++    missing_media_folder: A pasta de média não está definida.
++    invalid_media_folder: A pasta de média configurada é inválida. Deve ser uma string.
++    invalid_public_folder: A pasta pública configurada é inválida. Deve ser uma string.
++    public_folder_relative_path: A pasta pública configurada é inválida. Deve ser um caminho absoluto começando com "/".
++    public_folder_absolute_url: Um URL absoluto para a opção de pasta pública não é suportado no Sveltia CMS.
++    invalid_collection_no_options: A coleção deve ter a opção `folder`, `files` ou `divider` definida.
++    invalid_collection_multiple_options: A coleção não pode ter as opções `folder`, `files` e `divider` em simultâneo.
++    file_format_mismatch: A extensão `{$extension}` não corresponde ao formato `{$format}`.
++    invalid_slug_slash: O modelo de slug `{$slug}` é inválido porque não pode conter barras. Para organizar entradas em subpastas, use a opção `path` em vez de `slug`.
++    missing_collection_name: A coleção {$count} deve ter a opção `name` definida como uma string não vazia.
++    invalid_collection_name: O nome da coleção `{$name}` é inválido. Não deve conter caracteres especiais.
++    duplicate_collection_name: Os nomes das coleções devem ser únicos, mas `{$name}` é usado mais de uma vez.
++    missing_collection_file_name: O ficheiro da coleção {$count} deve ter a opção `name` definida como uma string não vazia.
++    invalid_collection_file_name: O nome do ficheiro da coleção `{$name}` é inválido. Não deve conter caracteres especiais.
++    duplicate_collection_file_name: Os nomes dos ficheiros da coleção devem ser únicos, mas `{$name}` é usado mais de uma vez.
++    collection_no_fields: A coleção deve ter a opção `fields` definida com pelo menos um campo.
++    collection_file_no_fields: O ficheiro da coleção deve ter a opção `fields` definida com pelo menos um campo.
++    collection_file_i18n_required: O ficheiro da coleção deve ter a opção `i18n` definida se o marcador `locale` for usado no caminho `file`.
++    missing_field_name: O campo {$count} deve ter a opção `name` definida como uma string não vazia.
++    invalid_field_name: O nome do campo `{$name}` é inválido. Não deve conter caracteres especiais. Se quiser aninhar campos, [use campos de Objeto em vez de notação de ponto](https://sveltiacms.app/en/docs/troubleshooting#using-proper-naming-conventions).
++    duplicate_field_name: Os nomes dos campos devem ser únicos, mas `{$name}` é usado mais de uma vez.
++    missing_variable_type: O tipo de variável {$count} deve ter a opção `name` definida como uma string não vazia.
++    invalid_variable_type: O nome do tipo de variável `{$name}` é inválido. Não deve conter caracteres especiais.
++    duplicate_variable_type: Os nomes dos tipos de variável devem ser únicos, mas `{$name}` é usado mais de uma vez.
++    date_field_type: "O tipo de campo Date obsoleto não é suportado no Sveltia CMS. Use o tipo de campo DateTime com a opção `type: date` em vez disso."
++    unsupported_deprecated_option: A opção obsoleta `{$prop}` não é suportada no Sveltia CMS. Use a opção `{$newProp}` em vez disso.
++    allow_multiple: A opção `allow_multiple` não é suportada no Sveltia CMS. Use a opção `multiple` em vez disso, que tem como padrão `false`.
++    invalid_list_field: O campo Lista não pode ter as opções `field`, `fields` e `types` em simultâneo.
++    invalid_list_variable_type: O tipo de variável do campo Lista é inválido. A opção `widget` está definida como `{$widget}`, mas deve ser `object`.
++    invalid_object_field: O campo Objeto não pode ter as opções `fields` e `types` em simultâneo.
++    object_field_missing_fields: O campo Objeto deve ter a opção `fields` ou `types` definida.
++    relation_field_invalid_collection: A coleção referenciada `{$collection}` é inválida ou não está definida.
++    relation_field_invalid_collection_file: O ficheiro referenciado `{$file}` é inválido ou não está definido.
++    relation_field_missing_file_name: A opção `file` deve ser definida para uma relação com um ficheiro de coleção.
++    relation_field_invalid_value_field: O campo de valor referenciado `{$field}` é inválido ou não está definido.
++    unexpected: Erro inesperado
++  warning:
++    oauth_no_app_id: O ID da aplicação OAuth não está definido. Os utilizadores são obrigados a fornecer um token de acesso para iniciar sessão.
++    editorial_workflow_unsupported: O fluxo editorial ainda não é suportado no Sveltia CMS.
++    open_authoring_unsupported: A autoria aberta ainda não é suportada no Sveltia CMS.
++    nested_collections_unsupported: As coleções aninhadas ainda não são suportadas no Sveltia CMS.
++    unsupported_ignored_option: A opção `{$prop}` não é suportada no Sveltia CMS. Será ignorada.
++  compatibility_link: "Consulte as notas de compatibilidade para obter detalhes: https://sveltiacms.app/en/docs/migration/netlify-decap-cms#features-not-to-be-implemented"
++local_workflow:
++  indicator: Local
++  unsupported_browser: O Fluxo de Trabalho Local não é suportado no seu browser. Por favor, use Chrome ou Edge.
++  disabled: O Fluxo de Trabalho Local está desativado no seu browser. <a>Aqui está como ativá-lo</a>.
++status:
++  drafts: Rascunhos
++  in_review: Em Revisão
++  ready: Pronto
++categories: Categorias
++prefs:
++  changes:
++    api_key_saved: Chave API guardada.
++    api_key_removed: Chave API removida.
++    api_key_invalid: A chave API fornecida é inválida. Por favor, verifique e tente novamente.
++  error:
++    permission_denied: O acesso ao armazenamento do browser (Cookie) foi negado. Por favor, verifique as permissões e tente novamente.
++  appearance:
++    title: Aparência
++    theme: Tema
++    select_theme: Selecionar Tema
++  theme:
++    auto: Automático
++    dark: Escuro
++    light: Claro
++  language:
++    title: Idioma
++    ui_language:
++      title: Idioma da Interface
++      select_language: Selecionar Idioma
++  contents:
++    title: Conteúdos
++    editor:
++      title: Editor
++      use_draft_backup:
++        switch_label: Fazer cópia de segurança automática de rascunhos
++      close_on_save:
++        switch_label: Fechar o editor após guardar um rascunho
++      close_with_escape:
++        switch_label: Fechar o editor com a tecla Escape
++  i18n:
++    title: Internacionalização
++    translators:
++      default:
++        title: Serviço de Tradução Padrão
++        select_service: Selecionar Serviço
++      api_keys:
++        title: Chaves API dos Serviços de Tradução
++        description: Gerir chaves API para <a>serviços de tradução</a>.
++      field_label: "{$service} Chave"
++      description: Registe-se em <a {$homeHref}>{$service}</a> e introduza <a {$apiKeyHref}>a sua Chave API</a> aqui para ativar a tradução rápida dos campos de texto.
++  media:
++    title: Média
++    stock_photos:
++      api_keys:
++        title: Chaves API dos Serviços de Fotografias de Stock
++        description: Gerir chaves API para <a>serviços de fotografias de stock</a>.
++      field_label: "{$service} Chave API"
++      description: Registe-se na <a {$homeHref}>{$service} API</a> e introduza <a {$apiKeyHref}>a sua Chave API</a> aqui para inserir fotografias de stock gratuitas em campos de imagem.
++      credit: Fotografias fornecidas por {$service}
++      no_services: Nenhum <a>serviço de fotografias de stock</a> está configurado.
++    cloud_storage:
++      api_keys:
++        title: Chaves API dos Serviços de Armazenamento na Nuvem
++        description: Gerir chaves API para <a>serviços de armazenamento na nuvem</a>.
++      field_label: "{$service} Chave API"
++      no_services: Nenhum <a>serviço de armazenamento na nuvem</a> está configurado.
++  accessibility:
++    title: Acessibilidade
++    underline_links:
++      title: Sublinhar Ligações
++      description: Mostrar sublinhado para ligações na pré-visualização de entradas e etiquetas da interface.
++      switch_label: Sublinhar Sempre as Ligações
++  advanced:
++    title: Avançado
++    beta:
++      title: Funcionalidades Beta
++      description: Ativar algumas funcionalidades beta que podem ser instáveis ou sem localização.
++      switch_label: Aderir ao Programa Beta
++    developer_mode:
++      title: Modo de Desenvolvedor
++      description: Ativar algumas funcionalidades orientadas para o desenvolvedor, incluindo registos detalhados na consola e menus de contexto nativos.
++      switch_label: Ativar Modo de Desenvolvedor
++    deploy_hook:
++      title: Gancho de Implementação
++      description: Introduza um URL de webhook a ser chamado quando acionar manualmente uma implementação selecionando Publicar Alterações. Pode ser deixado em branco se estiver a usar GitHub Actions.
++      url:
++        field_label: URL do Gancho
++        saved: URL do Gancho guardado.
++        removed: URL do Gancho removido.
++      auth:
++        field_label: Cabeçalho de Autorização (ex. Bearer <token>) (opcional)
++        saved: Cabeçalho de Autorização guardado.
++        removed: Cabeçalho de Autorização removido.
++keyboard_shortcuts_:
++  view_content_library: Ver Biblioteca de Conteúdos
++  view_asset_library: Ver Biblioteca de Recursos
++  search: Pesquisar entradas e recursos
++  create_entry: Criar uma nova entrada
++  save_entry: Guardar uma entrada
++  cancel_editing: Cancelar edição de entrada
++file_type_labels:
++  avif: Imagem AVIF
++  bmp: Imagem Bitmap
++  gif: Imagem GIF
++  ico: Ícone
++  jpeg: Imagem JPEG
++  jpg: Imagem JPEG
++  png: Imagem PNG
++  svg: Imagem SVG
++  tif: Imagem TIFF
++  tiff: Imagem TIFF
++  webp: Imagem WebP
++  avi: Vídeo AVI
++  m4v: Vídeo MP4
++  mov: Vídeo QuickTime
++  mp4: Vídeo MP4
++  mpeg: Vídeo MPEG
++  mpg: Vídeo MPEG
++  ogg: Vídeo Ogg
++  ogv: Vídeo Ogg
++  ts: Vídeo MPEG
++  webm: Vídeo WebM
++  3gp: Vídeo 3GPP
++  3g2: Vídeo 3GPP2
++  aac: Áudio AAC
++  mid: MIDI
++  midi: MIDI
++  m4a: Áudio MP4
++  mp3: Áudio MP3
++  oga: Áudio Ogg
++  opus: Áudio OPUS
++  wav: Áudio WAV
++  weba: Áudio WebM
++  csv: Folha de cálculo CSV
++  doc: Documento Word
++  docx: Documento Word
++  odp: Apresentação OpenDocument
++  ods: Folha de cálculo OpenDocument
++  odt: Texto OpenDocument
++  pdf: Documento PDF
++  ppt: Apresentação PowerPoint
++  pptx: Apresentação PowerPoint
++  rtf: Documento de texto formatado
++  xls: Folha de cálculo Excel
++  xlsx: Folha de cálculo Excel
++  html: Texto HTML
++  js: JavaScript
++  json: Texto JSON
++  md: Texto Markdown
++  toml: Texto TOML
++  yaml: Texto YAML
++  yml: Texto YAML
++file_size_units:
++  b: "{$size} bytes"
++  kb: "{$size} KB"
++  mb: "{$size} MB"
++  gb: "{$size} GB"
++  tb: "{$size} TB"
+diff --git a/src/lib/services/app/i18n.test.js b/src/lib/services/app/i18n.test.js
+index 79d9b7f0..7a0fe4da 100644
+--- a/src/lib/services/app/i18n.test.js
++++ b/src/lib/services/app/i18n.test.js
+@@ -49,7 +49,8 @@ describe('i18n', () => {
+ 
+       initAppLocale();
+ 
+-      expect(mockAddMessages).toHaveBeenCalledTimes(2);
++      // 3 locale files: upstream's en.yaml + ja.yaml, plus musictide's pt.yaml.
++      expect(mockAddMessages).toHaveBeenCalledTimes(3);
+       expect(mockAddMessages).toHaveBeenCalledWith('en', { hello: 'Hello', world: 'World' });
+       expect(mockAddMessages).toHaveBeenCalledWith('ja', { hello: 'こんにちは', world: '世界' });
+ 
+diff --git a/src/lib/services/backends/fs/local.js b/src/lib/services/backends/fs/local.js
+index 6b09453b..c8bbbd31 100644
+--- a/src/lib/services/backends/fs/local.js
++++ b/src/lib/services/backends/fs/local.js
+@@ -70,27 +70,12 @@ export const getRootDirHandle = async ({ forceReload = false, showPicker = true
+     throw new Error('unsupported');
+   }
+ 
+-  /** @type {FileSystemDirectoryHandle | null} */
+-  let handle = forceReload ? null : ((await rootDirHandleDB?.get(ROOT_DIR_HANDLE_KEY)) ?? null);
+-
+-  if (handle) {
+-    if ((await handle.requestPermission({ mode: 'readwrite' })) !== 'granted') {
+-      handle = null;
+-    } else {
+-      try {
+-        await handle.entries().next();
+-      } catch (ex) {
+-        // The directory may have been (re)moved. Let the user pick the directory again
+-        handle = null;
+-        // eslint-disable-next-line no-console
+-        console.error(ex);
+-      }
+-    }
+-  }
+-
+-  if (!handle && showPicker) {
+-    // This will throw `AbortError` when the user dismissed the picker
+-    handle = await window.showDirectoryPicker();
++  if (showPicker) {
++    // Call showDirectoryPicker() as the very first await — while the browser's transient
++    // user-activation window is still open. Any preceding macrotask (e.g. an IndexedDB
++    // read) would expire the activation, causing Chrome to throw AbortError.
++    // This will throw `AbortError` when the user dismissed the picker.
++    const handle = await window.showDirectoryPicker();
+ 
+     if (handle) {
+       // Verify this is a project root by checking for `.git`. In a standard repository, `.git` is
+@@ -110,9 +95,30 @@ export const getRootDirHandle = async ({ forceReload = false, showPicker = true
+       // If it looks fine, cache the directory handle
+       await rootDirHandleDB?.set(ROOT_DIR_HANDLE_KEY, handle);
+     }
++
++    return /** @type {FileSystemDirectoryHandle | null} */ (handle ?? null);
++  }
++
++  // Auto sign-in path (showPicker: false): try the cached handle only, no picker shown.
++  /** @type {FileSystemDirectoryHandle | null} */
++  let handle = forceReload ? null : ((await rootDirHandleDB?.get(ROOT_DIR_HANDLE_KEY)) ?? null);
++
++  if (handle) {
++    if ((await handle.requestPermission({ mode: 'readwrite' })) !== 'granted') {
++      handle = null;
++    } else {
++      try {
++        await handle.entries().next();
++      } catch (ex) {
++        // The directory may have been (re)moved. Return null so the caller can re-prompt.
++        handle = null;
++        // eslint-disable-next-line no-console
++        console.error(ex);
++      }
++    }
+   }
+ 
+-  return /** @type {FileSystemDirectoryHandle | null} */ (handle);
++  return handle;
+ };
+ 
+ /**
+diff --git a/src/lib/services/config/index.js b/src/lib/services/config/index.js
+index 32806a74..04cd6810 100644
+--- a/src/lib/services/config/index.js
++++ b/src/lib/services/config/index.js
+@@ -1,4 +1,4 @@
+-import { _ } from '@sveltia/i18n';
++import { _, locale as appLocale, locales as appLocales } from '@sveltia/i18n';
+ import { getHash } from '@sveltia/utils/crypto';
+ import { isObject } from '@sveltia/utils/object';
+ import { isURL } from '@sveltia/utils/string';
+@@ -151,6 +151,13 @@ export const initCmsConfig = async (manualConfig) => {
+     });
+ 
+     cmsConfig.set(config);
++
++    // Honour the config.yml `locale:` key: force it as the active UI locale unless the
++    // user has an explicit preference. (Sveltia otherwise only reads the browser locale.)
++    if (rawConfig.locale && !prefs.locale && appLocales.includes(rawConfig.locale)) {
++      appLocale.set(rawConfig.locale);
++    }
++
+     cmsConfigVersion.set(await getHash(stringify(config)));
+   } catch (/** @type {any} */ ex) {
+     cmsConfigErrors.set(
+diff --git a/src/lib/services/config/parser/index.js b/src/lib/services/config/parser/index.js
+index c7ee9c25..5cb992dc 100644
+--- a/src/lib/services/config/parser/index.js
++++ b/src/lib/services/config/parser/index.js
+@@ -22,11 +22,9 @@ const UNSUPPORTED_OPTIONS = [
+     value: 'editorial_workflow',
+     strKey: 'editorial_workflow_unsupported',
+   },
+-  // Sveltia CMS doesn’t use a proxy server for local workflow, so this option is not applicable.
++  // Sveltia CMS doesn't use a proxy server for local workflow, so this option is not applicable.
+   { type: 'warning', prop: 'local_backend', strKey: 'unsupported_ignored_option' },
+-  // Sveltia CMS detects user’s locale from the browser, so this option is not applicable.
+-  { type: 'warning', prop: 'locale', strKey: 'unsupported_ignored_option' },
+-  // Sveltia CMS doesn’t have performance issues with searching content, so this option is not
++  // Sveltia CMS doesn't have performance issues with searching content, so this option is not
+   // applicable.
+   { type: 'warning', prop: 'search', strKey: 'unsupported_ignored_option' },
+ ];
+diff --git a/src/lib/services/contents/api/events.js b/src/lib/services/contents/api/events.js
+index 2048ee76..13395c78 100644
+--- a/src/lib/services/contents/api/events.js
++++ b/src/lib/services/contents/api/events.js
+@@ -48,7 +48,6 @@ export const callEventHooks = async ({ type, draft, savingEntry }) => {
+ 
+   const { slug, locales } = savingEntry;
+   const otherLocales = Object.keys(locales).filter((locale) => locale !== defaultLocale);
+-  const { content, path } = locales[defaultLocale];
+   const associatedAssets = getAssociatedAssets({ entry: savingEntry, collectionName, fileName });
+ 
+   // We need to use a for loop here to call handlers sequentially
+@@ -59,6 +58,11 @@ export const callEventHooks = async ({ type, draft, savingEntry }) => {
+       continue;
+     }
+ 
++    // Re-read content each iteration so hooks chain: a prior hook's changes are written
++    // back to `locales[defaultLocale].content`, and the next hook must build its entry
++    // from that, not from a stale copy captured before the loop.
++    const { content, path } = locales[defaultLocale];
++
+     // eslint-disable-next-line no-await-in-loop
+     const updatedMap = await hook.handler({
+       author: { login, name },
+diff --git a/src/lib/services/contents/api/events.test.js b/src/lib/services/contents/api/events.test.js
+index 02a59a31..3ff7a8a8 100644
+--- a/src/lib/services/contents/api/events.test.js
++++ b/src/lib/services/contents/api/events.test.js
+@@ -1086,6 +1086,41 @@ describe('events module', () => {
+       expect(savingEntry.locales.fr.content).toEqual({ title: 'Titre original' });
+     });
+ 
++    it('should chain multiple preSave hooks so a later passthrough hook does not clobber an earlier hook', async () => {
++      // hook1 adds `tags` (like the hashtag extractor); hook2 returns data unchanged
++      // (like the cms-users / media-path hooks on a posts entry). hook2 must see hook1's
++      // change, not the original content, or it overwrites `tags` back to nothing.
++      const hook1 = vi.fn(({ entry }) => entry.get('data').set('tags', fromJS(['metal'])));
++      const hook2 = vi.fn(({ entry }) => entry.get('data'));
++
++      eventHookRegistry.add({ name: 'preSave', handler: hook1 });
++      eventHookRegistry.add({ name: 'preSave', handler: hook2 });
++
++      const draft = {
++        collection: { _i18n: { defaultLocale: 'en' } },
++        collectionFile: null,
++        isNew: true,
++        collectionName: 'posts',
++        fileName: null,
++      };
++
++      const savingEntry = {
++        slug: 'test-post',
++        locales: {
++          en: { content: { title: 'Test', body: 'gig #metal' }, path: 'posts/test-post.md' },
++        },
++      };
++
++      // @ts-expect-error
++      await callEventHooks({ type: 'preSave', draft, savingEntry });
++
++      expect(savingEntry.locales.en.content).toEqual({
++        title: 'Test',
++        body: 'gig #metal',
++        'tags.0': 'metal',
++      });
++    });
++
+     it('should fall back to else-if branch when return has data but no i18n (isObject(map.i18n) is false)', async () => {
+       // Return a map with `data` key but no `i18n` key
+       // → isObject(map.data) = true, isObject(map.i18n) = false
+diff --git a/src/lib/services/contents/fields/file/helper.js b/src/lib/services/contents/fields/file/helper.js
+index 4588bf3c..6a00ceb6 100644
+--- a/src/lib/services/contents/fields/file/helper.js
++++ b/src/lib/services/contents/fields/file/helper.js
+@@ -167,10 +167,12 @@ export const isAssetInSelectedFolder = ({ asset, folder, folderPath }) => {
+  * @param {AssetFolderInfo | undefined} args.folder Selected folder.
+  * @param {string | undefined} args.folderPath Target folder path.
+  * @param {Asset[]} args.unsavedAssets Unsaved assets.
++ * @param {Asset[]} [args.assets] Current asset list. Pass a reactive store value so callers can
++ * create a reactive dependency on the store; falls back to `get(allAssets)` if omitted.
+  * @returns {Asset[]} List of assets to show in the asset library.
+  */
+-export const listAssets = ({ kind, folder, folderPath, unsavedAssets }) => {
+-  const availableAssets = [...get(allAssets), ...unsavedAssets]
++export const listAssets = ({ kind, folder, folderPath, unsavedAssets, assets }) => {
++  const availableAssets = [...(assets ?? get(allAssets)), ...unsavedAssets]
+     .filter((asset) => !kind || kind === asset.kind)
+     .sort((a, b) => a.name.localeCompare(b.name))
+     // Unsaved assets should go first
+-- 
+2.43.0
+
