@@ -68,6 +68,15 @@
     return false;
   });
 
+  /**
+   * Whether to show a dedicated "Sign In with Google" button. True when a custom OAuth base_url
+   * is configured — musictide points this at the musictide-auth Worker, which serves a Google
+   * sign-in page and returns the service-account GitHub PAT via the standard OAuth postMessage.
+   */
+  const hasGoogleAuth = $derived(
+    !isTestRepo && !!/** @type {GitBackend} */ (configuredBackend).base_url,
+  );
+
   onMount(() => {
     // Skip automatic sign-in if there’s already an error (e.g. repository access denied), so the
     // error message is preserved and the user can try again with different credentials
@@ -112,8 +121,18 @@
       {/if}
       <Spacer />
     {/if}
+    {#if hasGoogleAuth}
+      <Button
+        variant={showLocalBackendOption ? 'secondary' : 'primary'}
+        label={_('sign_in_with_google')}
+        disabled={signInDisabled}
+        onclick={async () => {
+          await signInManually(backendName);
+        }}
+      />
+    {/if}
     <Button
-      variant={showLocalBackendOption ? 'secondary' : 'primary'}
+      variant={showLocalBackendOption || hasGoogleAuth ? 'secondary' : 'primary'}
       label={isTestRepo
         ? _('work_with_test_repo')
         : _('sign_in_with_x', { values: { service: signInServiceLabel } })}

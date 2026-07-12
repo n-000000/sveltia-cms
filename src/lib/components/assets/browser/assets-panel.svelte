@@ -100,6 +100,15 @@
   };
 </script>
 
+<svelte:window
+  onkeydown={(e) => {
+    if (multiple && (e.ctrlKey || e.metaKey) && e.key === 'a') {
+      e.preventDefault();
+      selectedResources = filteredAssets.map((asset) => ({ asset }));
+    }
+  }}
+/>
+
 {#if filteredAssets.length}
   <div role="none" class="grid-wrapper">
     <SimpleImageGrid {multiple} {gridId} {viewType}>

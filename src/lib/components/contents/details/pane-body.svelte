@@ -67,7 +67,8 @@
 
       if (!thisElement) {
         // Calculate the scroll position based on the current scroll position of the this pane
-        thatPaneContentArea.scrollTop = thatPaneContentArea.scrollHeight * scrollRatio;
+        thatPaneContentArea.scrollTop =
+          (thatPaneContentArea.scrollHeight - thatPaneContentArea.clientHeight) * scrollRatio;
 
         return;
       }
@@ -84,14 +85,43 @@
         return;
       }
 
-      // Scroll the other pane to the corresponding element, adjusting for the current scroll
-      // position and the ratio of the scroll position within the element.
-      thatPaneContentArea.scrollTop = thatElement.offsetTop - y + thatElement.clientHeight * ratio;
+      // Use getBoundingClientRect for non-iframe panes: offsetTop is relative to offsetParent
+      // (which may not be the scrollable container), causing wrong scroll targets.
+      const thatY = isIframe ? 0 : thatPaneContentArea.getBoundingClientRect().y;
+      const newScrollTop = isIframe
+        ? thatElement.offsetTop - thatY + thatElement.clientHeight * ratio
+        : thatPaneContentArea.scrollTop +
+          (thatElement.getBoundingClientRect().top - thatY) +
+          thatElement.clientHeight * ratio;
+      const delta = Math.abs(newScrollTop - thatPaneContentArea.scrollTop);
+      const threshold = thatPaneContentArea.clientHeight * 0.5;
+
+      // If the element-based calculation would cause a large jump (e.g. crossing a section
+      // boundary where the two panes have different heights), fall back to ratio-based sync to
+      // avoid jarring movement. Threshold: half a viewport height.
+      if (delta > threshold) {
+        thatPaneContentArea.scrollTop =
+          (thatPaneContentArea.scrollHeight - thatPaneContentArea.clientHeight) * scrollRatio;
+        return;
+      }
+
+      thatPaneContentArea.scrollTop = newScrollTop;
     });
   };
 
   /** @type {AddEventListenerOptions} */
   const eventOptions = { capture: true, passive: true };
+
+  let isSyncing = false;
+
+  const guardedSyncScrollPosition = () => {
+    if (isSyncing) return;
+    isSyncing = true;
+    syncScrollPosition();
+    window.requestAnimationFrame(() => {
+      isSyncing = false;
+    });
+  };
 
   /**
    * Initialize the scroll synchronization by setting up event listeners and ensuring the content
@@ -105,8 +135,8 @@
 
     if (thisPaneContentArea) {
       // Remove previous event listeners if they exist
-      thisPaneContentArea.removeEventListener('wheel', syncScrollPosition, eventOptions);
-      thisPaneContentArea.removeEventListener('touchmove', syncScrollPosition, eventOptions);
+      thisPaneContentArea.removeEventListener('wheel', guardedSyncScrollPosition, eventOptions);
+      thisPaneContentArea.removeEventListener('touchmove', guardedSyncScrollPosition, eventOptions);
     }
 
     // Check if the preview iframe is used in the preview mode
@@ -125,8 +155,8 @@
     if (thisPaneContentArea) {
       thisPaneContentArea.scrollTop = 0;
       // Add event listeners manually to use passive mode
-      thisPaneContentArea.addEventListener('wheel', syncScrollPosition, eventOptions);
-      thisPaneContentArea.addEventListener('touchmove', syncScrollPosition, eventOptions);
+      thisPaneContentArea.addEventListener('wheel', guardedSyncScrollPosition, eventOptions);
+      thisPaneContentArea.addEventListener('touchmove', guardedSyncScrollPosition, eventOptions);
     }
   };
 

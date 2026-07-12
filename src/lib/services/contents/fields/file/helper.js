@@ -167,10 +167,12 @@ export const isAssetInSelectedFolder = ({ asset, folder, folderPath }) => {
  * @param {AssetFolderInfo | undefined} args.folder Selected folder.
  * @param {string | undefined} args.folderPath Target folder path.
  * @param {Asset[]} args.unsavedAssets Unsaved assets.
+ * @param {Asset[]} [args.assets] Current asset list. Pass a reactive store value so callers can
+ * create a reactive dependency on the store; falls back to `get(allAssets)` if omitted.
  * @returns {Asset[]} List of assets to show in the asset library.
  */
-export const listAssets = ({ kind, folder, folderPath, unsavedAssets }) => {
-  const availableAssets = [...get(allAssets), ...unsavedAssets]
+export const listAssets = ({ kind, folder, folderPath, unsavedAssets, assets }) => {
+  const availableAssets = [...(assets ?? get(allAssets)), ...unsavedAssets]
     .filter((asset) => !kind || kind === asset.kind)
     .sort((a, b) => a.name.localeCompare(b.name))
     // Unsaved assets should go first
