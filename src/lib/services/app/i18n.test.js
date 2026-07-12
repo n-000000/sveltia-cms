@@ -49,7 +49,8 @@ describe('i18n', () => {
 
       initAppLocale();
 
-      expect(mockAddMessages).toHaveBeenCalledTimes(2);
+      // 3 locale files: upstream's en.yaml + ja.yaml, plus musictide's pt.yaml.
+      expect(mockAddMessages).toHaveBeenCalledTimes(3);
       expect(mockAddMessages).toHaveBeenCalledWith('en', { hello: 'Hello', world: 'World' });
       expect(mockAddMessages).toHaveBeenCalledWith('ja', { hello: 'こんにちは', world: '世界' });
 

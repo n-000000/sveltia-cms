@@ -281,16 +281,41 @@
     syncExpanderStates(Object.fromEntries(expanderKeys.map((key) => [key, true])));
 
     window.requestAnimationFrame(() => {
-      const targetField = document.querySelector(
-        `.content-editor .pane[data-mode="edit"][data-locale="${CSS.escape(locale)}"] ` +
-          `.field[data-key-path="${CSS.escape(keyPath)}"]`,
-      );
+      const paneSelector =
+        `.content-editor .pane[data-mode="edit"][data-locale="${CSS.escape(locale)}"]`;
+
+      const targetField =
+        document.querySelector(`${paneSelector} .field[data-key-path="${CSS.escape(keyPath)}"]`) ??
+        document.querySelector(`${paneSelector} [data-key-path="${CSS.escape(keyPath)}"]`);
 
       if (targetField) {
         if (typeof targetField.scrollIntoViewIfNeeded === 'function') {
           targetField.scrollIntoViewIfNeeded();
         } else {
           targetField.scrollIntoView();
+        }
+
+        // Align the preview pane to the same field so scroll sync doesn't snap the edit pane back
+        // when the user next scrolls. Without this, the preview pane's position is stale and the
+        // first wheel event recalculates back to the old edit-pane position.
+        const previewPaneSelector =
+          `.content-editor .pane[data-mode="preview"][data-locale="${CSS.escape(locale)}"]`;
+
+        const previewField = /** @type {HTMLElement | null} */ (
+          document.querySelector(
+            `${previewPaneSelector} .field[data-key-path="${CSS.escape(keyPath)}"]`,
+          ) ??
+          document.querySelector(
+            `${previewPaneSelector} [data-key-path="${CSS.escape(keyPath)}"]`,
+          )
+        );
+
+        if (previewField) {
+          if (typeof previewField.scrollIntoViewIfNeeded === 'function') {
+            previewField.scrollIntoViewIfNeeded();
+          } else {
+            previewField.scrollIntoView({ block: 'nearest' });
+          }
         }
 
         const widgetWrapper = targetField.querySelector('.field-wrapper');

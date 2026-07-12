@@ -22,11 +22,9 @@ const UNSUPPORTED_OPTIONS = [
     value: 'editorial_workflow',
     strKey: 'editorial_workflow_unsupported',
   },
-  // Sveltia CMS doesn’t use a proxy server for local workflow, so this option is not applicable.
+  // Sveltia CMS doesn't use a proxy server for local workflow, so this option is not applicable.
   { type: 'warning', prop: 'local_backend', strKey: 'unsupported_ignored_option' },
-  // Sveltia CMS detects user’s locale from the browser, so this option is not applicable.
-  { type: 'warning', prop: 'locale', strKey: 'unsupported_ignored_option' },
-  // Sveltia CMS doesn’t have performance issues with searching content, so this option is not
+  // Sveltia CMS doesn't have performance issues with searching content, so this option is not
   // applicable.
   { type: 'warning', prop: 'search', strKey: 'unsupported_ignored_option' },
 ];

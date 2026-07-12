@@ -97,6 +97,11 @@
       ? getEntryPreviewURL(originalEntry, defaultLocale, collection, collectionFile)
       : undefined,
   );
+  const isDraft = $derived(
+    !!($entryDraft?.currentValues?.[
+      defaultLocale ?? Object.keys($entryDraft?.currentValues ?? {})[0]
+    ]?.draft),
+  );
 
   /**
    * Go back to the previous page. If the entry is a singleton file, go to the collections list.
@@ -229,7 +234,7 @@
       </TruncatedText>
     {/if}
   </h2>
-  {#if !disabled && previewURL}
+  {#if !disabled && previewURL && !isDraft}
     <Button
       variant="tertiary"
       label={_('view_on_live_site')}
@@ -339,14 +344,16 @@
 
 <Toast id={$copyFromLocaleToast.id} bind:show={$copyFromLocaleToast.show}>
   {@const { status, message, count, sourceLanguage } = $copyFromLocaleToast}
-  <Alert {status}>
-    {_(`editor.${message}`, {
-      values: {
-        count,
-        source: sourceLanguage ? (getLocaleLabel(sourceLanguage) ?? sourceLanguage) : '',
-      },
-    })}
-  </Alert>
+  {#if message}
+    <Alert {status}>
+      {_(`editor.${message}`, {
+        values: {
+          count,
+          source: sourceLanguage ? (getLocaleLabel(sourceLanguage) ?? sourceLanguage) : '',
+        },
+      })}
+    </Alert>
+  {/if}
 </Toast>
 
 <EditSlugDialog bind:open={showEditSlugDialog} />

@@ -1,0 +1,972 @@
+collections: Coleções
+contents: Conteúdos
+entries: Entradas
+files: Ficheiros
+assets: Recursos
+media: Média
+workflow: Fluxo de trabalho
+editorial_workflow: Fluxo Editorial
+menu: Menu
+user_name: Nome de Utilizador
+password: Palavra-passe
+sign_in: Iniciar Sessão
+sign_in_with_mobile: Iniciar Sessão com Telemóvel
+sign_in_with_mobile_instruction: Leia o código QR abaixo com o seu telemóvel ou tablet para iniciar sessão sem palavra-passe. As suas definições serão copiadas automaticamente.
+signed_in_as_x: Sessão iniciada como {$name}
+working_with_local_repo: A trabalhar com Repositório Local
+working_with_test_repo: A trabalhar com Repositório de Teste
+sign_out: Terminar Sessão
+create: Novo
+select: Selecionar
+select_all: Selecionar Tudo
+upload: Carregar
+copy: Copiar
+download: Descarregar
+duplicate: Duplicar
+delete: Eliminar
+reorder: Reordenar
+cancel: Cancelar
+done: Concluído
+save: Guardar
+saving: A guardar…
+publish: Publicar
+publishing: A publicar…
+rename: Renomear
+update: Atualizar
+replace: Substituir
+add: Adicionar
+remove: Remover
+remove_x: Remover {$name}
+clear: Limpar
+expand: Expandir
+expand_all: Expandir Tudo
+collapse: Recolher
+collapse_all: Recolher Tudo
+insert: Inserir
+restore: Restaurar
+discard: Descartar
+searching: A pesquisar…
+no_results: Sem resultados.
+global: Global
+primary: Principal
+secondary: Secundário
+collection: Coleção
+folder: Pasta
+api_key: Chave API
+details: Detalhes
+back: Voltar
+loading: A carregar…
+later: Mais tarde
+slug: Slug
+singleton: Singleton
+singletons: Singletons
+clipboard_error: Ocorreu um erro ao copiar os dados.
+welcome_message: Bem-vindo ao {$name}
+powered_by: Desenvolvido por {$name}
+loading_cms_config: A carregar Configuração do CMS…
+loading_site_data: A carregar Dados do Site…
+loading_site_data_error: Ocorreu um erro ao carregar os dados do site.
+sign_in_with_x: Iniciar Sessão com {$service}
+sign_in_with_google: Iniciar Sessão com o Google
+sign_in_using_access_token: Iniciar Sessão com Token de Acesso
+sign_in_using_access_token_description: Introduza o seu token abaixo. Deve ter acesso de leitura/escrita ao conteúdo do repositório.
+sign_in_using_access_token_link: Pode gerar um token na <a>página de definições do utilizador do {$service}</a>.
+personal_access_token: Token de Acesso Pessoal
+authorizing: A autorizar…
+signing_in: A iniciar sessão…
+work_with_local_repo: Trabalhar com Repositório Local
+work_with_local_repo_description: Quando solicitado, selecione o diretório raiz do repositório "{$repo}".
+work_with_local_repo_description_no_repo: Quando solicitado, selecione o diretório raiz do seu repositório Git.
+work_with_test_repo: Trabalhar com Repositório de Teste
+sign_in_error:
+  not_project_root: A pasta selecionada não é um diretório raiz de repositório. Tente novamente.
+  picker_dismissed: Não foi possível selecionar um diretório raiz de repositório. Tente novamente.
+  authentication_aborted: Autenticação cancelada. Tente novamente.
+  invalid_token: O token fornecido é inválido. Verifique e tente novamente.
+  UNSUPPORTED_BACKEND: O seu backend Git não é suportado pelo autenticador.
+  UNSUPPORTED_DOMAIN: O seu domínio não está autorizado a utilizar o autenticador.
+  MISCONFIGURED_CLIENT: O ID ou segredo do cliente OAuth não está configurado.
+  AUTH_CODE_REQUEST_FAILED: Falha ao receber um código de autorização. Tente novamente mais tarde.
+  CSRF_DETECTED: Potencial ataque CSRF detetado. Fluxo de autenticação cancelado.
+  TOKEN_REQUEST_FAILED: Falha ao solicitar um token de acesso. Tente novamente mais tarde.
+  TOKEN_REFRESH_FAILED: Falha ao atualizar o token de acesso. Tente novamente mais tarde.
+  MALFORMED_RESPONSE: O servidor respondeu com dados incorretos. Tente novamente mais tarde.
+backend_unsupported_version: O backend {$name} requer {$name} {$version} ou superior.
+repository_no_access: Não tem acesso ao repositório "{$repo}".
+repository_not_found: O repositório "{$repo}" não existe.
+repository_empty: O repositório "{$repo}" não tem ramos.
+branch_not_found: O repositório "{$repo}" não tem o ramo "{$branch}".
+unexpected_error: Erro Inesperado
+entry_parse_errors: |
+  .input {$count :integer}
+  .match $count
+    one {{ Ocorreu um erro ao analisar um ficheiro de entrada. Verifique a consola do browser para obter detalhes. }}
+    *   {{ Ocorreram erros ao analisar ficheiros de entrada. Verifique a consola do browser para obter detalhes. }}
+mobile_promo_title: O Sveltia CMS já está disponível no telemóvel!
+mobile_promo_button: Experimente
+visit_live_site: Visitar Site em Direto
+switch_page: Mudar de Página
+search_placeholder_contents: Pesquisar conteúdos…
+search_placeholder_assets: Pesquisar recursos…
+search_placeholder_all: Pesquisar conteúdos e recursos…
+create_entry_or_assets: Criar Entrada ou Recursos
+publish_changes: Publicar Alterações
+publishing_changes: A Publicar Alterações…
+publishing_changes_failed: Não foi possível publicar as alterações. Tente novamente mais tarde.
+show_notifications: Mostrar Notificações
+notifications: Notificações
+show_account_menu: Mostrar Menu de Conta
+account: Conta
+live_site: Site em Direto
+git_repository: Repositório Git
+settings: Definições
+cms_config: Configuração do CMS
+show_help_menu: Mostrar Menu de Ajuda
+help: Ajuda
+keyboard_shortcuts: Atalhos de Teclado
+documentation: Documentação
+release_notes: Notas de Versão
+announcements: Anúncios
+version_x: Versão {$version}
+report_issue: Reportar Problema
+share_feedback: Partilhar Opinião
+get_help: Obter Ajuda
+donate: Fazer Doação
+join_discord: Junte-se a Nós no Discord
+bluesky: Siga-nos no Bluesky
+update_available: A versão mais recente do Sveltia CMS está disponível.
+update_now: Atualizar Agora
+backend_status:
+  minor_incident: "O {$service} está a experienciar um incidente menor. O seu fluxo de trabalho pode ser afetado."
+  major_incident: "O {$service} está a experienciar um incidente grave. Pode querer aguardar até que a situação melhore."
+content_library: Biblioteca de Conteúdos
+asset_library: Biblioteca de Recursos
+asset_location:
+  repository: O Seu Site
+  external: Localizações Externas
+  stock_photos: Fotografias de Stock
+collection_assets: Recursos da Coleção
+entry_list: Lista de Entradas
+file_list: Lista de Ficheiros
+asset_list: Lista de Recursos
+x_collection: "Coleção \"{$collection}\""
+x_asset_folder: "Pasta de Recursos \"{$folder}\""
+viewing_collection_list: Está a visualizar a lista de coleções.
+viewing_asset_folder_list: Está a visualizar a lista de pastas de recursos.
+viewing_x_collection: |
+  .input {$count :integer}
+  .match $count
+    0   {{ Está a visualizar a coleção "{$collection}", que ainda não tem entradas. }}
+    one {{ Está a visualizar a coleção "{$collection}", que tem uma entrada. }}
+    *   {{ Está a visualizar a coleção "{$collection}", que tem {$count} entradas. }}
+viewing_x_asset_folder: |
+  .input {$count :integer}
+  .match $count
+    0   {{ Está a visualizar a pasta de recursos "{$folder}", que ainda não tem recursos. }}
+    one {{ Está a visualizar a pasta de recursos "{$folder}", que tem um recurso. }}
+    *   {{ Está a visualizar a pasta de recursos "{$folder}", que tem {$count} recursos. }}
+singleton_selected_announcement: Prima Enter para editar o ficheiro "{$file}".
+collection_not_found: Coleção não encontrada
+file_not_found: Ficheiro não encontrado.
+x_of_x_selected: "{$selected} de {$total} selecionado(s)"
+switch_view: Mudar Vista
+list_view: Vista em Lista
+grid_view: Vista em Grelha
+switch_to_list_view: Mudar para Vista em Lista
+switch_to_grid_view: Mudar para Vista em Grelha
+sort: Ordenar
+sorting_options: Opções de Ordenação
+sort_keys:
+  none: Nenhum
+  name: Nome
+  slug: Slug
+  commit_author: Atualizado por
+  commit_date: Atualizado em
+  _summary: Resumo
+  _manual: Manual
+ascending: "{$label}, A a Z"
+ascending_date: "{$label}, mais antigo primeiro"
+descending: "{$label}, Z a A"
+descending_date: "{$label}, mais recente primeiro"
+filter: Filtrar
+filtering_options: Opções de Filtragem
+group: Agrupar
+grouping_options: Opções de Agrupamento
+type: Tipo
+all: Todos
+image: Imagem
+video: Vídeo
+audio: Áudio
+document: Documento
+other: Outro
+show_assets: Mostrar Recursos
+hide_assets: Ocultar Recursos
+show_info: Mostrar Informação
+hide_info: Ocultar Informação
+all_assets: Todos os Recursos
+global_assets: Recursos Globais
+entry_not_found: Entrada não encontrada.
+creating_entries_disabled_by_admin: A criação de novas entradas nesta coleção está desativada pelo administrador.
+creating_entries_disabled_by_quota: Não pode adicionar novas entradas a esta coleção porque atingiu o limite de {$quota} entradas.
+creating_entries_nearing_quota: |
+  .input {$remaining :integer}
+  .match $remaining
+    one {{ Esta coleção está a aproximar-se do limite de {$quota} entradas. Só pode criar mais {$remaining} entrada. }}
+    *   {{ Esta coleção está a aproximar-se do limite de {$quota} entradas. Só pode criar mais {$remaining} entradas. }}
+back_to_collection: Voltar à Coleção
+collection_list: Lista de Coleções
+back_to_collection_list: Voltar à Lista de Coleções
+asset_folder_list: Lista de Pastas de Recursos
+back_to_asset_folder_list: Voltar à Lista de Pastas de Recursos
+search_results: Resultados da Pesquisa
+search_results_for_x: "Resultados da Pesquisa para \"{$terms}\""
+viewing_entry_search_results: |
+  .input {$count :integer}
+  .match $count
+    0   {{ Está a ver os resultados da pesquisa para "{$terms}". Não foram encontradas entradas. }}
+    one {{ Está a ver os resultados da pesquisa para "{$terms}". Foi encontrada uma entrada. }}
+    *   {{ Está a ver os resultados da pesquisa para "{$terms}". Foram encontradas {$count} entradas. }}
+viewing_asset_search_results: |
+  .input {$count :integer}
+  .match $count
+    0   {{ Está a ver os resultados da pesquisa para "{$terms}". Não foram encontrados recursos. }}
+    one {{ Está a ver os resultados da pesquisa para "{$terms}". Foi encontrado um recurso. }}
+    *   {{ Está a ver os resultados da pesquisa para "{$terms}". Foram encontrados {$count} recursos. }}
+x_entries: |
+  .input {$count :integer}
+  .match $count
+    0   {{ Sem entradas }}
+    one {{ {$count} entrada }}
+    *   {{ {$count} entradas }}
+x_assets: |
+  .input {$count :integer}
+  .match $count
+    0   {{ Sem recursos }}
+    one {{ {$count} recurso }}
+    *   {{ {$count} recursos }}
+no_files_found: Nenhum ficheiro encontrado.
+no_entries_found: Nenhuma entrada encontrada.
+upload_assets: Carregar Novos Recursos
+edit_options: Opções de Edição
+show_edit_options: Mostrar Opções de Edição
+edit_asset: Editar Recurso
+edit_x: Editar {$name}
+wrap_long_lines: Quebrar Linhas Longas
+rename_asset: Renomear Recurso
+rename_x: Renomear {$name}
+enter_new_name_for_asset: |
+  .input {$count :integer}
+  .match $count
+    0   {{ Introduza um novo nome abaixo. }}
+    one {{ Introduza um novo nome abaixo. Uma entrada que utiliza o recurso também será atualizada. }}
+    *   {{ Introduza um novo nome abaixo. {$count} entradas que utilizam o recurso também serão atualizadas. }}
+enter_new_name_for_asset_error:
+  empty: O nome do ficheiro não pode estar vazio.
+  character: O nome do ficheiro não pode conter caracteres especiais.
+  duplicate: Este nome de ficheiro já está a ser usado por outro recurso.
+replace_asset: Substituir Recurso
+replace_x: Substituir {$name}
+click_to_browse: Clique para navegar…
+tap_to_browse: Toque para navegar…
+drop_files_or_click_to_browse: |
+  .input {$count :integer}
+  .match $count
+    one {{ Arraste um ficheiro para aqui ou clique para navegar… }}
+    *   {{ Arraste ficheiros para aqui ou clique para navegar… }}
+drop_files_or: |
+  .input {$count :integer}
+  .match $count
+    one {{ Arraste um ficheiro para aqui ou }}
+    *   {{ Arraste ficheiros para aqui ou }}
+drop_image_files_or: |
+  .input {$count :integer}
+  .match $count
+    one {{ Arraste um ficheiro de imagem para aqui ou }}
+    *   {{ Arraste ficheiros de imagem para aqui ou }}
+browse: Navegar
+paste: Colar
+paste_image: Colar Imagem
+no_image_in_clipboard: Nenhuma imagem encontrada na área de transferência.
+clipboard_access_denied: Acesso à área de transferência negado.
+drop_files_here: |
+  .input {$count :integer}
+  .match $count
+    one {{ Arraste um ficheiro para aqui }}
+    *   {{ Arraste ficheiros para aqui }}
+unsupported_file_type: Tipo de Ficheiro Não Suportado
+dropped_file_type_mismatch: O ficheiro arrastado não é do tipo {$type}. Tente novamente.
+dropped_image_type_mismatch: O ficheiro arrastado não é suportado. Apenas imagens AVIF, GIF, JPEG, PNG, WebP ou SVG são aceites. Tente novamente.
+choose_files: |
+  .input {$count :integer}
+  .match $count
+    one {{ Escolher Ficheiro }}
+    *   {{ Escolher Ficheiros }}
+delete_assets: |
+  .input {$count :integer}
+  .match $count
+    one {{ Eliminar Recurso }}
+    *   {{ Eliminar Recursos }}
+delete_selected_assets: |
+  .input {$count :integer}
+  .match $count
+    one {{ Eliminar Recurso Selecionado }}
+    *   {{ Eliminar Recursos Selecionados }}
+confirm_deleting_this_asset: Tem a certeza de que pretende eliminar este recurso?
+confirm_deleting_selected_assets: |
+  .input {$count :integer}
+  .match $count
+    one {{ Tem a certeza de que pretende eliminar o recurso selecionado? }}
+    *   {{ Tem a certeza de que pretende eliminar os {$count} recursos selecionados? }}
+confirm_deleting_all_assets: Tem a certeza de que pretende eliminar todos os recursos?
+delete_entries: |
+  .input {$count :integer}
+  .match $count
+    one {{ Eliminar Entrada }}
+    *   {{ Eliminar Entradas }}
+delete_selected_entries: |
+  .input {$count :integer}
+  .match $count
+    one {{ Eliminar Entrada Selecionada }}
+    *   {{ Eliminar Entradas Selecionadas }}
+confirm_deleting_this_entry: Tem a certeza de que pretende eliminar esta entrada?
+confirm_deleting_this_entry_with_assets: Tem a certeza de que pretende eliminar esta entrada e os recursos associados?
+confirm_deleting_selected_entries: |
+  .input {$count :integer}
+  .match $count
+    one {{ Tem a certeza de que pretende eliminar a entrada selecionada? }}
+    *   {{ Tem a certeza de que pretende eliminar as {$count} entradas selecionadas? }}
+confirm_deleting_selected_entries_with_assets: |
+  .input {$count :integer}
+  .match $count
+    one {{ Tem a certeza de que pretende eliminar a entrada selecionada e os recursos associados? }}
+    *   {{ Tem a certeza de que pretende eliminar as {$count} entradas selecionadas e os recursos associados? }}
+confirm_deleting_all_entries: Tem a certeza de que pretende eliminar todas as entradas?
+confirm_deleting_all_entries_with_assets: Tem a certeza de que pretende eliminar todas as entradas e os recursos associados?
+reorder_entries: Reordenar Entradas
+done_reordering_entries: Concluir Reordenação de Entradas
+cancel_reordering_entries: Cancelar Reordenação de Entradas
+saving_reorder_failed: Falha ao guardar a nova ordem das entradas. Tente novamente.
+processing_files: |
+  .input {$count :integer}
+  .match $count
+    one {{ A processar um ficheiro. Isto pode demorar algum tempo. }}
+    *   {{ A processar ficheiros. Isto pode demorar algum tempo. }}
+uploading_files: A Carregar Ficheiros
+confirm_replacing_file: '"{$name}" será substituído por este ficheiro:'
+confirm_uploading_files: |
+  .input {$count :integer}
+  .match $count
+    one {{ Este ficheiro será guardado na pasta "{$folder}": }}
+    *   {{ Estes {$count} ficheiros serão guardados na pasta "{$folder}": }}
+oversized_files: Ficheiros Demasiado Grandes
+warning_oversized_files: |
+  .input {$count :integer}
+  .match $count
+    one {{ Este ficheiro não pode ser carregado porque excede o tamanho máximo de {$size}. Por favor, reduza o tamanho ou selecione um ficheiro diferente. }}
+    *   {{ Estes ficheiros não podem ser carregados porque excedem o tamanho máximo de {$size}. Por favor, reduza os tamanhos ou selecione ficheiros diferentes. }}
+file_name_conflict_confirmation: |
+  .input {$count :integer}
+  .match $count
+    one {{ Já existe um ficheiro com o mesmo nome nesta pasta. Pretende substituí-lo? }}
+    *   {{ Já existem {$count} ficheiros com os mesmos nomes nesta pasta. Pretende substituí-los? }}
+file_name_conflict_confirmation_with_name: |
+  .input {$count :integer}
+  .input {$name :string}
+  .match $count
+    one {{ Já existe um ficheiro com o nome "{$name}" nesta pasta. Pretende substituí-lo? }}
+    *   {{ Já existem {$count} ficheiros com os mesmos nomes nesta pasta. Pretende substituí-los? }}
+file_name_conflict_resolution: Resolução de Conflito de Nome de Ficheiro
+keep_both: Manter Ambos
+uploading_files_progress: |
+  .input {$count :integer}
+  .match $count
+    one {{ A carregar ficheiro… }}
+    *   {{ A carregar ficheiros… }}
+uploading_files_failed: |
+  .input {$count :integer}
+  .match $count
+    one {{ Não foi possível carregar o ficheiro }}
+    *   {{ Não foi possível carregar os ficheiros }}
+file_meta: "{$type} · {$size}"
+file_meta_converted_from_x: (convertido de {$type})
+no_entries_created: Esta coleção ainda não tem entradas.
+create_new_entry: Criar Nova Entrada
+entry: Entrada
+index_file: Ficheiro Índice
+no_files_in_collection: Nenhum ficheiro disponível nesta coleção.
+asset_info: Informação do Recurso
+select_asset_show_info: Selecione um recurso para ver a informação.
+duplicate_entry: Duplicar Entrada
+entry_duplicated: A entrada foi duplicada. É agora um novo rascunho.
+entry_validation_errors: |
+  .input {$count :integer}
+  .match $count
+    one {{ Um campo tem um erro. Corrija-o para guardar a entrada. }}
+    *   {{ {$count} campos têm erros. Corrija-os para guardar a entrada. }}
+entry_saved: |
+  .input {$count :integer}
+  .match $count
+    one {{ Entrada guardada. }}
+    *   {{ {$count} entradas guardadas. }}
+entry_saved_and_published: |
+  .input {$count :integer}
+  .match $count
+    one {{ Entrada guardada e publicada. }}
+    *   {{ {$count} entradas guardadas e publicadas. }}
+entries_deleted: |
+  .input {$count :integer}
+  .match $count
+    one {{ Entrada eliminada. }}
+    *   {{ {$count} entradas eliminadas. }}
+assets_saved: |
+  .input {$count :integer}
+  .match $count
+    one {{ Recurso guardado. }}
+    *   {{ {$count} recursos guardados. }}
+assets_saved_and_published: |
+  .input {$count :integer}
+  .match $count
+    one {{ Recurso guardado e publicado. }}
+    *   {{ {$count} recursos guardados e publicados. }}
+asset_urls_copied: |
+  .input {$count :integer}
+  .match $count
+    one {{ URL do recurso copiado para a área de transferência. }}
+    *   {{ {$count} URLs de recursos copiados para a área de transferência. }}
+asset_paths_copied: |
+  .input {$count :integer}
+  .match $count
+    one {{ Caminho do ficheiro do recurso copiado para a área de transferência. }}
+    *   {{ {$count} caminhos de ficheiros de recursos copiados para a área de transferência. }}
+asset_data_copied: |
+  .input {$count :integer}
+  .match $count
+    one {{ Ficheiro do recurso copiado para a área de transferência. }}
+    *   {{ {$count} ficheiros de recursos copiados para a área de transferência. }}
+assets_downloaded: |
+  .input {$count :integer}
+  .match $count
+    one {{ Ficheiro do recurso descarregado. }}
+    *   {{ {$count} ficheiros de recursos descarregados. }}
+assets_moved: |
+  .input {$count :integer}
+  .match $count
+    one {{ Recurso movido. }}
+    *   {{ {$count} recursos movidos. }}
+assets_renamed: |
+  .input {$count :integer}
+  .match $count
+    one {{ Recurso renomeado. }}
+    *   {{ {$count} recursos renomeados. }}
+assets_deleted: |
+  .input {$count :integer}
+  .match $count
+    one {{ Recurso eliminado. }}
+    *   {{ {$count} recursos eliminados. }}
+content_editor: Editor de Conteúdo
+restore_backup_title: Restaurar Rascunho
+restore_backup_description: Esta entrada tem uma cópia de segurança de {$datetime}. Pretende restaurar o rascunho editado?
+draft_backup_saved: Cópia de segurança do rascunho guardada.
+draft_backup_restored: Cópia de segurança do rascunho restaurada.
+draft_backup_deleted: Cópia de segurança do rascunho eliminada.
+cancel_editing: Cancelar Edição
+create_entry_title: A criar {$name}
+create_entry_announcement: Está agora a criar uma nova entrada na coleção "{$collection}".
+edit_entry_title: "{$collection} › {$entry}"
+edit_entry_announcement: Está agora a editar a entrada "{$entry}" na coleção "{$collection}".
+edit_file_announcement: Está agora a editar o ficheiro "{$file}" na coleção "{$collection}".
+edit_singleton_announcement: Está agora a editar o ficheiro "{$file}".
+save_and_publish: Guardar e Publicar
+save_without_publishing: Guardar sem Publicar
+show_editor_options: Mostrar Opções do Editor
+editor_options: Opções do Editor
+show_preview: Mostrar Pré-visualização
+sync_scrolling: Sincronizar Deslocamento
+switch_locale: Mudar Idioma
+locale_content_disabled_short: (desativado)
+locale_content_error_short: (erro)
+edit: Editar
+preview: Pré-visualização
+swap_panes: Trocar Painéis
+edit_x_locale: Editar Conteúdo em {$locale}
+preview_x_locale: Pré-visualizar Conteúdo em {$locale}
+content_preview: Pré-visualização de Conteúdo
+show_content_options_x_locale: Mostrar Opções de Conteúdo em {$locale}
+content_options_x_locale: "Opções de Conteúdo em {$locale}"
+x_field: "Campo \"{$field}\""
+show_field_options: Mostrar Opções do Campo
+field_options: Opções do Campo
+unsupported_field_type_x: "Tipo de campo não suportado: {$name}"
+enable_x_locale: Ativar {$locale}
+reenable_x_locale: Reativar {$locale}
+disable_x_locale: Desativar {$locale}
+locale_x_has_been_disabled: O conteúdo em {$locale} foi desativado.
+locale_x_now_disabled: O conteúdo em {$locale} está agora desativado. Será eliminado quando guardar a entrada.
+view_in_repository: Ver no Repositório
+view_on_x: Ver em {$service}
+view_on_live_site: Ver no Site em Direto
+copy_from: Copiar de…
+copy_from_x: Copiar de {$locale}
+translation_options: Opções de Tradução
+translate: Traduzir
+translate_fields: |
+  .input {$count :integer}
+  .match $count
+    one {{ Traduzir Campo }}
+    *   {{ Traduzir Campos }}
+translate_from: Traduzir de…
+translate_from_x: Traduzir de {$locale}
+revert_changes: Reverter Alterações
+revert_all_changes: Reverter Todas as Alterações
+edit_slug: Editar Slug
+edit_slug_warning: Alterar o slug pode quebrar ligações internas e externas para a entrada. Atualmente, o Sveltia CMS não atualiza referências criadas com campos de Relação, por isso terá de atualizar manualmente essas referências e outras ligações.
+edit_slug_error:
+  empty: O slug não pode estar vazio.
+  duplicate: Este slug já está a ser usado por outra entrada.
+required: Obrigatório
+editor:
+  translation:
+    none: Nada foi traduzido.
+    started: A traduzir…
+    error: Ocorreu um erro durante a tradução.
+    complete: |
+      .input {$count :integer}
+      .match $count
+        0   {{ Nenhum campo foi traduzido de {$source}. }}
+        one {{ Traduzido um campo de {$source}. }}
+        *   {{ {$count} campos traduzidos de {$source}. }}
+  copy:
+    none: Nada foi copiado.
+    complete: |
+      .input {$count :integer}
+      .match $count
+        0   {{ Nenhum campo foi copiado de {$source}. }}
+        one {{ Copiado um campo de {$source}. }}
+        *   {{ {$count} campos copiados de {$source}. }}
+validation:
+  value_missing: Este campo é obrigatório.
+  range_underflow:
+    datetime-local: A data/hora deve ser igual ou posterior a {$min}.
+    date: A data deve ser igual ou posterior a {$min}.
+    time: A hora deve ser igual ou posterior a {$min}.
+    number: O valor deve ser maior ou igual a {$min}.
+    select: |
+      .input {$min :integer}
+      .match $min
+        one {{ Deve selecionar pelo menos {$min} opção. }}
+        *   {{ Deve selecionar pelo menos {$min} opções. }}
+    add: |
+      .input {$min :integer}
+      .match $min
+        one {{ Deve adicionar pelo menos {$min} item. }}
+        *   {{ Deve adicionar pelo menos {$min} itens. }}
+  range_overflow:
+    datetime-local: A data/hora deve ser igual ou anterior a {$max}.
+    date: A data deve ser igual ou anterior a {$max}.
+    time: A hora deve ser igual ou anterior a {$max}.
+    number: O valor deve ser menor ou igual a {$max}.
+    select: |
+      .input {$max :integer}
+      .match $max
+        one {{ Não pode selecionar mais de {$max} opção. }}
+        *   {{ Não pode selecionar mais de {$max} opções. }}
+    add: |
+      .input {$max :integer}
+      .match $max
+        one {{ Não pode adicionar mais de {$max} item. }}
+        *   {{ Não pode adicionar mais de {$max} itens. }}
+  too_short: |
+    .input {$min :integer}
+    .match $min
+      one {{ Deve introduzir pelo menos {$min} carácter. }}
+      *   {{ Deve introduzir pelo menos {$min} carácteres. }}
+  too_long: |
+    .input {$max :integer}
+    .match $max
+      one {{ Não pode introduzir mais de {$max} carácter. }}
+      *   {{ Não pode introduzir mais de {$max} carácteres. }}
+  type_mismatch:
+    number: Por favor, introduza um número.
+    email: Por favor, introduza um email válido.
+    url: Por favor, introduza um URL válido.
+entry_sidebar:
+  sidebar_panels: Painéis da Barra Lateral
+  validation:
+    title: Validação
+    placeholder: Os resultados da validação serão mostrados aqui.
+    no_errors_found: Nenhum erro encontrado.
+  history:
+    title: Histórico
+    fetch_failed: Falha ao carregar o histórico.
+    no_history: Nenhum histórico encontrado.
+  backlinks:
+    title: Retroligações
+    no_entries: Nenhuma entrada faz referência a esta entrada.
+saving_entry:
+  error:
+    title: Erro
+    description: Ocorreu um erro ao guardar a entrada. Tente novamente mais tarde.
+viewing_x_asset_details: Está a ver os detalhes do recurso "{$name}".
+asset_editor: Editor de Recursos
+preview_unavailable: Pré-visualização Indisponível.
+public_urls: |
+  .input {$count :integer}
+  .match $count
+    one {{ URL Público }}
+    *   {{ URLs Públicos }}
+file_paths: |
+  .input {$count :integer}
+  .match $count
+    one {{ Caminho do Ficheiro }}
+    *   {{ Caminhos dos Ficheiros }}
+file_data: Dados do Ficheiro
+kind: Tipo
+size: Tamanho
+dimensions: Dimensões
+duration: Duração
+used_in: Usado em
+created_date: Data de Criação
+location: Localização
+map_lat_lng: Mapa mostrando latitude {$latitude}, longitude {$longitude}
+remove_this_item: Remover Este Item
+move_up: Mover para Cima
+move_down: Mover para Baixo
+add_x: Adicionar {$name}
+add_item_above: Adicionar Item Acima
+add_item_below: Adicionar Item Abaixo
+select_list_type: Selecionar Tipo de Lista
+opacity: Opacidade
+unselected_option: (Nenhum)
+assets_dialog:
+  title:
+    file: Selecionar Ficheiro
+    image: Selecionar Imagem
+  search_for_file: Pesquisar Ficheiros
+  search_for_image: Pesquisar Imagens
+  locations: Localizações
+  folder:
+    field: Recursos do Campo
+    entry: Recursos da Entrada
+    file: Recursos do Ficheiro
+    collection: Recursos da Coleção
+    global: Recursos Globais
+  error:
+    invalid_key: A sua Chave API é inválida ou expirou. Por favor, verifique e tente novamente.
+    search_fetch_failed: Ocorreu um erro ao pesquisar recursos. Tente novamente mais tarde.
+    image_fetch_failed: Ocorreu um erro ao descarregar o recurso selecionado. Tente novamente mais tarde.
+  available_images: Imagens Disponíveis
+  enter_url: Introduzir URL
+  enter_file_url: "Introduzir URL do ficheiro:"
+  enter_image_url: "Introduzir URL da imagem:"
+  large_file:
+    title: Ficheiro Grande
+  photo_credit:
+    title: Crédito de Fotografia
+    description: "Utilize o seguinte crédito se possível:"
+  unsaved: Não guardado
+character_counter:
+  min_max: |
+    .input {$count :integer}
+    .match $count
+      0   {{ Nenhum carácter introduzido. Mínimo: {$min}. Máximo: {$max}. }}
+      one {{ {$count} carácter introduzido. Mínimo: {$min}. Máximo: {$max}. }}
+      *   {{ {$count} carácteres introduzidos. Mínimo: {$min}. Máximo: {$max}. }}
+  min: |
+    .input {$count :integer}
+    .match $count
+      0   {{ Nenhum carácter introduzido. Mínimo: {$min}. }}
+      one {{ {$count} carácter introduzido. Mínimo: {$min}. }}
+      *   {{ {$count} carácteres introduzidos. Mínimo: {$min}. }}
+  max: |
+    .input {$count :integer}
+    .match $count
+      0   {{ Nenhum carácter introduzido. Máximo: {$max}. }}
+      one {{ {$count} carácter introduzido. Máximo: {$max}. }}
+      *   {{ {$count} carácteres introduzidos. Máximo: {$max}. }}
+youtube_video_player: Player de vídeo do YouTube
+today: Hoje
+now: Agora
+editor_components:
+  image: Imagem
+  src: Fonte
+  alt: Texto Alternativo
+  title: Título
+  link: Ligação
+key_value:
+  key: Chave
+  value: Valor
+  action: Ação
+  empty_key: A chave é obrigatória.
+  duplicate_key: A chave deve ser única.
+find_place: Encontrar um Lugar
+use_your_location: Usar a Sua Localização
+geolocation_error_title: Erro de Geolocalização
+geolocation_error_body: Ocorreu um erro ao obter a sua localização.
+geolocation_unsupported: A API de Geolocalização não é suportada por este browser.
+boolean:
+  "true": Sim
+  "false": Não
+cloud_storage:
+  invalid: O serviço não está configurado corretamente.
+  auth:
+    api_key:
+      key_label: Chave API
+      initial: Introduza a sua {$key} para {$service}.
+      requested: A validar…
+      error: A {$key} fornecida é inválida. Por favor, verifique e tente novamente.
+    password:
+      initial: Introduza a sua palavra-passe para {$service}.
+      requested: A iniciar sessão…
+      error: Nome de utilizador ou palavra-passe incorretos. Por favor, verifique e tente novamente.
+  cloudinary:
+    iframe_title: Biblioteca de média Cloudinary
+    activate:
+      button_label: Ativar Cloudinary
+      description: Após iniciar sessão, clique novamente no botão Iniciar Sessão para continuar.
+    auth_key_label: Segredo da API
+  uploadcare:
+    auth_key_label: Chave Secreta da API
+  aws_s3:
+    auth_key_label: Chave de Acesso Secreta
+  cloudflare_r2:
+    auth_key_label: Chave de Acesso Secreta
+  digitalocean_spaces:
+    auth_key_label: Chave de Acesso Secreta
+config:
+  errors: |
+    .input {$count :integer}
+    .match $count
+      one {{ Existe um erro na configuração do CMS. Por favor, resolva o problema e tente novamente. }}
+      *   {{ Existem erros na configuração do CMS. Por favor, resolva os problemas e tente novamente. }}
+  error_locator:
+    collection: "coleção {$collection}"
+    file: "ficheiro {$file}"
+    field: "campo `{$field}`"
+  error:
+    no_secure_context: O Sveltia CMS só funciona com URLs HTTPS ou localhost.
+    insecure_url: O URL do ficheiro de configuração deve usar o protocolo HTTPS ou um endereço localhost.
+    insecure_urls: |
+      .input {$count :integer}
+      .match $count
+        one {{ O URL do ficheiro de configuração deve usar o protocolo HTTPS ou um endereço localhost. }}
+        *   {{ Os URLs dos ficheiros de configuração devem usar o protocolo HTTPS ou endereços localhost. }}
+    fetch_failed: O ficheiro de configuração não pôde ser obtido.
+    fetch_failed_not_ok: A resposta HTTP retornou com o estado {$status}.
+    fetch_failed_with_manual_init: "O ficheiro de configuração não pôde ser obtido. Para evitar que o ficheiro `config.yml` seja carregado, adicione [`load_config_file: false`](https://sveltiacms.app/en/docs/api/initialization#providing-a-full-configuration) ao objeto de configuração passado a `CMS.init()`."
+    parse_failed: O ficheiro de configuração não pôde ser analisado.
+    parse_failed_invalid_object: O ficheiro de configuração não é um objeto JavaScript válido.
+    parse_failed_unsupported_type: O ficheiro de configuração não é um tipo de ficheiro válido. Apenas YAML, TOML e JSON são suportados.
+    no_collection: As coleções não estão definidas.
+    missing_backend: O backend não está definido.
+    missing_backend_name: O nome do backend não está definido.
+    unsupported_known_backend: O backend {$name} [não é suportado](https://sveltiacms.app/en/docs/migration/netlify-decap-cms#features-not-to-be-implemented) no Sveltia CMS.
+    unsupported_deprecated_backend: O backend obsoleto {$name} [não é suportado](https://sveltiacms.app/en/docs/migration/netlify-decap-cms#features-not-to-be-implemented) no Sveltia CMS.
+    unsupported_custom_backend: Backends personalizados [não são suportados](https://sveltiacms.app/en/docs/migration/netlify-decap-cms#features-not-to-be-implemented) no Sveltia CMS.
+    unsupported_backend_suggestion: Use um dos [backends suportados](https://sveltiacms.app/en/docs/backends#supported-backends) em vez disso.
+    missing_repository: O repositório não está definido.
+    invalid_repository: O repositório configurado é inválido. Deve estar no formato "proprietário/repo".
+    oauth_implicit_flow: O método de autenticação configurado (fluxo implícito) não é suportado no Sveltia CMS. Use um [método de autenticação](https://sveltiacms.app/en/docs/backends/BACKEND_NAME#authentication) diferente.
+    github_pkce_unsupported: A autorização PKCE ainda não é suportada devido a limitações do GitHub. Use um [método de autenticação](https://sveltiacms.app/en/docs/backends/github#authentication) diferente.
+    oauth_no_app_id: O ID da aplicação OAuth não está definido.
+    no_auth_methods: A opção `auth_methods` deve conter pelo menos um método.
+    missing_media_folder: A pasta de média não está definida.
+    invalid_media_folder: A pasta de média configurada é inválida. Deve ser uma string.
+    invalid_public_folder: A pasta pública configurada é inválida. Deve ser uma string.
+    public_folder_relative_path: A pasta pública configurada é inválida. Deve ser um caminho absoluto começando com "/".
+    public_folder_absolute_url: Um URL absoluto para a opção de pasta pública não é suportado no Sveltia CMS.
+    invalid_collection_no_options: A coleção deve ter a opção `folder`, `files` ou `divider` definida.
+    invalid_collection_multiple_options: A coleção não pode ter as opções `folder`, `files` e `divider` em simultâneo.
+    file_format_mismatch: A extensão `{$extension}` não corresponde ao formato `{$format}`.
+    invalid_slug_slash: O modelo de slug `{$slug}` é inválido porque não pode conter barras. Para organizar entradas em subpastas, use a opção `path` em vez de `slug`.
+    missing_collection_name: A coleção {$count} deve ter a opção `name` definida como uma string não vazia.
+    invalid_collection_name: O nome da coleção `{$name}` é inválido. Não deve conter caracteres especiais.
+    duplicate_collection_name: Os nomes das coleções devem ser únicos, mas `{$name}` é usado mais de uma vez.
+    missing_collection_file_name: O ficheiro da coleção {$count} deve ter a opção `name` definida como uma string não vazia.
+    invalid_collection_file_name: O nome do ficheiro da coleção `{$name}` é inválido. Não deve conter caracteres especiais.
+    duplicate_collection_file_name: Os nomes dos ficheiros da coleção devem ser únicos, mas `{$name}` é usado mais de uma vez.
+    collection_no_fields: A coleção deve ter a opção `fields` definida com pelo menos um campo.
+    collection_file_no_fields: O ficheiro da coleção deve ter a opção `fields` definida com pelo menos um campo.
+    collection_file_i18n_required: O ficheiro da coleção deve ter a opção `i18n` definida se o marcador `locale` for usado no caminho `file`.
+    missing_field_name: O campo {$count} deve ter a opção `name` definida como uma string não vazia.
+    invalid_field_name: O nome do campo `{$name}` é inválido. Não deve conter caracteres especiais. Se quiser aninhar campos, [use campos de Objeto em vez de notação de ponto](https://sveltiacms.app/en/docs/troubleshooting#using-proper-naming-conventions).
+    duplicate_field_name: Os nomes dos campos devem ser únicos, mas `{$name}` é usado mais de uma vez.
+    missing_variable_type: O tipo de variável {$count} deve ter a opção `name` definida como uma string não vazia.
+    invalid_variable_type: O nome do tipo de variável `{$name}` é inválido. Não deve conter caracteres especiais.
+    duplicate_variable_type: Os nomes dos tipos de variável devem ser únicos, mas `{$name}` é usado mais de uma vez.
+    date_field_type: "O tipo de campo Date obsoleto não é suportado no Sveltia CMS. Use o tipo de campo DateTime com a opção `type: date` em vez disso."
+    unsupported_deprecated_option: A opção obsoleta `{$prop}` não é suportada no Sveltia CMS. Use a opção `{$newProp}` em vez disso.
+    allow_multiple: A opção `allow_multiple` não é suportada no Sveltia CMS. Use a opção `multiple` em vez disso, que tem como padrão `false`.
+    invalid_list_field: O campo Lista não pode ter as opções `field`, `fields` e `types` em simultâneo.
+    invalid_list_variable_type: O tipo de variável do campo Lista é inválido. A opção `widget` está definida como `{$widget}`, mas deve ser `object`.
+    invalid_object_field: O campo Objeto não pode ter as opções `fields` e `types` em simultâneo.
+    object_field_missing_fields: O campo Objeto deve ter a opção `fields` ou `types` definida.
+    relation_field_invalid_collection: A coleção referenciada `{$collection}` é inválida ou não está definida.
+    relation_field_invalid_collection_file: O ficheiro referenciado `{$file}` é inválido ou não está definido.
+    relation_field_missing_file_name: A opção `file` deve ser definida para uma relação com um ficheiro de coleção.
+    relation_field_invalid_value_field: O campo de valor referenciado `{$field}` é inválido ou não está definido.
+    unexpected: Erro inesperado
+  warning:
+    oauth_no_app_id: O ID da aplicação OAuth não está definido. Os utilizadores são obrigados a fornecer um token de acesso para iniciar sessão.
+    editorial_workflow_unsupported: O fluxo editorial ainda não é suportado no Sveltia CMS.
+    open_authoring_unsupported: A autoria aberta ainda não é suportada no Sveltia CMS.
+    nested_collections_unsupported: As coleções aninhadas ainda não são suportadas no Sveltia CMS.
+    unsupported_ignored_option: A opção `{$prop}` não é suportada no Sveltia CMS. Será ignorada.
+  compatibility_link: "Consulte as notas de compatibilidade para obter detalhes: https://sveltiacms.app/en/docs/migration/netlify-decap-cms#features-not-to-be-implemented"
+local_workflow:
+  indicator: Local
+  unsupported_browser: O Fluxo de Trabalho Local não é suportado no seu browser. Por favor, use Chrome ou Edge.
+  disabled: O Fluxo de Trabalho Local está desativado no seu browser. <a>Aqui está como ativá-lo</a>.
+status:
+  drafts: Rascunhos
+  in_review: Em Revisão
+  ready: Pronto
+categories: Categorias
+prefs:
+  changes:
+    api_key_saved: Chave API guardada.
+    api_key_removed: Chave API removida.
+    api_key_invalid: A chave API fornecida é inválida. Por favor, verifique e tente novamente.
+  error:
+    permission_denied: O acesso ao armazenamento do browser (Cookie) foi negado. Por favor, verifique as permissões e tente novamente.
+  appearance:
+    title: Aparência
+    theme: Tema
+    select_theme: Selecionar Tema
+  theme:
+    auto: Automático
+    dark: Escuro
+    light: Claro
+  language:
+    title: Idioma
+    ui_language:
+      title: Idioma da Interface
+      select_language: Selecionar Idioma
+  contents:
+    title: Conteúdos
+    editor:
+      title: Editor
+      use_draft_backup:
+        switch_label: Fazer cópia de segurança automática de rascunhos
+      close_on_save:
+        switch_label: Fechar o editor após guardar um rascunho
+      close_with_escape:
+        switch_label: Fechar o editor com a tecla Escape
+  i18n:
+    title: Internacionalização
+    translators:
+      default:
+        title: Serviço de Tradução Padrão
+        select_service: Selecionar Serviço
+      api_keys:
+        title: Chaves API dos Serviços de Tradução
+        description: Gerir chaves API para <a>serviços de tradução</a>.
+      field_label: "{$service} Chave"
+      description: Registe-se em <a {$homeHref}>{$service}</a> e introduza <a {$apiKeyHref}>a sua Chave API</a> aqui para ativar a tradução rápida dos campos de texto.
+  media:
+    title: Média
+    stock_photos:
+      api_keys:
+        title: Chaves API dos Serviços de Fotografias de Stock
+        description: Gerir chaves API para <a>serviços de fotografias de stock</a>.
+      field_label: "{$service} Chave API"
+      description: Registe-se na <a {$homeHref}>{$service} API</a> e introduza <a {$apiKeyHref}>a sua Chave API</a> aqui para inserir fotografias de stock gratuitas em campos de imagem.
+      credit: Fotografias fornecidas por {$service}
+      no_services: Nenhum <a>serviço de fotografias de stock</a> está configurado.
+    cloud_storage:
+      api_keys:
+        title: Chaves API dos Serviços de Armazenamento na Nuvem
+        description: Gerir chaves API para <a>serviços de armazenamento na nuvem</a>.
+      field_label: "{$service} Chave API"
+      no_services: Nenhum <a>serviço de armazenamento na nuvem</a> está configurado.
+  accessibility:
+    title: Acessibilidade
+    underline_links:
+      title: Sublinhar Ligações
+      description: Mostrar sublinhado para ligações na pré-visualização de entradas e etiquetas da interface.
+      switch_label: Sublinhar Sempre as Ligações
+  advanced:
+    title: Avançado
+    beta:
+      title: Funcionalidades Beta
+      description: Ativar algumas funcionalidades beta que podem ser instáveis ou sem localização.
+      switch_label: Aderir ao Programa Beta
+    developer_mode:
+      title: Modo de Desenvolvedor
+      description: Ativar algumas funcionalidades orientadas para o desenvolvedor, incluindo registos detalhados na consola e menus de contexto nativos.
+      switch_label: Ativar Modo de Desenvolvedor
+    deploy_hook:
+      title: Gancho de Implementação
+      description: Introduza um URL de webhook a ser chamado quando acionar manualmente uma implementação selecionando Publicar Alterações. Pode ser deixado em branco se estiver a usar GitHub Actions.
+      url:
+        field_label: URL do Gancho
+        saved: URL do Gancho guardado.
+        removed: URL do Gancho removido.
+      auth:
+        field_label: Cabeçalho de Autorização (ex. Bearer <token>) (opcional)
+        saved: Cabeçalho de Autorização guardado.
+        removed: Cabeçalho de Autorização removido.
+keyboard_shortcuts_:
+  view_content_library: Ver Biblioteca de Conteúdos
+  view_asset_library: Ver Biblioteca de Recursos
+  search: Pesquisar entradas e recursos
+  create_entry: Criar uma nova entrada
+  save_entry: Guardar uma entrada
+  cancel_editing: Cancelar edição de entrada
+file_type_labels:
+  avif: Imagem AVIF
+  bmp: Imagem Bitmap
+  gif: Imagem GIF
+  ico: Ícone
+  jpeg: Imagem JPEG
+  jpg: Imagem JPEG
+  png: Imagem PNG
+  svg: Imagem SVG
+  tif: Imagem TIFF
+  tiff: Imagem TIFF
+  webp: Imagem WebP
+  avi: Vídeo AVI
+  m4v: Vídeo MP4
+  mov: Vídeo QuickTime
+  mp4: Vídeo MP4
+  mpeg: Vídeo MPEG
+  mpg: Vídeo MPEG
+  ogg: Vídeo Ogg
+  ogv: Vídeo Ogg
+  ts: Vídeo MPEG
+  webm: Vídeo WebM
+  3gp: Vídeo 3GPP
+  3g2: Vídeo 3GPP2
+  aac: Áudio AAC
+  mid: MIDI
+  midi: MIDI
+  m4a: Áudio MP4
+  mp3: Áudio MP3
+  oga: Áudio Ogg
+  opus: Áudio OPUS
+  wav: Áudio WAV
+  weba: Áudio WebM
+  csv: Folha de cálculo CSV
+  doc: Documento Word
+  docx: Documento Word
+  odp: Apresentação OpenDocument
+  ods: Folha de cálculo OpenDocument
+  odt: Texto OpenDocument
+  pdf: Documento PDF
+  ppt: Apresentação PowerPoint
+  pptx: Apresentação PowerPoint
+  rtf: Documento de texto formatado
+  xls: Folha de cálculo Excel
+  xlsx: Folha de cálculo Excel
+  html: Texto HTML
+  js: JavaScript
+  json: Texto JSON
+  md: Texto Markdown
+  toml: Texto TOML
+  yaml: Texto YAML
+  yml: Texto YAML
+file_size_units:
+  b: "{$size} bytes"
+  kb: "{$size} KB"
+  mb: "{$size} MB"
+  gb: "{$size} GB"
+  tb: "{$size} TB"

@@ -86,6 +86,9 @@ importers:
       smol-toml:
         specifier: ^1.7.0
         version: 1.7.0
+      sortablejs:
+        specifier: ^1.15.7
+        version: 1.15.7
       svgo:
         specifier: ^4.0.1
         version: 4.0.1
@@ -123,6 +126,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.17)
+      '@types/sortablejs':
+        specifier: ^1.15.9
+        version: 1.15.9
       '@vitest/coverage-v8':
         specifier: ^4.1.10
         version: 4.1.10(vitest@4.1.10)
@@ -1253,6 +1259,9 @@ packages:
 
   '@types/react@19.2.17':
     resolution: {integrity: sha512-MXfmqaVPEVgkBT/aY0aGCkRWWtByiYQXo3xdQ8r5RzuFrPiRn8Gar2tQdXSUQ2GKV3bkXckek89V8wQBY2Q/Aw==}
+
+  '@types/sortablejs@1.15.9':
+    resolution: {integrity: sha512-7HP+rZGE2p886PKV9c9OJzLBI6BBJu1O7lJGYnPyG3fS4/duUCcngkNCjsLwIMV+WMqANe3tt4irrXHSIe68OQ==}
 
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
@@ -3435,6 +3444,9 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
+  sortablejs@1.15.7:
+    resolution: {integrity: sha512-Kk8wLQPlS+yi1ZEf48a4+fzHa4yxjC30M/Sr2AnQu+f/MPwvvX9XjZ6OWejiz8crBsLwSq8GHqaxaET7u6ux0A==}
+
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
@@ -4944,6 +4956,8 @@ snapshots:
   '@types/react@19.2.17':
     dependencies:
       csstype: 3.2.3
+
+  '@types/sortablejs@1.15.9': {}
 
   '@types/trusted-types@2.0.7': {}
 
@@ -7327,6 +7341,8 @@ snapshots:
       semver: 7.8.5
       sort-object-keys: 2.1.0
       tinyglobby: 0.2.17
+
+  sortablejs@1.15.7: {}
 
   source-map-js@1.2.1: {}
 

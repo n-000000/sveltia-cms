@@ -1086,6 +1086,41 @@ describe('events module', () => {
       expect(savingEntry.locales.fr.content).toEqual({ title: 'Titre original' });
     });
 
+    it('should chain multiple preSave hooks so a later passthrough hook does not clobber an earlier hook', async () => {
+      // hook1 adds `tags` (like the hashtag extractor); hook2 returns data unchanged
+      // (like the cms-users / media-path hooks on a posts entry). hook2 must see hook1's
+      // change, not the original content, or it overwrites `tags` back to nothing.
+      const hook1 = vi.fn(({ entry }) => entry.get('data').set('tags', fromJS(['metal'])));
+      const hook2 = vi.fn(({ entry }) => entry.get('data'));
+
+      eventHookRegistry.add({ name: 'preSave', handler: hook1 });
+      eventHookRegistry.add({ name: 'preSave', handler: hook2 });
+
+      const draft = {
+        collection: { _i18n: { defaultLocale: 'en' } },
+        collectionFile: null,
+        isNew: true,
+        collectionName: 'posts',
+        fileName: null,
+      };
+
+      const savingEntry = {
+        slug: 'test-post',
+        locales: {
+          en: { content: { title: 'Test', body: 'gig #metal' }, path: 'posts/test-post.md' },
+        },
+      };
+
+      // @ts-expect-error
+      await callEventHooks({ type: 'preSave', draft, savingEntry });
+
+      expect(savingEntry.locales.en.content).toEqual({
+        title: 'Test',
+        body: 'gig #metal',
+        'tags.0': 'metal',
+      });
+    });
+
     it('should fall back to else-if branch when return has data but no i18n (isObject(map.i18n) is false)', async () => {
       // Return a map with `data` key but no `i18n` key
       // → isObject(map.data) = true, isObject(map.i18n) = false

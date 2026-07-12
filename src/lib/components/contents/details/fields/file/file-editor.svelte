@@ -10,6 +10,7 @@
   import { _ } from '@sveltia/i18n';
   import { ConfirmationDialog, TextArea } from '@sveltia/ui';
   import { flushSync, getContext } from 'svelte';
+  import Sortable from 'sortablejs/modular/sortable.complete.esm.js';
 
   import SelectAssetsDialog from '$lib/components/assets/browser/select-assets-dialog.svelte';
   import ConflictResolutionDialog from '$lib/components/assets/shared/conflict-resolution-dialog.svelte';
@@ -19,6 +20,7 @@
   import UploadButton from '$lib/components/contents/details/fields/file/upload-button.svelte';
   import { entryDraft } from '$lib/services/contents/draft';
   import { checkDuplicates } from '$lib/services/contents/fields/file/duplicates.svelte';
+  import { allAssets } from '$lib/services/assets';
   import {
     getAssetLibraryFolderMap,
     getTargetFolderPath,
@@ -74,6 +76,8 @@
   let showSelectAssetsDialog = $state(false);
   let replaceMode = $state(false);
   let replaceIndex = $state(-1);
+  /** @type {HTMLElement | undefined} */
+  let listEl = $state();
   let showOversizeAlert = $state(false);
   let showPhotoCreditDialog = $state(false);
   let photoCredit = $state('');
@@ -120,7 +124,7 @@
     getTargetFolderPath({ entry: $entryDraft?.originalEntry, folder: targetFolder }),
   );
   const listedAssets = $derived(
-    listAssets({ kind, folder: targetFolder, folderPath: targetFolderPath, unsavedAssets }),
+    listAssets({ kind, folder: targetFolder, folderPath: targetFolderPath, unsavedAssets, assets: $allAssets }),
   );
   const multiple = $derived(isMultiple(fieldConfig));
   const maxSize = $derived(/** @type {number} */ (libraryConfig.max_file_size));
@@ -310,22 +314,40 @@
   };
 
   /**
-   * Move an item down in the list.
-   * @param {number} index Index of the item to move down.
+   * Reorder gallery items given the new permutation read from the DOM after a drag.
+   * @param {number[]} newOrder Array where newOrder[newIdx] = originalIdx.
    */
-  const moveDown = (index) => {
-    if (!$entryDraft) {
-      return;
-    }
+  const reorderItems = (newOrder) => {
+    if (!$entryDraft) return;
 
-    [
-      $entryDraft[valueStoreKey][locale][`${keyPath}.${index}`],
-      $entryDraft[valueStoreKey][locale][`${keyPath}.${index + 1}`],
-    ] = [
-      $entryDraft[valueStoreKey][locale][`${keyPath}.${index + 1}`],
-      $entryDraft[valueStoreKey][locale][`${keyPath}.${index}`],
-    ];
+    const snapshot = $state.snapshot($entryDraft.currentValues[locale]);
+
+    newOrder.forEach((originalIdx, newIdx) => {
+      $entryDraft.currentValues[locale][`${keyPath}.${newIdx}`] =
+        snapshot[`${keyPath}.${originalIdx}`];
+    });
   };
+
+  $effect(() => {
+    if (!listEl || !multiple || readonly) return;
+
+    const sortable = Sortable.create(listEl, {
+      multiDrag: true,
+      selectedClass: 'sortable-selected',
+      handle: '.drag-handle',
+      animation: 150,
+      onEnd: () => {
+        // Read the permutation from data-sort-index before Svelte re-renders
+        const newOrder = [...listEl.children].map((el) =>
+          parseInt(/** @type {HTMLElement} */ (el).dataset.sortIndex ?? '0', 10),
+        );
+
+        reorderItems(newOrder);
+      },
+    });
+
+    return () => sortable.destroy();
+  });
 
   $effect(() => {
     (async () => {
@@ -358,21 +380,22 @@
   {#if !!currentValue?.length && !processing}
     {#if multiple}
       {#if Array.isArray(currentValue)}
-        <div role="none" class="item-list">
-          {#each currentValue as value, index (`${value}|${index}`)}
-            <FileEditorItem
-              {...itemArgs}
-              {value}
-              fieldId="{fieldId}-{index}"
-              onReplace={() => {
-                replaceMode = true;
-                replaceIndex = index;
-                showSelectAssetsDialog = true;
-              }}
-              onRemove={() => removeItem(index)}
-              onMoveUp={index > 0 ? () => moveDown(index - 1) : undefined}
-              onMoveDown={index < currentValue.length - 1 ? () => moveDown(index) : undefined}
-            />
+        <div role="none" class="item-list" bind:this={listEl}>
+          {#each currentValue as value, index (value)}
+            <div role="none" class="sort-item" data-sort-index={index} data-key-path="{keyPath}.{index}">
+              <FileEditorItem
+                {...itemArgs}
+                {value}
+                draggable={!readonly}
+                fieldId="{fieldId}-{index}"
+                onReplace={() => {
+                  replaceMode = true;
+                  replaceIndex = index;
+                  showSelectAssetsDialog = true;
+                }}
+                onRemove={() => removeItem(index)}
+              />
+            </div>
           {/each}
         </div>
         {#if currentValue.length < max}
@@ -456,5 +479,19 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+  }
+
+  .sort-item {
+    border-radius: var(--sui-control-medium-border-radius);
+    transition: opacity 0.15s;
+
+    &:global(.sortable-selected) {
+      outline: 2px solid var(--sui-primary-accent-color-light);
+      outline-offset: 1px;
+    }
+
+    &:global(.sortable-ghost) {
+      opacity: 0.3;
+    }
   }
 </style>
