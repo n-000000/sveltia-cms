@@ -1,6 +1,6 @@
 <script>
   import { AppShell } from '@sveltia/ui';
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
 
   import EntrancePage from '$lib/components/entrance/entrance-page.svelte';
   import BackendStatusIndicator from '$lib/components/global/infobars/backend-status-indicator.svelte';
@@ -44,7 +44,12 @@
   let localeLoaded = $state(false);
 
   $effect.pre(() => {
-    initAppLocale();
+    // ponytail: untrack is load-bearing. initAppLocale() runs the full i18n init() (which calls
+    // locale.set()). Without untrack this effect tracks prefs.locale and re-runs the entire init
+    // on every locale switch, which — together with the prefs effect (prefs.svelte.js) that also
+    // calls appLocale.set() — forms an effect_update_depth_exceeded loop. Init must run once;
+    // runtime locale changes are applied solely by the prefs effect.
+    untrack(() => initAppLocale());
     localeLoaded = true;
   });
 
