@@ -10,6 +10,8 @@
   /**
    * @typedef {object} Props
    * @property {SelectFieldValue | undefined} currentValue Field value.
+   * @property {((searchText: string) => void) | undefined} [onCreateNew] Inline-create callback.
+   * @property {string} [createLabel] Label for the sentinel option.
    */
 
   /** @type {SelectFieldSelectorProps & Props} */
@@ -22,12 +24,15 @@
     readonly = false,
     invalid = false,
     options,
+    onCreateNew = undefined,
+    createLabel = 'Create new…',
     /* eslint-enable prefer-const */
   } = $props();
 
   const { dropdown_threshold: dropdownThreshold = 5 } = $derived(fieldConfig);
   /** @type {string | undefined} */
   let valueType = $state(undefined);
+  let lastGoodValue = $state(currentValue !== '__inline_create__' ? currentValue : undefined);
 
   $effect(() => {
     if (!valueType) {
@@ -36,21 +41,35 @@
   });
 
   $effect(() => {
+    if (currentValue !== '__inline_create__') {
+      lastGoodValue = currentValue;
+    }
+  });
+
+  const finalOptions = $derived.by(() => {
+    let opts = [...options];
+
     // Allow to deselect an option if the field is optional
-    if (!required && !options.some(({ value }) => !value)) {
-      options = [
+    if (!required && !opts.some(({ value }) => !value)) {
+      opts = [
         {
           label: _('unselected_option'),
           value: valueType === 'number' ? null : '',
           searchValue: '',
         },
-        ...options,
+        ...opts,
       ];
     }
+
+    if (onCreateNew) {
+      opts = [...opts, { label: createLabel, value: '__inline_create__', searchValue: '' }];
+    }
+
+    return opts;
   });
 </script>
 
-{#if options.length > dropdownThreshold}
+{#if finalOptions.length > dropdownThreshold || onCreateNew}
   <Select
     bind:value={currentValue}
     {readonly}
@@ -58,8 +77,16 @@
     {invalid}
     aria-labelledby="{fieldId}-label"
     aria-errormessage="{fieldId}-error"
+    onChange={() => {
+      if (currentValue === '__inline_create__') {
+        const text = document.querySelector('.content.combobox .sui.search-bar input')?.value ?? '';
+
+        currentValue = lastGoodValue;
+        onCreateNew?.(text);
+      }
+    }}
   >
-    {#each options as { label, value, searchValue }, index (`${index}-${value}`)}
+    {#each finalOptions as { label, value, searchValue }, index (`${index}-${value}`)}
       <Option {label} {value} {valueType} {searchValue} selected={value === currentValue} wrap />
     {/each}
   </Select>
@@ -74,7 +101,7 @@
       currentValue = value;
     }}
   >
-    {#each options as { label, value }, index (`${index}-${value}`)}
+    {#each finalOptions as { label, value }, index (`${index}-${value}`)}
       <Radio {label} {value} {valueType} checked={value === currentValue} />
     {/each}
   </RadioGroup>
