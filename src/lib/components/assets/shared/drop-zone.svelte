@@ -1,7 +1,8 @@
 <script>
   import { _, locale as appLocale } from '@sveltia/i18n';
   import { AlertDialog, Button, FilePicker, Icon } from '@sveltia/ui';
-  import { scanFiles } from '@sveltia/utils/file';
+  import { isValidFileType, scanFiles } from '@sveltia/utils/file';
+  import mime from 'mime';
   import { onMount } from 'svelte';
 
   import UploadAssetsPreview from '$lib/components/assets/shared/upload-assets-preview.svelte';
@@ -109,7 +110,7 @@
       values: {
         type: getListFormatter(appLocale.current, {
           type: 'disjunction',
-        }).format(/** @type {string} */ (accept).split(/,\s*/)),
+        }).format((accept ?? '').split(/,\s*/)),
       },
     })}
   {/if}
@@ -162,7 +163,26 @@
       return;
     }
 
-    const filteredFileList = await scanFiles(event.dataTransfer, { accept });
+    // ponytail: snapshot files before the await — Chromium neuters `dataTransfer` once the
+    // handler yields
+    const droppedFiles = [...event.dataTransfer.files];
+    let filteredFileList = await scanFiles(event.dataTransfer, { accept });
+
+    // ponytail: `webkitGetAsEntry()` returns null under sandboxed Chromium (e.g. Flatpak), so
+    // `scanFiles` yields nothing for real files even though `dataTransfer.files` is populated.
+    // Fall back to it, re-applying the same accept filter (so genuinely-unsupported files are
+    // still rejected) and recovering a missing `File.type` from the filename via `mime`. The
+    // synthetic File is only for the type check; the real File objects stay in the list.
+    if (!filteredFileList.length) {
+      const specifiers = accept ? accept.trim().split(/,\s*/) : [];
+
+      filteredFileList = droppedFiles.filter((file) =>
+        isValidFileType(
+          new File([], file.name, { type: file.type || mime.getType(file.name) || '' }),
+          specifiers,
+        ),
+      );
+    }
 
     if (filteredFileList.length) {
       updateFileList(filteredFileList);
