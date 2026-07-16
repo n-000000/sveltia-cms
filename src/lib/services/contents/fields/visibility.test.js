@@ -1,6 +1,26 @@
-import { describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { isFieldVisible, siblingKeyPath } from './visibility';
+
+const { getCollection, getEntriesByCollection } = vi.hoisted(() => ({
+  getCollection: vi.fn(),
+  getEntriesByCollection: vi.fn(),
+}));
+
+vi.mock('$lib/services/contents/collection', () => ({ getCollection }));
+vi.mock('$lib/services/contents/collection/entries', () => ({ getEntriesByCollection }));
+
+/**
+ * Build a roster entry whose multiple-select `roles` field holds the given roles (flattened as
+ * `roles.0`, `roles.1`, …), matching how the CMS stores list values.
+ * @param {string[]} roles Roles the entry holds.
+ * @returns {any} Minimal entry shape.
+ */
+const rosterEntry = (roles) => ({
+  locales: {
+    _default: { content: Object.fromEntries(roles.map((role, i) => [`roles.${i}`, role])) },
+  },
+});
 
 describe('siblingKeyPath()', () => {
   test('top-level field → sibling name', () => {
@@ -82,5 +102,85 @@ describe('isFieldVisible()', () => {
         keyPath: 'block.0.youtube_url',
       }),
     ).toBe(true);
+  });
+});
+
+describe('isFieldVisible() — roster-count condition (P8b)', () => {
+  beforeEach(() => {
+    getEntriesByCollection.mockReset();
+    getCollection.mockReturnValue({ _i18n: { defaultLocale: '_default' } });
+  });
+
+  /**
+   * Evaluate a roster-count field config against an empty value map.
+   * @param {any} fieldConfig Field configuration carrying the condition.
+   * @returns {boolean} Whether the field is visible.
+   */
+  const visible = (fieldConfig) => isFieldVisible({ fieldConfig, valueMap: {}, keyPath: 'credit' });
+
+  test('shows when role holders meet the minimum', () => {
+    getEntriesByCollection.mockReturnValue([
+      rosterEntry(['text', 'photos']),
+      rosterEntry(['photos']),
+      rosterEntry(['videos']),
+    ]);
+
+    expect(
+      visible({ condition: { role_count: 'photos', min: 2, collection: 'cms-users' } }),
+    ).toBe(true);
+  });
+
+  test('hides when below the minimum', () => {
+    getEntriesByCollection.mockReturnValue([rosterEntry(['photos']), rosterEntry(['text'])]);
+
+    expect(
+      visible({ condition: { role_count: 'photos', min: 2, collection: 'cms-users' } }),
+    ).toBe(false);
+  });
+
+  test('min defaults to 1', () => {
+    getEntriesByCollection.mockReturnValue([rosterEntry(['videos'])]);
+
+    expect(visible({ condition: { role_count: 'videos', collection: 'cms-users' } })).toBe(true);
+    expect(visible({ condition: { role_count: 'photos', collection: 'cms-users' } })).toBe(false);
+  });
+
+  test('no role holders → hidden', () => {
+    getEntriesByCollection.mockReturnValue([rosterEntry(['text'])]);
+
+    expect(visible({ condition: { role_count: 'photos', collection: 'cms-users' } })).toBe(false);
+  });
+
+  test('missing collection → count 0 → hidden', () => {
+    expect(visible({ condition: { role_count: 'photos' } })).toBe(false);
+    expect(getEntriesByCollection).not.toHaveBeenCalled();
+  });
+
+  test('custom roster field name via `field`', () => {
+    getEntriesByCollection.mockReturnValue([
+      { locales: { _default: { content: { 'jobs.0': 'photos', 'jobs.1': 'text' } } } },
+    ]);
+
+    expect(
+      visible({ condition: { role_count: 'photos', collection: 'staff', field: 'jobs' } }),
+    ).toBe(true);
+  });
+
+  test('ANDed with a sibling-value condition', () => {
+    getEntriesByCollection.mockReturnValue([rosterEntry(['photos']), rosterEntry(['photos'])]);
+
+    const fieldConfig = {
+      condition: [
+        { field: 'has_credits', value: true },
+        { role_count: 'photos', min: 2, collection: 'cms-users' },
+      ],
+    };
+
+    expect(isFieldVisible({ fieldConfig, valueMap: { has_credits: true }, keyPath: 'credit' })).toBe(
+      true,
+    );
+    expect(
+      isFieldVisible({ fieldConfig, valueMap: { has_credits: false }, keyPath: 'credit' }),
+    ).toBe(false);
   });
 });
