@@ -14,6 +14,7 @@
   import ValidationError from '$lib/components/contents/details/editor/validation-error.svelte';
   import { editors } from '$lib/components/contents/details/fields';
   import { entryDraft, INTERNAL_PROP_REGEX } from '$lib/services/contents/draft';
+  import { resetFieldToDefault } from '$lib/services/contents/draft/defaults';
   import {
     resolveOriginalKeyPath,
     revertChanges,
@@ -222,6 +223,23 @@
       keyPath,
     }),
   );
+
+  $effect(() => {
+    // Suppressed field (P8): when hidden by an unmet `condition`, wipe its value back to default so
+    // no invisible data lingers and re-showing starts clean (toggle off→on ⇒ empty). The helper
+    // no-ops once already at default, which stops this effect from looping on its own write. The
+    // save path (`serialize.js`) independently drops hidden fields, so on-disk correctness doesn’t
+    // depend on this effect having run.
+    if ($entryDraft && !fieldVisible) {
+      resetFieldToDefault({
+        valueMap: $entryDraft[valueStoreKey][locale],
+        keyPath,
+        fieldConfig,
+        locale,
+        defaultLocale,
+      });
+    }
+  });
 
   $effect(() => {
     // Convert invalid single value to list. This is in place to handle the case when a field is

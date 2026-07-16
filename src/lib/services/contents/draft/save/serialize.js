@@ -10,6 +10,7 @@ import { INTERNAL_PROP_REGEX } from '$lib/services/contents/draft';
 import { createKeyPathList } from '$lib/services/contents/draft/save/key-path';
 import { getField, hasRootField, isFieldRequired } from '$lib/services/contents/entry/fields';
 import { parseDateTimeConfig } from '$lib/services/contents/fields/date-time/config';
+import { isFieldVisible } from '$lib/services/contents/fields/visibility';
 import { TOML_FORMATS } from '$lib/services/contents/file';
 import { getOrCreate } from '$lib/services/utils/cache';
 
@@ -146,6 +147,10 @@ const finalizeContent = ({
 }) => {
   /** @type {FlattenedEntryContent} */
   const unsortedMap = toRaw(valueMap);
+  // Stable snapshot of all sibling values for `condition` checks — `copyProperty` deletes keys from
+  // `unsortedMap` as it processes them, so a later field's condition would otherwise read a gating
+  // sibling that has already been removed.
+  const conditionValueMap = { ...unsortedMap };
   /** @type {FlattenedEntryContent} */
   const sortedMap = {};
 
@@ -168,6 +173,18 @@ const finalizeContent = ({
   // Move the listed properties to a new object
   createKeyPathList(fields).forEach((keyPath) => {
     const field = getField({ ...getFieldArgs, keyPath });
+
+    // Suppressed field (P8): never serialize a value hidden by an unmet `condition` — hidden means
+    // absent on disk, independent of whether the editor cleared the draft. Delete the field's whole
+    // subtree from `unsortedMap` so the remainder pass below can't resurrect it (copyProperty is
+    // what normally removes processed keys); this also drops descendants of a hidden object/list.
+    if (field && !isFieldVisible({ fieldConfig: field, valueMap: conditionValueMap, keyPath })) {
+      Object.keys(unsortedMap)
+        .filter((key) => key === keyPath || key.startsWith(`${keyPath}.`))
+        .forEach((key) => delete unsortedMap[key]);
+
+      return;
+    }
 
     if (keyPath in unsortedMap) {
       copyProperty({ ...copyArgs, key: keyPath, field });

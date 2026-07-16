@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
 
-import { getDefaultValues, populateDefaultValue } from './defaults';
+import { getDefaultValues, populateDefaultValue, resetFieldToDefault } from './defaults';
 
 /**
  * @import { FlattenedEntryContent } from '$lib/types/private';
@@ -937,5 +937,67 @@ describe('Test getDefaultValues()', () => {
       title: 'Trimmed Title',
       description: 'Default Description',
     });
+  });
+});
+
+describe('Test resetFieldToDefault()', () => {
+  /** @type {any} */
+  const stringField = { name: 'youtube_url', widget: 'string' };
+  const args = { keyPath: 'youtube_url', fieldConfig: stringField, locale: 'en', defaultLocale: 'en' };
+
+  test('clears a filled field back to empty when it has no default', () => {
+    const valueMap = { youtube_url: 'https://youtu.be/abc', title: 'Post' };
+    const changed = resetFieldToDefault({ ...args, valueMap });
+
+    expect(changed).toBe(true);
+    // Hidden field wiped; unrelated sibling untouched.
+    expect(valueMap).toEqual({ youtube_url: '', title: 'Post' });
+  });
+
+  test('resets to the configured default value', () => {
+    /** @type {any} */
+    const field = { name: 'status', widget: 'string', default: 'draft' };
+    const valueMap = { status: 'published' };
+
+    const changed = resetFieldToDefault({
+      valueMap,
+      keyPath: 'status',
+      fieldConfig: field,
+      locale: 'en',
+      defaultLocale: 'en',
+    });
+
+    expect(changed).toBe(true);
+    expect(valueMap).toEqual({ status: 'draft' });
+  });
+
+  test('is a no-op when already at default (empty)', () => {
+    const valueMap = { youtube_url: '', title: 'Post' };
+    const changed = resetFieldToDefault({ ...args, valueMap });
+
+    expect(changed).toBe(false);
+    expect(valueMap).toEqual({ youtube_url: '', title: 'Post' });
+  });
+
+  test('is a no-op when the field is absent and defaults to empty (no mount dirtying)', () => {
+    const valueMap = { title: 'Post' };
+    const changed = resetFieldToDefault({ ...args, valueMap });
+
+    expect(changed).toBe(false);
+    // Must NOT seed `youtube_url: ''` — that would falsely mark a pristine draft modified.
+    expect(valueMap).toEqual({ title: 'Post' });
+  });
+
+  test('drops descendant subtree keys and preserves siblings', () => {
+    const valueMap = {
+      youtube_url: 'x',
+      'youtube_url.meta': 'stale',
+      other: 'keep',
+    };
+
+    const changed = resetFieldToDefault({ ...args, valueMap });
+
+    expect(changed).toBe(true);
+    expect(valueMap).toEqual({ youtube_url: '', other: 'keep' });
   });
 });

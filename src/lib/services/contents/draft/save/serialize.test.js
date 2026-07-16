@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import {
   copyProperty,
@@ -1003,6 +1003,54 @@ describe('Test serializeContent()', () => {
     expect(result).toEqual({
       title: 'Test Post',
       body: 'Content here',
+    });
+  });
+
+  describe('conditional field visibility (suppressed field, P8)', () => {
+    /** @type {any} */
+    const draft = {
+      collectionName: 'posts',
+      collection: {
+        _file: { format: 'json' },
+        _i18n: { canonicalSlug: { key: 'slug' } },
+      },
+      fields: [
+        { name: 'has_video', widget: 'boolean' },
+        { name: 'youtube_url', widget: 'string', condition: { field: 'has_video', value: true } },
+      ],
+      isIndexFile: false,
+    };
+
+    // Real `getField` returns the raw config (incl. `condition`); the suite-wide mock strips it, so
+    // teach it the condition for `youtube_url`, then restore.
+    const defaultGetField = getField.getMockImplementation();
+
+    beforeEach(() => {
+      getField.mockImplementation((/** @type {any} */ { keyPath }) =>
+        keyPath === 'youtube_url'
+          ? { name: 'youtube_url', widget: 'string', condition: { field: 'has_video', value: true } }
+          : { name: keyPath, widget: 'string' },
+      );
+    });
+
+    afterEach(() => {
+      getField.mockImplementation(defaultGetField);
+    });
+
+    test('drops the field when its condition is unmet', () => {
+      // A stale URL lingers in the map but the condition is unmet → must not reach disk.
+      const valueMap = { has_video: false, youtube_url: 'https://youtu.be/abc' };
+      const result = serializeContent({ draft, locale: 'en', valueMap });
+
+      expect(result).toEqual({ has_video: false });
+      expect('youtube_url' in result).toBe(false);
+    });
+
+    test('keeps the field when its condition is met', () => {
+      const valueMap = { has_video: true, youtube_url: 'https://youtu.be/abc' };
+      const result = serializeContent({ draft, locale: 'en', valueMap });
+
+      expect(result).toEqual({ has_video: true, youtube_url: 'https://youtu.be/abc' });
     });
   });
 

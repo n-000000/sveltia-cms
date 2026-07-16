@@ -70,6 +70,66 @@ export const populateDefaultValue = ({
 };
 
 /**
+ * Whether a value counts as empty when comparing against a field’s default.
+ * @param {any} value Value to check.
+ * @returns {boolean} Whether the value is empty (`undefined`, `null`, `''` or an empty array).
+ */
+const isEmptyValue = (value) =>
+  value === undefined || value === null || value === '' || (Array.isArray(value) && !value.length);
+
+/**
+ * Reset a single field’s value(s) in a flattened value map back to its configured default, in
+ * place. Used when a field is hidden by an unmet `condition` (P8 suppressed field): its input must
+ * not linger — no invisible data on screen or on disk — and re-showing it starts clean. Drops the
+ * field’s own key plus any descendant keys (nested/list subtrees), then re-seeds defaults via
+ * {@link populateDefaultValue}. No-ops (and returns `false`) when the field is already at its
+ * default, which also keeps a reactive caller `$effect` from looping on its own write.
+ * @param {object} args Arguments.
+ * @param {FlattenedEntryContent} args.valueMap Flattened values for the locale, mutated in place.
+ * @param {string} args.keyPath Field key path.
+ * @param {Field} args.fieldConfig Field configuration.
+ * @param {InternalLocaleCode} args.locale Locale.
+ * @param {InternalLocaleCode} args.defaultLocale Default locale of the entry draft.
+ * @returns {boolean} Whether anything changed.
+ */
+export const resetFieldToDefault = ({ valueMap, keyPath, fieldConfig, locale, defaultLocale }) => {
+  /** @type {FlattenedEntryContent} */
+  const fresh = {};
+
+  populateDefaultValue({
+    content: fresh,
+    keyPath,
+    fieldConfig,
+    locale,
+    defaultLocale,
+    dynamicValues: {},
+  });
+
+  const owned = Object.keys(valueMap).filter(
+    (key) => key === keyPath || key.startsWith(`${keyPath}.`),
+  );
+
+  // No change when the field already holds its default (absent/empty treated alike, so a missing
+  // field that defaults to empty reads as already-default). This both prevents a reactive caller
+  // `$effect` from looping on its own write, and — because existing-entry drafts clone raw file
+  // content without seeding absent-field defaults — avoids dirtying a pristine draft on mount.
+  const atDefault = [...new Set([...owned, ...Object.keys(fresh)])].every((key) =>
+    isEmptyValue(valueMap[key]) && isEmptyValue(fresh[key])
+      ? true
+      : valueMap[key] === fresh[key],
+  );
+
+  if (atDefault) {
+    return false;
+  }
+
+  owned.forEach((key) => delete valueMap[key]);
+  Object.assign(valueMap, fresh);
+
+  return true;
+};
+
+/**
  * Get the default values for the given fields. If dynamic default values are given, these values
  * take precedence over static default values defined with the CMS configuration.
  * @param {object} args Arguments.
