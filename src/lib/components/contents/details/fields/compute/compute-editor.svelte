@@ -11,6 +11,7 @@
   import { applyTransformations, parseTransformations } from '$lib/services/common/transformations';
   import { entryDraft } from '$lib/services/contents/draft';
   import { getFieldDisplayValue } from '$lib/services/contents/entry/fields';
+  import { soleRoleHolder } from '$lib/services/contents/fields/visibility';
   import { getListFormatter } from '$lib/services/contents/i18n';
   import { isNumeric } from '$lib/services/utils/number';
 
@@ -80,6 +81,19 @@
 
         if (tagName === 'index') {
           return String(getIndex() ?? '');
+        }
+
+        // P8b implied value: resolve the sole holder of a role, else '' (0 holders → empty; >1 →
+        // the manual picker, referenced separately in the template, supplies the value).
+        if (tagName.startsWith('role_holder.')) {
+          const { collection, field, value_field: valueField } = fieldConfig.roster ?? {};
+
+          return soleRoleHolder({
+            collection,
+            field,
+            role: tagName.slice('role_holder.'.length),
+            valueField,
+          });
         }
 
         if (!tagName.startsWith('fields.')) {

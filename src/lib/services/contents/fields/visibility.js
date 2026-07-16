@@ -19,20 +19,20 @@ import { getEntriesByCollection } from '$lib/services/contents/collection/entrie
  */
 
 /**
- * Count entries in `collection` whose multiple-select `field` includes `role`. Reads the roster
- * from the entry store (not reactive to live edits, which is fine — a git-backed roster only
+ * Return the entries in `collection` whose multiple-select `field` includes `role`. Reads the
+ * roster from the entry store (not reactive to live edits, which is fine — a git-backed roster only
  * changes between sessions).
  * @param {object} args Arguments.
  * @param {string} [args.collection] Roster collection name.
  * @param {string} args.field Multiple-select field holding the roles.
- * @param {string} args.role Role value to tally.
- * @returns {number} Number of matching entries.
+ * @param {string} args.role Role value to match.
+ * @returns {any[]} Matching entries (empty when the collection is unknown).
  */
-const countRoleHolders = ({ collection, field, role }) => {
+const roleHolders = ({ collection, field, role }) => {
   const locale = collection ? getCollection(collection)?._i18n?.defaultLocale : undefined;
 
   if (!collection || !locale) {
-    return 0;
+    return [];
   }
 
   const prefix = `${field}.`;
@@ -46,7 +46,45 @@ const countRoleHolders = ({ collection, field, role }) => {
       .filter(([key]) => key === field || key.startsWith(prefix))
       .flatMap(([, value]) => (Array.isArray(value) ? value : [value]))
       .includes(role);
-  }).length;
+  });
+};
+
+/**
+ * Count entries in `collection` whose multiple-select `field` includes `role`.
+ * @param {Parameters<typeof roleHolders>[0]} args Arguments.
+ * @returns {number} Number of matching entries.
+ */
+const countRoleHolders = (args) => roleHolders(args).length;
+
+/**
+ * Resolve the identity of the single roster entry that holds `role`, when exactly one does — the
+ * "sole editor → assume" implied value (P8b). Returns that entry's `valueField` (its slug by
+ * default, or a same-locale content field), or `''` when zero or more than one entry holds the role
+ * (`0` → no value; `>1` → the manual picker supplies the value instead). Used by the `compute`
+ * widget via the `{{role_holder.<role>}}` template tag.
+ * @param {object} args Arguments.
+ * @param {string} [args.collection] Roster collection name.
+ * @param {string} [args.field] Multiple-select field holding the roles. Defaults to `roles`.
+ * @param {string} args.role Role value to match.
+ * @param {string} [args.valueField] Entry property to return as the identity. Defaults to `slug`.
+ * @returns {string} The sole holder's identity, or `''` when not exactly one holder.
+ */
+export const soleRoleHolder = ({ collection, field = 'roles', role, valueField = 'slug' }) => {
+  const holders = roleHolders({ collection, field, role });
+
+  if (holders.length !== 1) {
+    return '';
+  }
+
+  const [entry] = holders;
+
+  if (valueField === 'slug') {
+    return entry.slug ?? '';
+  }
+
+  const locale = getCollection(collection)?._i18n?.defaultLocale;
+
+  return entry.locales?.[locale]?.content?.[valueField] ?? '';
 };
 
 /**

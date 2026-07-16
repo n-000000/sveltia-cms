@@ -458,6 +458,10 @@
  * @typedef {object} ComputeFieldProps
  * @property {'compute'} widget Field type.
  * @property {string} value Value template, like `posts-{{fields.slug}}`.
+ * @property {{ collection?: string, field?: string, value_field?: string }} [roster] Roster source
+ * for the `{{role_holder.<role>}}` template tag (P8b implied value): resolves the sole holder of a
+ * role to its identity. `field` (the roles field) defaults to `roles`, `value_field` to the entry
+ * slug.
  * @see https://github.com/sveltia/sveltia-cms/issues/111
  */
 

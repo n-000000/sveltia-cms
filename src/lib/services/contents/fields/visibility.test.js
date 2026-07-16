@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { isFieldVisible, siblingKeyPath } from './visibility';
+import { isFieldVisible, siblingKeyPath, soleRoleHolder } from './visibility';
 
 const { getCollection, getEntriesByCollection } = vi.hoisted(() => ({
   getCollection: vi.fn(),
@@ -14,11 +14,17 @@ vi.mock('$lib/services/contents/collection/entries', () => ({ getEntriesByCollec
  * Build a roster entry whose multiple-select `roles` field holds the given roles (flattened as
  * `roles.0`, `roles.1`, …), matching how the CMS stores list values.
  * @param {string[]} roles Roles the entry holds.
+ * @param {object} [opts] Options.
+ * @param {string} [opts.slug] Entry slug.
+ * @param {Record<string, any>} [opts.content] Extra flattened content fields.
  * @returns {any} Minimal entry shape.
  */
-const rosterEntry = (roles) => ({
+const rosterEntry = (roles, { slug, content = {} } = {}) => ({
+  slug,
   locales: {
-    _default: { content: Object.fromEntries(roles.map((role, i) => [`roles.${i}`, role])) },
+    _default: {
+      content: { ...Object.fromEntries(roles.map((role, i) => [`roles.${i}`, role])), ...content },
+    },
   },
 });
 
@@ -182,5 +188,59 @@ describe('isFieldVisible() — roster-count condition (P8b)', () => {
     expect(
       isFieldVisible({ fieldConfig, valueMap: { has_credits: false }, keyPath: 'credit' }),
     ).toBe(false);
+  });
+});
+
+describe('soleRoleHolder() — implied value (P8b)', () => {
+  beforeEach(() => {
+    getEntriesByCollection.mockReset();
+    getCollection.mockReturnValue({ _i18n: { defaultLocale: '_default' } });
+  });
+
+  test('exactly one holder → its slug', () => {
+    getEntriesByCollection.mockReturnValue([
+      rosterEntry(['text'], { slug: 'ana' }),
+      rosterEntry(['photos'], { slug: 'ben' }),
+    ]);
+
+    expect(soleRoleHolder({ collection: 'cms-users', role: 'text' })).toBe('ana');
+  });
+
+  test('no holder → empty', () => {
+    getEntriesByCollection.mockReturnValue([rosterEntry(['photos'], { slug: 'ben' })]);
+
+    expect(soleRoleHolder({ collection: 'cms-users', role: 'text' })).toBe('');
+  });
+
+  test('more than one holder → empty (picker supplies the value)', () => {
+    getEntriesByCollection.mockReturnValue([
+      rosterEntry(['text'], { slug: 'ana' }),
+      rosterEntry(['text'], { slug: 'cid' }),
+    ]);
+
+    expect(soleRoleHolder({ collection: 'cms-users', role: 'text' })).toBe('');
+  });
+
+  test('custom value_field reads a content field', () => {
+    getEntriesByCollection.mockReturnValue([
+      rosterEntry(['text'], { slug: 'ana', content: { name: 'Ana Lima' } }),
+    ]);
+
+    expect(soleRoleHolder({ collection: 'cms-users', role: 'text', valueField: 'name' })).toBe(
+      'Ana Lima',
+    );
+  });
+
+  test('custom roster field via `field`', () => {
+    getEntriesByCollection.mockReturnValue([
+      { slug: 'ana', locales: { _default: { content: { 'jobs.0': 'text' } } } },
+    ]);
+
+    expect(soleRoleHolder({ collection: 'staff', role: 'text', field: 'jobs' })).toBe('ana');
+  });
+
+  test('missing collection → empty', () => {
+    expect(soleRoleHolder({ role: 'text' })).toBe('');
+    expect(getEntriesByCollection).not.toHaveBeenCalled();
   });
 });
