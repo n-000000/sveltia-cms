@@ -1,9 +1,13 @@
 # Backlog — musictide × Sveltia CMS fork
 
+> ⚠️ **NOT canonical — this is a recovered point-in-time snapshot (P0–P7 + cleanup).**
+> The single source of truth is **Magrathea** (`/home/n0xx/Code/infra/service/Magrathea`):
+> live status + sequencing in `operations.md`, full item detail — **including the newer
+> priority items P8–P14** (conditional inputs, AR validation, YouTube video, …) — in
+> `components/sveltia-cms.md`. Update Magrathea, not this file.
+>
 > Recovered 2026-07-16 from session transcript `39ea8b98` (the original was untracked on
-> `main` and lost on upstream re-sync). Status markers reflect state as of 2026-07-16;
-> the fork is **frozen at 0.170.8** (see below, P2). Live tracking mirror lives in the
-> assistant memory `project-sveltia-fork-backlog`.
+> `main` and lost on upstream re-sync). Fork is **frozen at 0.170.8** (see P2).
 
 ---
 
