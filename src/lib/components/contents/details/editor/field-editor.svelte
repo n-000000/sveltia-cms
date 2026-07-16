@@ -19,6 +19,7 @@
     revertChanges,
   } from '$lib/services/contents/draft/update/revert';
   import { isFieldMultiple, isFieldRequired } from '$lib/services/contents/entry/fields';
+  import { isFieldVisible } from '$lib/services/contents/fields/visibility';
   import { DEFAULT_I18N_CONFIG } from '$lib/services/contents/i18n/config';
 
   /**
@@ -212,6 +213,15 @@
       fieldType === 'uuid',
   );
   const invalid = $derived(validity?.valid === false);
+  // Conditional visibility: hide the field when its `condition` references a sibling whose value
+  // doesn't match. Mirrors `currentValue`'s snapshot read so it re-evaluates on sibling edits.
+  const fieldVisible = $derived(
+    isFieldVisible({
+      fieldConfig,
+      valueMap: $state.snapshot($entryDraft?.[valueStoreKey][locale] ?? {}),
+      keyPath,
+    }),
+  );
 
   $effect(() => {
     // Convert invalid single value to list. This is in place to handle the case when a field is
@@ -248,7 +258,7 @@
   });
 </script>
 
-{#if $entryDraft && canEdit && fieldType !== 'hidden'}
+{#if $entryDraft && canEdit && fieldType !== 'hidden' && fieldVisible}
   <FieldEditorGroup
     aria-label={_('x_field', { values: { field: fieldLabel } })}
     data-field-type={fieldType}

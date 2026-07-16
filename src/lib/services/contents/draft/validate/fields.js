@@ -9,6 +9,7 @@ import {
   LIST_KEY_PATH_REGEX,
 } from '$lib/services/contents/entry/fields';
 import { MEDIA_FIELD_TYPES, MIN_MAX_VALUE_FIELD_TYPES } from '$lib/services/contents/fields';
+import { isFieldVisible } from '$lib/services/contents/fields/visibility';
 import { resolveCodeField } from '$lib/services/contents/fields/code/validate';
 import { validateDateTimeField } from '$lib/services/contents/fields/date-time/validate';
 import { validateKeyValueField } from '$lib/services/contents/fields/key-value/validate';
@@ -150,6 +151,12 @@ export const validateAnyField = (args) => {
   const fieldConfig = getField({ ...getFieldArgs });
 
   if (!fieldConfig) {
+    return undefined;
+  }
+
+  // Skip validation for fields hidden by an unmet `condition` — a hidden required field must not
+  // block save. Mirrors the field-editor visibility guard so the two never disagree.
+  if (!isFieldVisible({ fieldConfig, valueMap, keyPath })) {
     return undefined;
   }
 
