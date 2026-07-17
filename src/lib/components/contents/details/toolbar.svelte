@@ -24,7 +24,6 @@
   import { skipCIConfigured, skipCIEnabled } from '$lib/services/backends/git/shared/integration';
   import { getCollectionLabel } from '$lib/services/contents/collection';
   import { deleteEntries } from '$lib/services/contents/collection/data/delete';
-  import { getCollectionFileLabel } from '$lib/services/contents/collection/files';
   import { collectionState } from '$lib/services/contents/collection/view';
   import { entryDraft, entryDraftModified } from '$lib/services/contents/draft';
   import { createDraft } from '$lib/services/contents/draft/create';
@@ -35,7 +34,7 @@
   import { entryEditorSettings } from '$lib/services/contents/editor/settings';
   import { getEntryPreviewURL } from '$lib/services/contents/entry';
   import { getAssociatedAssets } from '$lib/services/contents/entry/assets';
-  import { getEntrySummary } from '$lib/services/contents/entry/summary';
+  import { getEntrySummaryFromContent } from '$lib/services/contents/entry/summary';
   import { getLocaleLabel } from '$lib/services/contents/i18n';
   import { DEFAULT_I18N_CONFIG } from '$lib/services/contents/i18n/config';
   import { env } from '$lib/services/user/env.svelte';
@@ -102,6 +101,13 @@
     !!($entryDraft?.currentValues?.[
       defaultLocale ?? Object.keys($entryDraft?.currentValues ?? {})[0]
     ]?.draft),
+  );
+  const identifierField = $derived(collection?.identifier_field ?? 'title');
+  const liveTitle = $derived(
+    getEntrySummaryFromContent($entryDraft?.currentValues?.[defaultLocale] ?? {}, {
+      identifierField,
+      useBody: false,
+    }),
   );
 
   /**
@@ -213,24 +219,17 @@
       _goBack();
     }}
   />
-  <h2 role="none">
+  <h2 role="none" class="breadcrumb">
     {#if !notFound}
+      <button type="button" class="crumb-back" onclick={() => _goBack()}>{collectionLabel}</button>
+      <span class="sep" aria-hidden="true">/</span>
       <TruncatedText>
-        {#if isNew}
-          {_('create_entry_title', { values: { name: collectionLabelSingular } })}
+        {#if liveTitle}
+          {liveTitle}
         {:else}
-          {@const entrySummary = collectionFile
-            ? getCollectionFileLabel(collectionFile)
-            : collection && originalEntry && appLocale.current
-              ? getEntrySummary(collection, originalEntry)
-              : ''}
-          {#if env.isSmallScreen}
-            {entrySummary}
-          {:else}
-            {_('edit_entry_title', {
-              values: { collection: collectionLabel, entry: entrySummary },
-            })}
-          {/if}
+          <span class="crumb-placeholder">
+            {_('create_entry_title', { values: { name: collectionLabelSingular } })}
+          </span>
         {/if}
       </TruncatedText>
     {/if}
@@ -399,6 +398,36 @@
 </AlertDialog>
 
 <style>
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .crumb-back {
+    flex: none;
+    border: 0;
+    padding: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .crumb-back:hover {
+    text-decoration: underline;
+  }
+
+  .sep {
+    flex: none;
+    margin: 0 6px;
+    opacity: 0.5;
+  }
+
+  .crumb-placeholder {
+    opacity: 0.6;
+  }
+
   .error {
     margin-top: 8px;
     border-radius: var(--sui-control-medium-border-radius);
