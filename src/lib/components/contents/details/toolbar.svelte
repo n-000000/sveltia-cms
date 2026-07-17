@@ -11,6 +11,7 @@
     MenuItem,
     MenuItemCheckbox,
     SplitButton,
+    Switch,
     Toast,
     Toolbar,
     TruncatedText,
@@ -234,12 +235,11 @@
       </TruncatedText>
     {/if}
   </h2>
-  <Button
-    variant="ghost"
-    size="small"
-    pressed={isDraft}
+  <Switch
+    class="draft-toggle"
     label={_('draft_toggle')}
-    onclick={() => {
+    checked={isDraft}
+    onChange={() => {
       if ($entryDraft) {
         $entryDraft.currentValues[defaultLocale].draft = !$entryDraft.currentValues[defaultLocale]
           .draft;
@@ -438,6 +438,13 @@
 
   .crumb-placeholder {
     opacity: 0.6;
+  }
+
+  /* Bump the draft Switch a notch so it reads at the same scale as the neighbouring toolbar items.
+     The class lands on the child Switch component's element, so it must be :global to match. */
+  :global(.draft-toggle) {
+    margin-inline: 4px;
+    font-size: var(--sui-font-size-large);
   }
 
   .error {
