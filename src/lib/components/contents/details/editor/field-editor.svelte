@@ -20,6 +20,7 @@
     revertChanges,
   } from '$lib/services/contents/draft/update/revert';
   import { isFieldMultiple, isFieldRequired } from '$lib/services/contents/entry/fields';
+  import { parseFieldWidth } from '$lib/services/contents/fields/layout';
   import { isFieldVisible } from '$lib/services/contents/fields/visibility';
   import { DEFAULT_I18N_CONFIG } from '$lib/services/contents/i18n/config';
 
@@ -224,6 +225,9 @@
     }),
   );
 
+  // Inline layout (P10): map an optional `width` fraction to a flex-basis; undefined ⇒ full width.
+  const fieldBasis = $derived(parseFieldWidth(fieldConfig?.width));
+
   $effect(() => {
     // Suppressed field (P8): when hidden by an unmet `condition`, wipe its value back to default so
     // no invisible data lingers and re-showing starts clean (toggle off→on ⇒ empty). The helper
@@ -283,6 +287,7 @@
     data-key-path={keyPath}
     data-typed-key-path={typedKeyPath}
     hidden={fieldType === 'compute'}
+    style={fieldBasis ? `flex-basis: ${fieldBasis}` : undefined}
   >
     <header role="none">
       <h4 role="none" id="{fieldId}-label">{fieldLabel}</h4>

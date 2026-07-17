@@ -8,12 +8,14 @@
   /**
    * @typedef {object} Props
    * @property {Snippet} children Slot content.
+   * @property {string} [style] Inline style applied to the placeholder element.
    */
 
   /** @type {Props} */
   let {
     /* eslint-disable prefer-const */
     children,
+    style = undefined,
     /* eslint-enable prefer-const */
   } = $props();
 
@@ -35,11 +37,14 @@
 {#if visible}
   {@render children()}
 {:else}
-  <div class="placeholder" bind:this={placeholder}></div>
+  <div class="placeholder" {style} bind:this={placeholder}></div>
 {/if}
 
 <style>
   .placeholder {
+    box-sizing: border-box;
+    flex-basis: 100%;
+    min-width: 240px;
     height: 64px;
   }
 </style>

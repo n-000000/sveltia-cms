@@ -3,6 +3,7 @@
   import FieldEditor from '$lib/components/contents/details/editor/field-editor.svelte';
   import SlugEditor from '$lib/components/contents/details/editor/slug-editor.svelte';
   import { entryDraft } from '$lib/services/contents/draft';
+  import { parseFieldWidth } from '$lib/services/contents/fields/layout';
 
   /**
    * @import { InternalLocaleCode } from '$lib/types/private';
@@ -27,14 +28,25 @@
   {#if !!$entryDraft?.slugEditor[locale]}
     <SlugEditor {locale} />
   {/if}
-  {#each fields as fieldConfig (fieldConfig.name)}
-    <VisibilityObserver>
-      <FieldEditor
-        keyPath={fieldConfig.name}
-        typedKeyPath={fieldConfig.name}
-        {locale}
-        {fieldConfig}
-      />
-    </VisibilityObserver>
-  {/each}
+  <div class="field-flow">
+    {#each fields as fieldConfig (fieldConfig.name)}
+      {@const basis = parseFieldWidth(fieldConfig.width)}
+      <VisibilityObserver style={basis ? `flex-basis: ${basis}` : undefined}>
+        <FieldEditor
+          keyPath={fieldConfig.name}
+          typedKeyPath={fieldConfig.name}
+          {locale}
+          {fieldConfig}
+        />
+      </VisibilityObserver>
+    {/each}
+  </div>
 </VisibilityObserver>
+
+<style>
+  .field-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+</style>

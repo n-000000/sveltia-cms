@@ -37,6 +37,9 @@
 <style>
   section {
     padding: var(--field-editor-padding);
+    box-sizing: border-box;
+    flex: 0 1 100%;
+    min-width: 240px;
 
     &:not(:last-child) {
       border-width: 0 0 1px;
