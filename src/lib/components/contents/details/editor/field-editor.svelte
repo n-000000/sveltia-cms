@@ -1,6 +1,6 @@
 <script>
   import { _ } from '@sveltia/i18n';
-  import { Icon, Menu, MenuButton, Spacer } from '@sveltia/ui';
+  import { Button, Icon, Spacer } from '@sveltia/ui';
   import { escapeRegExp } from '@sveltia/utils/string';
   import equal from 'fast-deep-equal';
   import { sanitize } from 'isomorphic-dompurify';
@@ -8,7 +8,6 @@
   import { getContext, setContext } from 'svelte';
   import { writable } from 'svelte/store';
 
-  import CopyMenuItems from '$lib/components/contents/details/editor/copy-menu-items.svelte';
   import FieldEditorGroup from '$lib/components/contents/details/editor/field-editor-group.svelte';
   import TranslateButton from '$lib/components/contents/details/editor/translate-button.svelte';
   import ValidationError from '$lib/components/contents/details/editor/validation-error.svelte';
@@ -20,7 +19,7 @@
     revertChanges,
   } from '$lib/services/contents/draft/update/revert';
   import { isFieldMultiple, isFieldRequired } from '$lib/services/contents/entry/fields';
-  import { comboPlaceholder, isComboField } from '$lib/services/contents/fields/field-header';
+  import { isComboField } from '$lib/services/contents/fields/field-header';
   import { parseFieldWidth } from '$lib/services/contents/fields/layout';
   import { isFieldVisible, isRoleVisible, ROLE_VALUES } from '$lib/services/contents/fields/visibility';
   import { DEFAULT_I18N_CONFIG } from '$lib/services/contents/i18n/config';
@@ -310,22 +309,8 @@
     hidden={fieldType === 'compute'}
     style={fieldBasis ? `flex-basis: ${fieldBasis}` : undefined}
   >
-    {#if canRevert && !isRevertDisabled}
-      <button
-        type="button"
-        class="revert-field"
-        aria-label={_('revert_changes')}
-        onclick={() => {
-          revertChanges({ locale, keyPath });
-        }}
-      >
-        <Icon name="undo" />
-      </button>
-    {/if}
     <header role="none">
-      {#if !isCombo}
-        <h4 role="none" id="{fieldId}-label">{fieldLabel}</h4>
-      {/if}
+      <h4 role="none" id="{fieldId}-label">{fieldLabel}</h4>
       {#if !readonly && required}
         <div class="required" aria-label={_('required')}>*</div>
       {/if}
@@ -333,20 +318,20 @@
       {#if canCopy && ['richtext', 'markdown', 'string', 'text', 'list', 'object'].includes(fieldType)}
         <TranslateButton size="small" {locale} {otherLocales} {keyPath} />
       {/if}
-      {#if canCopy}
-        <MenuButton
+      {#if canRevert && !isRevertDisabled}
+        <Button
           variant="ghost"
           size="small"
           iconic
-          popupPosition="bottom-right"
-          aria-label={_('show_field_options')}
+          aria-label={_('revert_changes')}
+          onclick={() => {
+            revertChanges({ locale, keyPath });
+          }}
         >
-          {#snippet popup()}
-            <Menu aria-label={_('field_options')}>
-              <CopyMenuItems {locale} {otherLocales} {keyPath} />
-            </Menu>
+          {#snippet startIcon()}
+            <Icon name="undo" />
           {/snippet}
-        </MenuButton>
+        </Button>
       {/if}
     </header>
     {#if !readonly && comment && !isCombo}
@@ -395,7 +380,6 @@
           {readonly}
           {required}
           {invalid}
-          comboPlaceholder={isCombo ? comboPlaceholder(fieldLabel) : undefined}
           comboTooltip={isCombo ? comment : undefined}
         />
         {#if suffix}
@@ -419,32 +403,6 @@
 {/if}
 
 <style>
-  /*
-   * The field `<section class="field">` element is rendered by the child `FieldEditorGroup`
-   * component (field-editor-group.svelte), not written literally in this file's template, so
-   * Svelte's per-component style scoping can't reach it directly. `:global()` opts the ancestor
-   * part of the selector out of scoping so it matches the real DOM section; `.revert-field` itself
-   * stays scoped normally since that button is written in this file's markup.
-   */
-  :global(section.field) {
-    position: relative;
-  }
-
-  .revert-field {
-    position: absolute;
-    inset-block-start: 4px;
-    inset-inline-end: 4px;
-    opacity: 0;
-    transition: opacity 0.1s;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-  }
-
-  :global(section.field:hover) > .revert-field,
-  :global(section.field:focus-within) > .revert-field {
-    opacity: 1;
-  }
 
   .field-wrapper {
     &.has-extra-labels {
