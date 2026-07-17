@@ -8,6 +8,7 @@ describe('parseFieldWidth', () => {
     expect(parseFieldWidth('1/3')).toBe('calc(100% * 1 / 3)');
     expect(parseFieldWidth('2/3')).toBe('calc(100% * 2 / 3)');
     expect(parseFieldWidth('3/4')).toBe('calc(100% * 3 / 4)');
+    expect(parseFieldWidth('1/1')).toBe('calc(100% * 1 / 1)'); // a == b ⇒ full width, accepted
     expect(parseFieldWidth(' 1/2 ')).toBe('calc(100% * 1 / 2)');
   });
 

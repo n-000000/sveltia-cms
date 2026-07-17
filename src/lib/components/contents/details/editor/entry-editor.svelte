@@ -49,4 +49,18 @@
     flex-wrap: wrap;
     align-items: flex-start;
   }
+
+  /*
+   * Scope the flex-item sizing to the top-level form's DIRECT children only (`>`), never nested
+   * `object`/`list` subfields — those `.field` sections live deeper in the tree, out of P10's scope.
+   * `min-width` is the one property that isn't inert outside a flex parent, so leaking it would force
+   * nested subfields wider than their container on narrow viewports. A field's inline `flex-basis`
+   * (from its `width`) overrides the 100% default here; unwidthed fields stay full-width, own row.
+   */
+  .field-flow > :global(.field),
+  .field-flow > :global(.placeholder) {
+    box-sizing: border-box;
+    flex: 0 1 100%;
+    min-width: 240px;
+  }
 </style>

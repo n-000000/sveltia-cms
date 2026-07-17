@@ -42,9 +42,6 @@
 
 <style>
   .placeholder {
-    box-sizing: border-box;
-    flex-basis: 100%;
-    min-width: 240px;
     height: 64px;
   }
 </style>
