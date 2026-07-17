@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# publish-cms — publish THIS fork's built bundle to musictide's prod R2.
+#
+# Distribution model: musictide's static/admin/index.html loads the CMS bundle from a stable,
+# version-agnostic R2 URL; the Hugo build never fetches it. Cache-Control: no-cache → browsers
+# revalidate by ETag (304 unchanged, fresh bytes on re-publish), so a new build is picked up with
+# no version bump anywhere. Run after rebuilding the fork (a few times a year).
+#
+# Prereqs: `pnpm build` produced package/dist/sveltia-cms.js; wrangler authed to the Cloudflare
+# account that owns the `cms-statics` R2 bucket.
+#
+# Coupling note: the R2 bucket/key/URL below are musictide infra. This script lives in the fork
+# because the fork produces the artifact and owns its distribution — intentionally
+# musictide-specific, like pt.yaml and the rest of the port. Supersedes the old
+# musictide .rc.d/publish-cms (which had a wrong `dist/` path; correct outDir is `package/dist/`).
+set -euo pipefail
+cd "$(dirname "$0")/.." || exit 1   # fork root, regardless of caller cwd
+
+BUNDLE=package/dist/sveltia-cms.js
+[ -f "$BUNDLE" ] || { echo "error: $BUNDLE not found — run 'pnpm build' first" >&2; exit 1; }
+
+npx wrangler r2 object put cms-statics/musictide/sveltia-cms.js \
+  --file "$BUNDLE" \
+  --content-type application/javascript \
+  --cache-control no-cache \
+  --remote
+echo "published → https://pub-3c7d6b33a4774fe093eb6028e8c2aba1.r2.dev/musictide/sveltia-cms.js"
