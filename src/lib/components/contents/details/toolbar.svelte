@@ -234,6 +234,18 @@
       </TruncatedText>
     {/if}
   </h2>
+  <Button
+    variant="ghost"
+    size="small"
+    pressed={isDraft}
+    label={_('draft_toggle')}
+    onclick={() => {
+      if ($entryDraft) {
+        $entryDraft.currentValues[defaultLocale].draft = !$entryDraft.currentValues[defaultLocale]
+          .draft;
+      }
+    }}
+  />
   {#if !disabled && previewURL && !isDraft}
     <Button
       variant="tertiary"

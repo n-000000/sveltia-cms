@@ -409,6 +409,7 @@ restore_backup_description: このエントリーには {$datetime} に保存さ
 draft_backup_saved: 下書きのバックアップが保存されました。
 draft_backup_restored: 下書きのバックアップが復元されました。
 draft_backup_deleted: 下書きのバックアップが削除されました。
+draft_toggle: 下書き
 cancel_editing: 編集をキャンセル
 create_entry_title: "{$name} を作成"
 create_entry_announcement: 「{$collection}」コレクションの新しいエントリーを作成しています。
