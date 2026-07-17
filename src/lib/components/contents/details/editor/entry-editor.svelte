@@ -48,19 +48,29 @@
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
+    /*
+     * Live inside the app's 768px reading column (the same constant field-editor-group applies to
+     * each field's content via `max-width: 768px`). Fractional fields then subdivide THIS column and
+     * align with full-width fields — instead of full-width fields being inset to 768 while fractions
+     * fill the whole pane (the misalignment). Full-width fields look identical to before (768 centred).
+     */
+    max-width: 768px;
+    margin-inline: auto;
   }
 
   /*
-   * Scope the flex-item sizing to the top-level form's DIRECT children only (`>`), never nested
-   * `object`/`list` subfields — those `.field` sections live deeper in the tree, out of P10's scope.
-   * `min-width` is the one property that isn't inert outside a flex parent, so leaking it would force
-   * nested subfields wider than their container on narrow viewports. A field's inline `flex-basis`
-   * (from its `width`) overrides the 100% default here; unwidthed fields stay full-width, own row.
+   * Direct children of the top-level form only (`>`) — never nested `object`/`list` subfields (they
+   * live deeper in the tree, out of P10's scope). A field's inline `flex-basis` (from its `width`)
+   * subdivides the column; the default 100% = full row.
+   *
+   * NO `min-width`: fields scale proportionally as the column narrows and KEEP their row structure
+   * at every width — responsiveness is "shrink in place", not "reflow / move fields to new rows".
+   * (Dropping min-width also retires the earlier nested-context leak: min-width was the only property
+   * here that isn't inert outside a flex parent.)
    */
   .field-flow > :global(.field),
   .field-flow > :global(.placeholder) {
     box-sizing: border-box;
     flex: 0 1 100%;
-    min-width: 240px;
   }
 </style>
