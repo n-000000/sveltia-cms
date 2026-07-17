@@ -1,6 +1,6 @@
 <script>
   import { _ } from '@sveltia/i18n';
-  import { Menu, MenuButton, MenuItem, Spacer } from '@sveltia/ui';
+  import { Icon, Menu, MenuButton, Spacer } from '@sveltia/ui';
   import { escapeRegExp } from '@sveltia/utils/string';
   import equal from 'fast-deep-equal';
   import { sanitize } from 'isomorphic-dompurify';
@@ -310,6 +310,18 @@
     hidden={fieldType === 'compute'}
     style={fieldBasis ? `flex-basis: ${fieldBasis}` : undefined}
   >
+    {#if canRevert && !isRevertDisabled}
+      <button
+        type="button"
+        class="revert-field"
+        aria-label={_('revert_changes')}
+        onclick={() => {
+          revertChanges({ locale, keyPath });
+        }}
+      >
+        <Icon name="undo" />
+      </button>
+    {/if}
     <header role="none">
       {#if !isCombo}
         <h4 role="none" id="{fieldId}-label">{fieldLabel}</h4>
@@ -321,7 +333,7 @@
       {#if canCopy && ['richtext', 'markdown', 'string', 'text', 'list', 'object'].includes(fieldType)}
         <TranslateButton size="small" {locale} {otherLocales} {keyPath} />
       {/if}
-      {#if canCopy || canRevert}
+      {#if canCopy}
         <MenuButton
           variant="ghost"
           size="small"
@@ -331,18 +343,7 @@
         >
           {#snippet popup()}
             <Menu aria-label={_('field_options')}>
-              {#if canCopy}
-                <CopyMenuItems {locale} {otherLocales} {keyPath} />
-              {/if}
-              {#if canRevert}
-                <MenuItem
-                  label={_('revert_changes')}
-                  disabled={isRevertDisabled}
-                  onclick={() => {
-                    revertChanges({ locale, keyPath });
-                  }}
-                />
-              {/if}
+              <CopyMenuItems {locale} {otherLocales} {keyPath} />
             </Menu>
           {/snippet}
         </MenuButton>
@@ -418,6 +419,33 @@
 {/if}
 
 <style>
+  /*
+   * The field `<section class="field">` element is rendered by the child `FieldEditorGroup`
+   * component (field-editor-group.svelte), not written literally in this file's template, so
+   * Svelte's per-component style scoping can't reach it directly. `:global()` opts the ancestor
+   * part of the selector out of scoping so it matches the real DOM section; `.revert-field` itself
+   * stays scoped normally since that button is written in this file's markup.
+   */
+  :global(section.field) {
+    position: relative;
+  }
+
+  .revert-field {
+    position: absolute;
+    inset-block-start: 4px;
+    inset-inline-end: 4px;
+    opacity: 0;
+    transition: opacity 0.1s;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  :global(section.field:hover) > .revert-field,
+  :global(section.field:focus-within) > .revert-field {
+    opacity: 1;
+  }
+
   .field-wrapper {
     &.has-extra-labels {
       display: flex;
