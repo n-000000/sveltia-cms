@@ -12,12 +12,17 @@
    * @property {SelectFieldValue | undefined} currentValue Field value.
    * @property {((searchText: string) => void) | undefined} [onCreateNew] Inline-create callback.
    * @property {string} [createLabel] Label for the sentinel option.
+   * @property {string} [comboPlaceholder] Placeholder shown when the field title is folded into
+   * the combo (P18-A2); `undefined` for non-combo rendering.
+   * @property {string} [comboTooltip] Field description shown as a tooltip when the combo title is
+   * suppressed.
    */
 
   /** @type {SelectFieldSelectorProps & Props} */
   let {
     /* eslint-disable prefer-const */
     fieldId,
+    fieldLabel,
     fieldConfig,
     currentValue = $bindable(),
     required = true,
@@ -26,6 +31,8 @@
     options,
     onCreateNew = undefined,
     createLabel = 'Create new…',
+    comboPlaceholder = undefined,
+    comboTooltip = undefined,
     /* eslint-enable prefer-const */
   } = $props();
 
@@ -75,7 +82,9 @@
     {readonly}
     {required}
     {invalid}
-    aria-labelledby="{fieldId}-label"
+    ariaLabel={comboPlaceholder ? fieldLabel : undefined}
+    aria-labelledby={comboPlaceholder ? undefined : `${fieldId}-label`}
+    title={comboTooltip || undefined}
     aria-errormessage="{fieldId}-error"
     onChange={() => {
       if (currentValue === '__inline_create__') {
@@ -95,7 +104,9 @@
     {readonly}
     {required}
     {invalid}
-    aria-labelledby="{fieldId}-label"
+    ariaLabel={comboPlaceholder ? fieldLabel : undefined}
+    aria-labelledby={comboPlaceholder ? undefined : `${fieldId}-label`}
+    title={comboTooltip || undefined}
     aria-errormessage="{fieldId}-error"
     onChange={({ detail: { value } }) => {
       currentValue = value;

@@ -24,6 +24,11 @@
    * @typedef {object} Props
    * @property {RelationField} fieldConfig Field configuration.
    * @property {string | string[] | undefined} currentValue Field value.
+   * @property {string} [comboPlaceholder] Placeholder shown when the field title is folded into
+   * the combo (P18-A2); relation is always a combo, so this is always set unless the field is a
+   * multi-value relation (which renders via a different, non-combo widget).
+   * @property {string} [comboTooltip] Field description shown as a tooltip when the combo title is
+   * suppressed.
    */
 
   /** @type {FieldEditorContext} */
@@ -42,6 +47,8 @@
     required = true,
     readonly = false,
     invalid = false,
+    comboPlaceholder = undefined,
+    comboTooltip = undefined,
     /* eslint-enable prefer-const */
   } = $props();
 
@@ -98,6 +105,8 @@
     sortOptions={true}
     onCreateNew={inlineCreate ? handleCreateNew : undefined}
     {createLabel}
+    {comboPlaceholder}
+    {comboTooltip}
   />
 
   {#if inlineCreate}

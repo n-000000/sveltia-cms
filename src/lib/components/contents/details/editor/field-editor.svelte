@@ -20,6 +20,7 @@
     revertChanges,
   } from '$lib/services/contents/draft/update/revert';
   import { isFieldMultiple, isFieldRequired } from '$lib/services/contents/entry/fields';
+  import { comboPlaceholder, isComboField } from '$lib/services/contents/fields/field-header';
   import { parseFieldWidth } from '$lib/services/contents/fields/layout';
   import { isFieldVisible, isRoleVisible, ROLE_VALUES } from '$lib/services/contents/fields/visibility';
   import { DEFAULT_I18N_CONFIG } from '$lib/services/contents/i18n/config';
@@ -109,6 +110,15 @@
   } = $derived(/** @type {VisibleField} */ (fieldConfig));
   const required = $derived(isFieldRequired({ fieldConfig, locale }));
   const multiple = $derived(isFieldMultiple(fieldConfig));
+  // Combo detection (P18-A2): dropdown-rendered `select`/`relation` fields fold their title into
+  // the widget's placeholder instead of showing the `<h4>` + comment row. Guarded with `!multiple`
+  // because a multi-value relation/select renders through the isList branch below (checkbox group
+  // or tag combobox via `select-multiple.svelte`), which doesn't consume the combo props — without
+  // this guard the header would be suppressed with nothing to replace it.
+  const optionCount = $derived(
+    Array.isArray(fieldConfig?.options) ? fieldConfig.options.length : 0,
+  );
+  const isCombo = $derived(isComboField(fieldConfig, optionCount) && !multiple);
   const allowPrefix = $derived(['string'].includes(fieldType));
   const prefix = $derived(
     allowPrefix ? /** @type {StringField} */ (fieldConfig).prefix : undefined,
@@ -301,7 +311,9 @@
     style={fieldBasis ? `flex-basis: ${fieldBasis}` : undefined}
   >
     <header role="none">
-      <h4 role="none" id="{fieldId}-label">{fieldLabel}</h4>
+      {#if !isCombo}
+        <h4 role="none" id="{fieldId}-label">{fieldLabel}</h4>
+      {/if}
       {#if !readonly && required}
         <div class="required" aria-label={_('required')}>*</div>
       {/if}
@@ -336,7 +348,7 @@
         </MenuButton>
       {/if}
     </header>
-    {#if !readonly && comment}
+    {#if !readonly && comment && !isCombo}
       <div role="none" class="comment-wrapper">
         <p class="comment">{@html _sanitize(comment)}</p>
       </div>
@@ -382,6 +394,8 @@
           {readonly}
           {required}
           {invalid}
+          comboPlaceholder={isCombo ? comboPlaceholder(fieldLabel) : undefined}
+          comboTooltip={isCombo ? comment : undefined}
         />
         {#if suffix}
           <div role="none" class="suffix">{suffix}</div>
