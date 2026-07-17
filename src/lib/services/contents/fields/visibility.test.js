@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { isFieldVisible, siblingKeyPath, soleRoleHolder } from './visibility';
+import {
+  isFieldVisible,
+  isRoleVisible,
+  ROLE_VALUES,
+  siblingKeyPath,
+  soleRoleHolder,
+} from './visibility';
 
 const { getCollection, getEntriesByCollection } = vi.hoisted(() => ({
   getCollection: vi.fn(),
@@ -242,5 +248,40 @@ describe('soleRoleHolder() — implied value (P8b)', () => {
   test('missing collection → empty', () => {
     expect(soleRoleHolder({ role: 'text' })).toBe('');
     expect(getEntriesByCollection).not.toHaveBeenCalled();
+  });
+});
+
+describe('isRoleVisible (P16 render-only role filter)', () => {
+  const all = ROLE_VALUES; // all toggles on
+
+  test('untagged field is always visible, regardless of toggles', () => {
+    expect(isRoleVisible(undefined, [])).toBe(true);
+    expect(isRoleVisible([], [])).toBe(true);
+  });
+
+  test('field tagged with every role is always visible, even with all toggles off', () => {
+    expect(isRoleVisible(['text', 'photos', 'videos'], [])).toBe(true);
+  });
+
+  test('single-tag field follows its own toggle', () => {
+    expect(isRoleVisible('photos', all)).toBe(true);
+    expect(isRoleVisible('photos', ['text', 'videos'])).toBe(false); // photos off
+    expect(isRoleVisible(['photos'], ['photos'])).toBe(true);
+  });
+
+  test('multi-tag (subset) field shows if ANY of its roles is enabled', () => {
+    expect(isRoleVisible(['text', 'photos'], ['photos'])).toBe(true); // photos on
+    expect(isRoleVisible(['text', 'photos'], ['videos'])).toBe(false); // both off
+  });
+
+  test('scalar tag is accepted', () => {
+    expect(isRoleVisible('text', ['text'])).toBe(true);
+    expect(isRoleVisible('text', [])).toBe(false);
+  });
+
+  test('unknown tags are ignored (treated as untagged) → visible', () => {
+    expect(isRoleVisible(['bogus'], [])).toBe(true);
+    expect(isRoleVisible(['bogus', 'photos'], ['photos'])).toBe(true);
+    expect(isRoleVisible(['bogus', 'photos'], [])).toBe(false);
   });
 });

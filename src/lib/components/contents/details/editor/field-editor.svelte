@@ -21,8 +21,9 @@
   } from '$lib/services/contents/draft/update/revert';
   import { isFieldMultiple, isFieldRequired } from '$lib/services/contents/entry/fields';
   import { parseFieldWidth } from '$lib/services/contents/fields/layout';
-  import { isFieldVisible } from '$lib/services/contents/fields/visibility';
+  import { isFieldVisible, isRoleVisible, ROLE_VALUES } from '$lib/services/contents/fields/visibility';
   import { DEFAULT_I18N_CONFIG } from '$lib/services/contents/i18n/config';
+  import { prefs } from '$lib/services/user/prefs.svelte';
 
   /**
    * @import { Component } from 'svelte';
@@ -225,8 +226,18 @@
     }),
   );
 
+  // Role filter (P16): a render-only view filter driven by the app-chrome toggles. Kept separate
+  // from `fieldVisible` (P8) — it must NOT clear or drop the value, only hide the control, so a
+  // role's data survives while its fields are filtered out.
+  const roleVisible = $derived(
+    isRoleVisible(
+      /** @type {any} */ (fieldConfig)?.roles,
+      ROLE_VALUES.filter((r) => prefs.roleFilter?.[r] !== false),
+    ),
+  );
+
   // Inline layout (P10): map an optional `width` fraction to a flex-basis; undefined ⇒ full width.
-  const fieldBasis = $derived(parseFieldWidth(fieldConfig?.width));
+  const fieldBasis = $derived(parseFieldWidth(/** @type {any} */ (fieldConfig)?.width));
 
   $effect(() => {
     // Suppressed field (P8): when hidden by an unmet `condition`, wipe its value back to default so
@@ -280,7 +291,7 @@
   });
 </script>
 
-{#if $entryDraft && canEdit && fieldType !== 'hidden' && fieldVisible}
+{#if $entryDraft && canEdit && fieldType !== 'hidden' && fieldVisible && roleVisible}
   <FieldEditorGroup
     aria-label={_('x_field', { values: { field: fieldLabel } })}
     data-field-type={fieldType}

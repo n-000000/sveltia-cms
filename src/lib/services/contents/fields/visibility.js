@@ -82,9 +82,43 @@ export const soleRoleHolder = ({ collection, field = 'roles', role, valueField =
     return entry.slug ?? '';
   }
 
-  const locale = getCollection(collection)?._i18n?.defaultLocale;
+  // `holders` is non-empty here, so `collection` was valid; `?? ''` just satisfies the type checker.
+  const locale = getCollection(collection ?? '')?._i18n?.defaultLocale;
 
-  return entry.locales?.[locale]?.content?.[valueField] ?? '';
+  return entry.locales?.[locale ?? '']?.content?.[valueField] ?? '';
+};
+
+// ponytail: fixed 3-role vocabulary (musictide's); make it a config value if a second app needs
+// different roles.
+/**
+ * Roles a field can be tagged with (P16), and the toggles shown in the app chrome. A field declares
+ * `roles: [text, photos]` (scalar tolerated); the toggles hide fields not relevant to the roles
+ * currently enabled.
+ * @type {readonly string[]}
+ */
+export const ROLE_VALUES = ['text', 'photos', 'videos'];
+
+/**
+ * Render-only role filter (P16). A field tagged with a **strict subset** of {@link ROLE_VALUES} is
+ * shown only when at least one of its roles is enabled. Untagged fields, and fields tagged with
+ * **every** role, are always visible. Unlike {@link isFieldVisible} (P8), this is a pure view
+ * filter — it never clears the value nor drops it at serialize, so hiding a role's fields never
+ * loses that role's data. Kept separate from `isFieldVisible` for exactly that reason.
+ * @param {any} roles The field's `roles` tag (array, scalar, or undefined).
+ * @param {readonly string[]} enabledRoles Roles whose toggle is currently on.
+ * @returns {boolean} Whether the field passes the role filter.
+ */
+export const isRoleVisible = (roles, enabledRoles) => {
+  const tags = (Array.isArray(roles) ? roles : roles != null ? [roles] : []).filter((r) =>
+    ROLE_VALUES.includes(r),
+  );
+
+  // 0 tags (universal field) or every role (relevant to all) → always visible.
+  if (!tags.length || ROLE_VALUES.every((r) => tags.includes(r))) {
+    return true;
+  }
+
+  return tags.some((r) => enabledRoles.includes(r));
 };
 
 /**

@@ -178,6 +178,10 @@ list_view: List View
 grid_view: Grid View
 switch_to_list_view: Switch to List View
 switch_to_grid_view: Switch to Grid View
+role_filter: Field role filter
+show_role_text: Text fields
+show_role_photos: Photo fields
+show_role_videos: Video fields
 sort: Sort
 sorting_options: Sorting Options
 sort_keys:

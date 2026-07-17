@@ -34,6 +34,10 @@ $effect.root(() => {
       _prefs.beta ??= false;
       _prefs.devModeEnabled ??= false;
       _prefs.defaultTranslationService ??= 'google';
+      // P16 role filter: which role-tagged fields are shown. All on = nothing hidden (filter off
+      // by default). Keys mirror ROLE_VALUES in `contents/fields/visibility` (kept literal here to
+      // keep this low-level module free of the content-service import graph).
+      _prefs.roleFilter ??= { text: true, photos: true, videos: true };
       Object.assign(prefs, _prefs);
     } catch {
       prefsError.current = { type: 'permission_denied' };

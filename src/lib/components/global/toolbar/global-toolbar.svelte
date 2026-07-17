@@ -9,6 +9,7 @@
   import PageSwitcher from '$lib/components/global/toolbar/items/page-switcher.svelte';
   import PublishButton from '$lib/components/global/toolbar/items/publish-button.svelte';
   import QuickSearchBar from '$lib/components/global/toolbar/items/quick-search-bar.svelte';
+  import RoleFilter from '$lib/components/global/toolbar/items/role-filter.svelte';
   import SiteLogo from '$lib/components/global/toolbar/items/site-logo.svelte';
   import { hasOverlay } from '$lib/services/app/navigation';
   import { prefs } from '$lib/services/user/prefs.svelte';
@@ -22,6 +23,7 @@
     </div>
     <QuickSearchBar />
     <div role="none" class="buttons">
+      <RoleFilter />
       <PublishButton />
       <CreateButton />
       <NotificationsButton />

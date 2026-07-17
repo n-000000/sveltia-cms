@@ -173,6 +173,10 @@ list_view: リストビュー
 grid_view: グリッドビュー
 switch_to_list_view: リストビューに切り替え
 switch_to_grid_view: グリッドビューに切り替え
+role_filter: フィールドの役割フィルター
+show_role_text: テキストフィールド
+show_role_photos: 写真フィールド
+show_role_videos: 動画フィールド
 sort: 表示順
 sorting_options: 表示順オプション
 sort_keys:

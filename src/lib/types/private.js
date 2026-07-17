@@ -92,6 +92,8 @@
  * @property {string} [deployHookAuthHeader] Webhook `Authorization` request header value, including
  * the scheme and token, e.g. `Bearer <token>`.
  * @property {string} [defaultTranslationService] Default translation service ID, e.g. `google`.
+ * @property {Record<string, boolean>} [roleFilter] P16 field-role filter: per-role toggle state
+ * (role name → shown). A missing role reads as shown.
  */
 
 /**
