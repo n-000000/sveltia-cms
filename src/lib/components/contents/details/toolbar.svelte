@@ -18,6 +18,7 @@
 
   import BackButton from '$lib/components/common/page-toolbar/back-button.svelte';
   import EditSlugDialog from '$lib/components/contents/details/edit-slug-dialog.svelte';
+  import RoleFilter from '$lib/components/global/toolbar/items/role-filter.svelte';
   import { goBack, goto } from '$lib/services/app/navigation';
   import { getAssetFolder } from '$lib/services/assets/folders';
   import { skipCIConfigured, skipCIEnabled } from '$lib/services/backends/git/shared/integration';
@@ -246,6 +247,7 @@
   {#if !env.isSmallScreen && !disabled && !collectionFile && !isNew}
     {@render overflowButtons()}
   {/if}
+  <RoleFilter />
   <MenuButton
     {disabled}
     variant="ghost"
