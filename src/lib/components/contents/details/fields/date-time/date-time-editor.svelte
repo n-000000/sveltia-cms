@@ -7,7 +7,7 @@
 -->
 <script>
   import { _ } from '@sveltia/i18n';
-  import { Button } from '@sveltia/ui';
+  import { Button, TextInput } from '@sveltia/ui';
   import { untrack } from 'svelte';
 
   import { parseDateTimeConfig } from '$lib/services/contents/fields/date-time/config';
@@ -135,18 +135,35 @@
 </script>
 
 <div role="none">
-  <input
-    {...useTextInput ? { type: 'text', placeholder: displayFormat } : { type, min, max, step }}
-    bind:value={inputValue}
-    {readonly}
-    aria-readonly={readonly}
-    aria-required={required}
-    aria-invalid={invalid}
-    aria-labelledby="{fieldId}-label"
-    aria-errormessage="{fieldId}-error"
-    onfocus={handleFocus}
-    onblur={handleBlur}
-  />
+  {#if useTextInput}
+    <!-- P59: styled TextInput (matches sibling fields) honouring the config display format; `flex`
+         lets it fill the cell so the Now/Clear button never overflows a width-constrained field. -->
+    <TextInput
+      flex
+      placeholder={displayFormat}
+      bind:value={inputValue}
+      {readonly}
+      {invalid}
+      aria-required={required}
+      aria-labelledby="{fieldId}-label"
+      aria-errormessage="{fieldId}-error"
+      onfocus={handleFocus}
+      onblur={handleBlur}
+    />
+  {:else}
+    <input
+      {...{ type, min, max, step }}
+      bind:value={inputValue}
+      {readonly}
+      aria-readonly={readonly}
+      aria-required={required}
+      aria-invalid={invalid}
+      aria-labelledby="{fieldId}-label"
+      aria-errormessage="{fieldId}-error"
+      onfocus={handleFocus}
+      onblur={handleBlur}
+    />
+  {/if}
   {#if !readonly}
     <Button
       variant="tertiary"
@@ -186,6 +203,14 @@
   div {
     display: flex;
     align-items: center;
+    gap: 4px;
+  }
+
+  /* P59: let the input shrink from a 0 basis so the Now/Clear button keeps its size and the whole
+     row stays inside a width-constrained (P10) field cell instead of overflowing. */
+  div > input {
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .timezone {
