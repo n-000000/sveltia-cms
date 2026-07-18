@@ -101,6 +101,36 @@ export const getEntrySummaryFromContent = (
 };
 
 /**
+ * Determine the entry summary to show in the editor breadcrumb, reflecting the locale the user is
+ * editing. Tries the given locales in order, then any remaining locale, returning the first
+ * non-empty title — so a title typed in any single locale still shows, whichever pane is active.
+ * @param {Record<InternalLocaleCode, FlattenedEntryContent>} currentValues Per-locale content.
+ * @param {object} options Options.
+ * @param {(InternalLocaleCode | undefined)[]} options.localePriority Locales to try first, in order.
+ * @param {string} [options.identifierField] Field name to identify the title.
+ * @returns {string} First non-empty summary, or an empty string if none is set.
+ */
+export const getLocalizedEntrySummary = (
+  currentValues,
+  { localePriority, identifierField = 'title' },
+) => {
+  const locales = [...new Set([...localePriority, ...Object.keys(currentValues)])].filter(Boolean);
+
+  for (const locale of locales) {
+    const summary = getEntrySummaryFromContent(currentValues[locale] ?? {}, {
+      identifierField,
+      useBody: false,
+    });
+
+    if (summary) {
+      return summary;
+    }
+  }
+
+  return '';
+};
+
+/**
  * Replacer subroutine.
  * @param {string} tag Field name or one of special tags.
  * @param {ReplacerSubContext} context Context.

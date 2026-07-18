@@ -1,28 +1,54 @@
 import { describe, expect, test } from 'vitest';
 
-import { getEntrySummaryFromContent } from '$lib/services/contents/entry/summary';
+import { getLocalizedEntrySummary } from '$lib/services/contents/entry/summary';
 
-// B2’s breadcrumb reads the live draft title the same way the entry list does — from content, not
-// `originalEntry` — so it updates as the user types. This test pins that contract.
-describe('live title from draft content', () => {
-  test('uses the identifier field value as typed', () => {
+// B2’s breadcrumb reads the live draft title from per-locale draft content (not `originalEntry`), so
+// it updates as the user types. It reflects the locale being edited, falling back across locales so a
+// title typed in any single locale still shows. These tests pin that selection contract.
+describe('localized live title from draft content', () => {
+  const en = { title: 'Hello' };
+  const fr = { title: 'Bonjour' };
+
+  test('prefers the current (being-edited) locale over the default', () => {
     expect(
-      getEntrySummaryFromContent({ title: 'Draft Name' }, { identifierField: 'title' }),
-    ).toBe('Draft Name');
+      getLocalizedEntrySummary({ en, fr }, { localePriority: ['fr', 'en'], identifierField: 'title' }),
+    ).toBe('Bonjour');
   });
 
-  test('empty title yields empty string (breadcrumb shows placeholder)', () => {
+  test('falls back to the default locale when the current locale has no title', () => {
     expect(
-      getEntrySummaryFromContent({ title: '' }, { identifierField: 'title', useBody: false }),
+      getLocalizedEntrySummary(
+        { en, fr: {} },
+        { localePriority: ['fr', 'en'], identifierField: 'title' },
+      ),
+    ).toBe('Hello');
+  });
+
+  test('falls back to any locale with a title when the priority locales are empty', () => {
+    // The reported bug: a title typed only in a non-default, non-priority locale still shows.
+    expect(
+      getLocalizedEntrySummary(
+        { en: {}, fr },
+        { localePriority: [undefined, 'en'], identifierField: 'title' },
+      ),
+    ).toBe('Bonjour');
+  });
+
+  test('empty everywhere yields an empty string (breadcrumb shows no title segment)', () => {
+    expect(
+      getLocalizedEntrySummary(
+        { en: {}, fr: {} },
+        { localePriority: ['fr', 'en'], identifierField: 'title' },
+      ),
     ).toBe('');
   });
 
-  test('falls back to a custom identifier field', () => {
+  test('honors a custom identifier field', () => {
     expect(
-      getEntrySummaryFromContent(
-        { name: 'Custom Field Name' },
-        { identifierField: 'name', useBody: false },
+      getLocalizedEntrySummary(
+        { en: { name: 'Custom' } },
+        { localePriority: ['en'], identifierField: 'name' },
       ),
-    ).toBe('Custom Field Name');
+    ).toBe('Custom');
   });
 });

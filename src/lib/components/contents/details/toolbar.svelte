@@ -31,11 +31,11 @@
   import { duplicateDraft } from '$lib/services/contents/draft/create/duplicate';
   import { saveEntry } from '$lib/services/contents/draft/save';
   import { revertChanges } from '$lib/services/contents/draft/update/revert';
-  import { copyFromLocaleToast } from '$lib/services/contents/editor';
+  import { copyFromLocaleToast, editorFirstPane } from '$lib/services/contents/editor';
   import { entryEditorSettings } from '$lib/services/contents/editor/settings';
   import { getEntryPreviewURL } from '$lib/services/contents/entry';
   import { getAssociatedAssets } from '$lib/services/contents/entry/assets';
-  import { getEntrySummaryFromContent } from '$lib/services/contents/entry/summary';
+  import { getLocalizedEntrySummary } from '$lib/services/contents/entry/summary';
   import { getLocaleLabel } from '$lib/services/contents/i18n';
   import { DEFAULT_I18N_CONFIG } from '$lib/services/contents/i18n/config';
   import { env } from '$lib/services/user/env.svelte';
@@ -77,10 +77,6 @@
     // `appLocale.current` is a key, because `getCollectionLabel` can return a localized label
     appLocale.current && collection ? getCollectionLabel(collection) : '',
   );
-  const collectionLabelSingular = $derived(
-    // `appLocale.current` is a key, because `getCollectionLabel` can return a localized label
-    appLocale.current && collection ? getCollectionLabel(collection, { useSingular: true }) : '',
-  );
   const canPreview = $derived($entryDraft?.canPreview ?? true);
   const modified = $derived(isNew || $entryDraftModified);
   const errorCount = $derived(
@@ -104,10 +100,18 @@
     ]?.draft),
   );
   const identifierField = $derived(collection?.identifier_field ?? 'title');
+  // The locale shown in the primary (left) editor pane, when it's in edit mode — the "current
+  // language" the user is typing in. Undefined when that pane is previewing.
+  const currentLocale = $derived(
+    $editorFirstPane?.mode === 'edit' ? $editorFirstPane.locale : undefined,
+  );
+  // Show the title from the locale being edited first, then the default locale, then any locale
+  // that has one — so the breadcrumb tracks the current language and never goes blank when only a
+  // non-default locale is filled in.
   const liveTitle = $derived(
-    getEntrySummaryFromContent($entryDraft?.currentValues?.[defaultLocale] ?? {}, {
+    getLocalizedEntrySummary($entryDraft?.currentValues ?? {}, {
+      localePriority: [currentLocale, defaultLocale],
       identifierField,
-      useBody: false,
     }),
   );
 
@@ -223,16 +227,10 @@
   <h2 role="none" class="breadcrumb">
     {#if !notFound}
       <button type="button" class="crumb-back" onclick={() => _goBack()}>{collectionLabel}</button>
-      <span class="sep" aria-hidden="true">/</span>
-      <TruncatedText>
-        {#if liveTitle}
-          {liveTitle}
-        {:else}
-          <span class="crumb-placeholder">
-            {_('create_entry_title', { values: { name: collectionLabelSingular } })}
-          </span>
-        {/if}
-      </TruncatedText>
+      {#if liveTitle}
+        <span class="sep" aria-hidden="true">/</span>
+        <TruncatedText>{liveTitle}</TruncatedText>
+      {/if}
     {/if}
   </h2>
   <Switch
@@ -434,10 +432,6 @@
     flex: none;
     margin: 0 6px;
     opacity: 0.5;
-  }
-
-  .crumb-placeholder {
-    opacity: 0.6;
   }
 
   /* Bump the draft Switch a notch so it reads at the same scale as the neighbouring toolbar items.
