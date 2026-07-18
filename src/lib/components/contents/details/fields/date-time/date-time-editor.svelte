@@ -15,7 +15,9 @@
     getCurrentDateTime,
     getCurrentValue,
     getDate,
+    getDisplayInputValue,
     getInputValue,
+    getValueFromDisplayInput,
   } from '$lib/services/contents/fields/date-time/helper';
   import {
     getInitialTimeZone,
@@ -48,9 +50,13 @@
   let inputValue = $state('');
   let isInputFocused = $state(false);
 
-  const { type, min, max, step, dateOnly, utc, singleCustomTimeZone } = $derived(
+  const { type, min, max, step, dateOnly, utc, singleCustomTimeZone, displayFormat } = $derived(
     parseDateTimeConfig(fieldConfig),
   );
+  // P59: when `date_format`/`time_format` are configured, render a text input that honours that
+  // format (native `<input>` display is browser-locale-locked and ignores the config). Fields with
+  // no display format keep the native picker unchanged.
+  const useTextInput = $derived(!!displayFormat);
   const timeZone = $derived(getInitialTimeZone(currentValue, fieldConfig));
 
   /**
@@ -62,7 +68,9 @@
       return;
     }
 
-    const _inputValue = getInputValue({ currentValue, fieldConfig, timeZone });
+    const _inputValue = useTextInput
+      ? getDisplayInputValue({ currentValue, fieldConfig, timeZone })
+      : getInputValue({ currentValue, fieldConfig, timeZone });
 
     // Avoid a cycle dependency & infinite loop
     if (_inputValue !== undefined && _inputValue !== inputValue) {
@@ -74,7 +82,9 @@
    * Update {@link currentValue} based on {@link inputValue}.
    */
   const setCurrentValue = () => {
-    const _currentValue = getCurrentValue({ inputValue, currentValue, fieldConfig, timeZone });
+    const _currentValue = useTextInput
+      ? getValueFromDisplayInput({ inputValue, currentValue, fieldConfig, timeZone })
+      : getCurrentValue({ inputValue, currentValue, fieldConfig, timeZone });
 
     // Avoid a cycle dependency & infinite loop
     if (
@@ -126,7 +136,7 @@
 
 <div role="none">
   <input
-    {...{ type, min, max, step }}
+    {...useTextInput ? { type: 'text', placeholder: displayFormat } : { type, min, max, step }}
     bind:value={inputValue}
     {readonly}
     aria-readonly={readonly}
@@ -142,7 +152,13 @@
       variant="tertiary"
       label={_(dateOnly ? 'today' : 'now')}
       onclick={() => {
-        inputValue = getCurrentDateTime(fieldConfig, timeZone);
+        inputValue = useTextInput
+          ? getDisplayInputValue({
+              currentValue: getCurrentDateTime(fieldConfig, timeZone),
+              fieldConfig,
+              timeZone,
+            })
+          : getCurrentDateTime(fieldConfig, timeZone);
       }}
     />
   {/if}

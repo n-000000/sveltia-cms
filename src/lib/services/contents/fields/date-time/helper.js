@@ -331,6 +331,71 @@ export const getInputValue = ({ currentValue, fieldConfig, timeZone }) => {
 };
 
 /**
+ * P59: format a stored value using the field's DISPLAY format (`date_format`/`time_format`), for the
+ * text-based editor input. Distinct from {@link getInputValue} (which returns the native input's
+ * ISO string) and from {@link getDateTimeFieldDisplayValue} (which uses the storage `format`).
+ * @param {object} args Arguments.
+ * @param {string | undefined} args.currentValue Stored value.
+ * @param {DateTimeField} args.fieldConfig Field configuration.
+ * @param {string} [args.timeZone] IANA timezone name.
+ * @returns {string} Value formatted with the display format, or '' when empty/invalid.
+ */
+export const getDisplayInputValue = ({ currentValue, fieldConfig, timeZone }) => {
+  const { displayFormat } = parseDateTimeConfig(fieldConfig);
+
+  if (!displayFormat || !currentValue) {
+    return '';
+  }
+
+  const date = getDate(currentValue, fieldConfig);
+
+  if (!isValidDate(date)) {
+    return '';
+  }
+
+  const displayTimeZone = getTimeZoneForStoredValue(currentValue, fieldConfig) ?? timeZone;
+
+  return (displayTimeZone ? dayjs(date).tz(displayTimeZone) : dayjs(date)).format(displayFormat);
+};
+
+/**
+ * P59: parse text typed into the display-format editor input back to a storable value. Normalizes
+ * the typed display string to a canonical input string, then reuses {@link getCurrentValue} for all
+ * timezone/UTC/storage-format handling. Returns the unchanged `currentValue` while typing is
+ * incomplete (strict parse fails), so editing never destroys the stored value mid-keystroke.
+ * @param {object} args Arguments.
+ * @param {string | undefined} args.inputValue Raw text from the input (in the display format).
+ * @param {string | undefined} args.currentValue Current stored value.
+ * @param {DateTimeField} args.fieldConfig Field configuration.
+ * @param {string} [args.timeZone] IANA timezone name.
+ * @returns {string | undefined} The storable value.
+ */
+export const getValueFromDisplayInput = ({ inputValue, currentValue, fieldConfig, timeZone }) => {
+  const { displayFormat, dateOnly, timeOnly } = parseDateTimeConfig(fieldConfig);
+
+  if (inputValue === '') {
+    return '';
+  }
+
+  if (!inputValue || !displayFormat) {
+    return currentValue;
+  }
+
+  // Strict-parse against the display format; keep the last good value while typing is incomplete.
+  const parsed = dayjs(inputValue, displayFormat, true);
+
+  if (!parsed.isValid()) {
+    return currentValue;
+  }
+
+  const canonical = parsed.format(
+    dateOnly ? 'YYYY-MM-DD' : timeOnly ? 'HH:mm' : 'YYYY-MM-DDTHH:mm',
+  );
+
+  return getCurrentValue({ inputValue: canonical, currentValue, fieldConfig, timeZone });
+};
+
+/**
  * Get the display value of a DateTime field.
  * @param {object} args Arguments.
  * @param {InternalLocaleCode} args.locale Locale code.
