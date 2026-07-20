@@ -1063,6 +1063,10 @@
  * {@link DateTimeFieldProps.date_format} and {@link DateTimeFieldProps.time_format} will be used
  * instead. If these options are also missing, the value will be `undefined`, which makes the output
  * standard ISO 8601 format.
+ * @property {string | undefined} displayFormat P59: on-screen format built from
+ * {@link DateTimeFieldProps.date_format}/{@link DateTimeFieldProps.time_format}, kept separate from
+ * {@link format} (storage). When set, the editor renders a text input honouring it instead of the
+ * browser-locale-locked native input. `undefined` when neither key is set → native input is used.
  * @property {boolean} dateOnly Whether the field is date only.
  * @property {boolean} timeOnly Whether the field is time only.
  * @property {boolean} utc Whether the field’s picker is UTC.

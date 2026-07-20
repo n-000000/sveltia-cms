@@ -53,6 +53,15 @@ export const parseDateTimeConfig = (fieldConfig) => {
   const timeFormatStr = typeof timeFormat === 'string' ? timeFormat : '';
   const dateOnly = type === 'date' || timeFormat === false;
   const timeOnly = type === 'time' || dateFormat === false;
+  // P59: display format derived from `date_format`/`time_format`, kept SEPARATE from the storage
+  // `format`. Sveltia otherwise collapses both into `format`, so an explicit `format:` (storage)
+  // silently hides the configured on-screen format. When set, the editor renders a text input that
+  // honours this instead of a native `<input>` (whose display is browser-locale-locked).
+  const displayFormat = dateOnly
+    ? dateFormatStr
+    : timeOnly
+      ? timeFormatStr
+      : [dateFormatStr, timeFormatStr].join(' ').trim();
   const defaultMax = dateOnly ? '9999-12-31' : timeOnly ? undefined : '9999-12-31T23:59';
 
   const _inputTimeZone =
@@ -71,6 +80,7 @@ export const parseDateTimeConfig = (fieldConfig) => {
         ? step
         : undefined,
     format: format || [dateFormatStr, timeFormatStr].join(' ').trim() || undefined,
+    displayFormat: displayFormat || undefined,
     dateOnly,
     timeOnly,
     inputTimeZone: _inputTimeZone,

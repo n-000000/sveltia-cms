@@ -7,7 +7,7 @@
 -->
 <script>
   import { _ } from '@sveltia/i18n';
-  import { Button } from '@sveltia/ui';
+  import { Button, TextInput } from '@sveltia/ui';
   import { untrack } from 'svelte';
 
   import { parseDateTimeConfig } from '$lib/services/contents/fields/date-time/config';
@@ -15,7 +15,9 @@
     getCurrentDateTime,
     getCurrentValue,
     getDate,
+    getDisplayInputValue,
     getInputValue,
+    getValueFromDisplayInput,
   } from '$lib/services/contents/fields/date-time/helper';
   import {
     getInitialTimeZone,
@@ -48,9 +50,13 @@
   let inputValue = $state('');
   let isInputFocused = $state(false);
 
-  const { type, min, max, step, dateOnly, utc, singleCustomTimeZone } = $derived(
+  const { type, min, max, step, dateOnly, utc, singleCustomTimeZone, displayFormat } = $derived(
     parseDateTimeConfig(fieldConfig),
   );
+  // P59: when `date_format`/`time_format` are configured, render a text input that honours that
+  // format (native `<input>` display is browser-locale-locked and ignores the config). Fields with
+  // no display format keep the native picker unchanged.
+  const useTextInput = $derived(!!displayFormat);
   const timeZone = $derived(getInitialTimeZone(currentValue, fieldConfig));
 
   /**
@@ -62,7 +68,9 @@
       return;
     }
 
-    const _inputValue = getInputValue({ currentValue, fieldConfig, timeZone });
+    const _inputValue = useTextInput
+      ? getDisplayInputValue({ currentValue, fieldConfig, timeZone })
+      : getInputValue({ currentValue, fieldConfig, timeZone });
 
     // Avoid a cycle dependency & infinite loop
     if (_inputValue !== undefined && _inputValue !== inputValue) {
@@ -74,7 +82,9 @@
    * Update {@link currentValue} based on {@link inputValue}.
    */
   const setCurrentValue = () => {
-    const _currentValue = getCurrentValue({ inputValue, currentValue, fieldConfig, timeZone });
+    const _currentValue = useTextInput
+      ? getValueFromDisplayInput({ inputValue, currentValue, fieldConfig, timeZone })
+      : getCurrentValue({ inputValue, currentValue, fieldConfig, timeZone });
 
     // Avoid a cycle dependency & infinite loop
     if (
@@ -125,24 +135,48 @@
 </script>
 
 <div role="none">
-  <input
-    {...{ type, min, max, step }}
-    bind:value={inputValue}
-    {readonly}
-    aria-readonly={readonly}
-    aria-required={required}
-    aria-invalid={invalid}
-    aria-labelledby="{fieldId}-label"
-    aria-errormessage="{fieldId}-error"
-    onfocus={handleFocus}
-    onblur={handleBlur}
-  />
+  {#if useTextInput}
+    <!-- P59: styled TextInput (matches sibling fields) honouring the config display format; `flex`
+         lets it fill the cell so the Now/Clear buttons wrap below instead of overflowing a
+         width-constrained (P10) field cell. -->
+    <TextInput
+      flex
+      placeholder={displayFormat}
+      bind:value={inputValue}
+      {readonly}
+      {invalid}
+      aria-required={required}
+      aria-labelledby="{fieldId}-label"
+      aria-errormessage="{fieldId}-error"
+      onfocus={handleFocus}
+      onblur={handleBlur}
+    />
+  {:else}
+    <input
+      {...{ type, min, max, step }}
+      bind:value={inputValue}
+      {readonly}
+      aria-readonly={readonly}
+      aria-required={required}
+      aria-invalid={invalid}
+      aria-labelledby="{fieldId}-label"
+      aria-errormessage="{fieldId}-error"
+      onfocus={handleFocus}
+      onblur={handleBlur}
+    />
+  {/if}
   {#if !readonly}
     <Button
       variant="tertiary"
       label={_(dateOnly ? 'today' : 'now')}
       onclick={() => {
-        inputValue = getCurrentDateTime(fieldConfig, timeZone);
+        inputValue = useTextInput
+          ? getDisplayInputValue({
+              currentValue: getCurrentDateTime(fieldConfig, timeZone),
+              fieldConfig,
+              timeZone,
+            })
+          : getCurrentDateTime(fieldConfig, timeZone);
       }}
     />
   {/if}
@@ -169,7 +203,38 @@
 <style>
   div {
     display: flex;
+    /* P59-fix: let the Now/Clear buttons drop below the input when the field cell is too narrow to
+       hold them side-by-side (P10 fractions on a phone). Without this the row can't shrink to fit
+       and overflows its cell horizontally instead of flowing down like every other control. */
+    flex-wrap: wrap;
     align-items: center;
+    gap: 4px;
+    /* P59-fix: @sveltia/ui controls carry `margin-block: 4px`, which collapses through the block
+       `field-wrapper` for normal widgets so they sit flush at the wrapper top. This flex row does
+       NOT collapse its children’s margins, so the honoured 4px pushed the datetime control 4px
+       below the dropdowns it shares an inline (P10) row with. Carry the 4px on the row itself
+       (block-level → collapses like siblings) and zero it on the children so they align. */
+    margin-block: 4px;
+  }
+
+  div > :global(.sui) {
+    margin-block: 0;
+  }
+
+  /* P59: the input fills the row and may shrink to nothing (min-width: 0), but an 8em basis makes
+     the Now/Clear buttons wrap below as a group before the input becomes unusably small — so on a
+     narrow cell you get [input] over [Now][Clear] rather than a squished single line. Targets both
+     the native `<input>` (no display format) and the `.sui` TextInput (custom display format). */
+
+  div > input,
+  div > :global(.sui.text-input) {
+    flex: 1 1 8em;
+    min-width: 0;
+  }
+
+  /* Keep the buttons at their intrinsic size so they wrap as whole units instead of squishing. */
+  div > :global(.sui.button) {
+    flex: none;
   }
 
   .timezone {

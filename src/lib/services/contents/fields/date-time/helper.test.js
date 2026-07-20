@@ -6,8 +6,10 @@ import {
   getCurrentValue,
   getDate,
   getDateTimeFieldDisplayValue,
+  getDisplayInputValue,
   getInputValue,
   getParser,
+  getValueFromDisplayInput,
   isValidDate,
 } from './helper';
 
@@ -2855,5 +2857,49 @@ describe('getParser', () => {
 
     expect(result.isValid()).toBe(true);
     expect(result.format('YYYY-MM-DD')).toBe('2023-12-25');
+  });
+});
+
+describe('P59: display format honoured separately from storage format', () => {
+  /** @type {DateTimeField} */
+  const cfg = {
+    ...baseFieldConfig,
+    date_format: 'YYYY/MM/DD',
+    time_format: 'HH:mm',
+    format: 'YYYY-MM-DDTHH:mm:ssZ',
+  };
+  const stored = '2026-07-18T21:09:00+00:00';
+  const shown = '2026/07/18 21:09';
+
+  test('getDisplayInputValue uses date_format/time_format, not the storage format', () => {
+    expect(getDisplayInputValue({ currentValue: stored, fieldConfig: cfg })).toBe(shown);
+    expect(getDisplayInputValue({ currentValue: '', fieldConfig: cfg })).toBe('');
+  });
+
+  test('getValueFromDisplayInput parses display text back to the storage format', () => {
+    expect(getValueFromDisplayInput({ inputValue: shown, currentValue: '', fieldConfig: cfg })).toBe(
+      stored,
+    );
+  });
+
+  test('round-trips: display(parse(display)) is stable', () => {
+    const s = getValueFromDisplayInput({ inputValue: shown, currentValue: '', fieldConfig: cfg });
+    expect(getDisplayInputValue({ currentValue: s, fieldConfig: cfg })).toBe(shown);
+  });
+
+  test('incomplete typing keeps the last good value', () => {
+    expect(
+      getValueFromDisplayInput({ inputValue: '2026/07', currentValue: stored, fieldConfig: cfg }),
+    ).toBe(stored);
+  });
+
+  test('no date_format/time_format → helpers inert (native input path)', () => {
+    /** @type {DateTimeField} */
+    const nativeCfg = { ...baseFieldConfig, format: 'YYYY-MM-DDTHH:mm:ssZ' };
+
+    expect(getDisplayInputValue({ currentValue: stored, fieldConfig: nativeCfg })).toBe('');
+    expect(
+      getValueFromDisplayInput({ inputValue: shown, currentValue: 'keep', fieldConfig: nativeCfg }),
+    ).toBe('keep');
   });
 });
