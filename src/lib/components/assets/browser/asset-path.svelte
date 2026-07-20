@@ -1,5 +1,6 @@
 <script>
   import { TruncatedText } from '@sveltia/ui';
+  import { getPathInfo } from '@sveltia/utils/file';
   import { stripSlashes } from '@sveltia/utils/string';
   import { sanitize } from 'isomorphic-dompurify';
 
@@ -25,7 +26,18 @@
     /* eslint-enable prefer-const */
   } = $props();
 
-  const segments = $derived(path ? stripSlashes(path).split('/') : caption ? [caption] : []);
+  // The file name (last segment of a `path`) is shown without its extension (#8) — folder segments
+  // and a free-text `caption` are left as-is.
+  const segments = $derived.by(() => {
+    if (path) {
+      const parts = stripSlashes(path).split('/');
+      const last = parts.length - 1;
+
+      return parts.map((seg, i) => (i === last ? getPathInfo(seg).filename || seg : seg));
+    }
+
+    return caption ? [caption] : [];
+  });
   const sanitizeOptions = { ALLOWED_TAGS: ['wbr'] };
 
   /**

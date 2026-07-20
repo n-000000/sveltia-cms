@@ -114,9 +114,9 @@
    * URL) buries the one thing the editor cares about, the file name, in storage-schema noise.
    * @type {string}
    */
-  // ponytail: basename keeps the extension; swap to `.filename` to also drop it.
+  // `.filename` drops the extension (the full path incl. extension stays in the `title` tooltip).
   const fileDisplayName = $derived(
-    fileDisplayFullPath ? getPathInfo(fileDisplayFullPath).basename : '',
+    fileDisplayFullPath ? getPathInfo(fileDisplayFullPath).filename : '',
   );
 
   /**
