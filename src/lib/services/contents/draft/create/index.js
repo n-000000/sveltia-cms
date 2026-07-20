@@ -150,6 +150,13 @@ export const createDraft = ({
     ),
   );
 
+  // New entries start as drafts. The toolbar Draft switch reads/writes `draft` on the default
+  // locale, and a collection need not declare a `draft` field for the switch to work — so seed it
+  // here. Guarded on `undefined` so an explicit field default still wins.
+  if (isNew && originalValues[defaultLocale] && originalValues[defaultLocale].draft === undefined) {
+    originalValues[defaultLocale].draft = true;
+  }
+
   entryDraft.set({
     id: isNew ? crypto.randomUUID() : id,
     createdAt: Date.now(),
