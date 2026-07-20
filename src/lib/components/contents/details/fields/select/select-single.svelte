@@ -53,6 +53,18 @@
     }
   });
 
+  // The combobox shows its "select an option" placeholder only when its value is `undefined`
+  // (@sveltia/ui combobox). New entries seed an unconfigured single-select as '' (or null for
+  // numeric) per the field-default contract, so on *create* the empty combo matched the injected
+  // "(None)" option and showed that instead of the placeholder — unlike *edit*, where the never-set
+  // value is undefined and the placeholder shows. Map the empty/unselected value to undefined for
+  // display so both render the same helpful placeholder; the stored `currentValue` is unchanged.
+  const displayValue = $derived(
+    currentValue === undefined || currentValue === null || currentValue === ''
+      ? undefined
+      : currentValue,
+  );
+
   const finalOptions = $derived.by(() => {
     let opts = [...options];
 
@@ -78,7 +90,7 @@
 
 {#if finalOptions.length > dropdownThreshold || onCreateNew}
   <Select
-    bind:value={currentValue}
+    value={displayValue}
     {readonly}
     {required}
     {invalid}
@@ -86,13 +98,18 @@
     aria-labelledby={comboPlaceholder ? undefined : `${fieldId}-label`}
     title={comboTooltip || undefined}
     aria-errormessage="{fieldId}-error"
-    onChange={() => {
-      if (currentValue === '__inline_create__') {
+    onChange={(/** @type {CustomEvent} */ event) => {
+      const newValue = event.detail?.value;
+
+      if (newValue === '__inline_create__') {
         const text = document.querySelector('.content.combobox .sui.search-bar input')?.value ?? '';
 
         currentValue = lastGoodValue;
         onCreateNew?.(text);
+        return;
       }
+
+      currentValue = newValue;
     }}
   >
     {#each finalOptions as { label, value, searchValue }, index (`${index}-${value}`)}
