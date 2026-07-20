@@ -263,7 +263,13 @@
       }
     }
 
-    & > div {
+    /* Only the filename/buttons wrapper (the last child) should grow to fill the row. A bare
+       `& > div` also matched the drag-handle div and, being more specific than `.drag-handle`,
+       overrode its `flex: none` — so once #4 shortened the label the handle grew to split the free
+       space, ballooning to ~225px and pushing the thumbnail toward the centre (multiple/gallery
+       only, where a handle exists). */
+
+    & > div:last-child {
       flex: auto;
       overflow: hidden;
 
