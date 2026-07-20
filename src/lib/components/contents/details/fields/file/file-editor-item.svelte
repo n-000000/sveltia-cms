@@ -75,13 +75,12 @@
   });
 
   /**
-   * The file name to display for the selected asset or file — just the basename, no directory
-   * structure or URL. Showing the full stored value (which for R2-hosted assets is a long public
-   * URL) buries the one thing the editor cares about, the file name, in storage-schema noise.
+   * The full stored path/URL of the selected asset or file (query string dropped). Shown only as a
+   * `title` tooltip, not inline — the visible label is the basename ({@link fileDisplayName}).
    * @type {string}
    * @todo Handle template tags and relative paths if possible.
    */
-  const fileDisplayName = $derived.by(() => {
+  const fileDisplayFullPath = $derived.by(() => {
     if (!value) {
       return '';
     }
@@ -91,24 +90,34 @@
     }
 
     if (!value.startsWith('blob:')) {
-      let decodedValue = decodeURI(value);
+      const decodedValue = decodeURI(value);
 
-      // Drop the query string (mainly for Unsplash URLs, which carry long image-parameter queries)
-      // before reducing to the basename.
+      // Drop the query string (mainly for Unsplash URLs, which carry long image-parameter queries).
       if (isURL(decodedValue)) {
         // eslint-disable-next-line svelte/prefer-svelte-reactivity
         const url = new URL(decodedValue);
 
         url.search = '';
-        decodedValue = `${url}`;
+
+        return `${url}`;
       }
 
-      // ponytail: basename keeps the extension; swap to `.filename` to also drop it.
-      return getPathInfo(decodedValue).basename;
+      return decodedValue;
     }
 
     return '';
   });
+
+  /**
+   * The file name to display for the selected asset or file — just the basename, no directory
+   * structure or URL. Showing the full stored value (which for R2-hosted assets is a long public
+   * URL) buries the one thing the editor cares about, the file name, in storage-schema noise.
+   * @type {string}
+   */
+  // ponytail: basename keeps the extension; swap to `.filename` to also drop it.
+  const fileDisplayName = $derived(
+    fileDisplayFullPath ? getPathInfo(fileDisplayFullPath).basename : '',
+  );
 
   /**
    * Update properties when value changes.
@@ -175,6 +184,7 @@
         id="{fieldId}-value"
         tabindex="0"
         class="filename"
+        title={fileDisplayFullPath || undefined}
         aria-readonly={readonly}
         aria-invalid={invalid}
         aria-required={required}
