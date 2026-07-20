@@ -975,3 +975,73 @@ file_size_units:
   mb: "{$size} MB"
   gb: "{$size} GB"
   tb: "{$size} TB"
+
+# Strings for the `@sveltia/ui` components. Upstream ships only `en` and `ja`, so without these the
+# raw keys (e.g. `_sui.combobox.select_an_option`) leak into the UI for this locale.
+_sui:
+  ok: OK
+  cancel: Cancelar
+  close: Fechar
+  clear: Limpar
+  insert: Inserir
+  update: Atualizar
+  remove: Remover
+  collapse: Recolher
+  expand: Expandir
+  dismiss: Dispensar
+  calendar:
+    year: Ano
+    previous_decade: Década Anterior
+    next_decade: Década Seguinte
+    month: Mês
+    previous_month: Mês Anterior
+    next_month: Mês Seguinte
+    today: Hoje
+  split_button:
+    x_options: "Opções de {$name}"
+    more_options: Mais Opções
+  combobox:
+    select_an_option: Selecione uma opção…
+    filter_options: Filtrar Opções
+    no_matching_options: Nenhuma opção correspondente
+  number_input:
+    increase: Aumentar
+    decrease: Diminuir
+  password_input:
+    show_password: Mostrar Palavra-passe
+    hide_password: Ocultar Palavra-passe
+  secret_input:
+    show_secret: Mostrar Segredo
+    hide_secret: Ocultar Segredo
+  select_tags:
+    selected_options: Opções Selecionadas
+    remove_x: "Remover {$name}"
+  text_editor:
+    text_editor: Editor de Texto
+    code_editor: Editor de Código
+    text_style_options: Opções de Estilo de Texto
+    show_text_style_options: Mostrar Opções de Estilo de Texto
+    paragraph: Parágrafo
+    heading_1: Título 1
+    heading_2: Título 2
+    heading_3: Título 3
+    heading_4: Título 4
+    heading_5: Título 5
+    heading_6: Título 6
+    bulleted_list: Lista com Marcadores
+    numbered_list: Lista Numerada
+    blockquote: Citação
+    code_block: Bloco de Código
+    bold: Negrito
+    italic: Itálico
+    strikethrough: Rasurado
+    code: Código
+    link: Ligação
+    insert_link: Inserir Ligação
+    update_link: Atualizar Ligação
+    text: Texto
+    url: URL
+    edit_in_markdown: Editar em Markdown
+    converter_error: Não foi possível ativar o modo de texto formatado. Utilize o editor de texto simples.
+    language: Idioma
+    plain_text: Texto Simples

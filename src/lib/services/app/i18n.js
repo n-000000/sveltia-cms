@@ -29,7 +29,17 @@ export const initAppLocale = () => {
 
     addMessages(locale, {
       .../** @type {Record<string, any>} */ (content),
-      _sui: componentStrings[locale] ?? {},
+      // `@sveltia/ui` ships only `en` and `ja`. Setting `_sui` to `{}` for any other locale makes
+      // the namespace exist but empty, so `fallbackLocale: 'en'` never resolves its nested keys and
+      // raw keys like `_sui.combobox.select_an_option` leak into the UI. Layer the sources instead:
+      // English base → upstream strings for this locale → our own `_sui` block, which wins.
+      // (Our own block also covers dev, where `componentStrings` is empty because Vite pre-bundles
+      // `@sveltia/ui` with esbuild, which leaves its `import.meta.glob` untransformed.)
+      _sui: {
+        ...(componentStrings.en ?? {}),
+        ...(componentStrings[locale] ?? {}),
+        .../** @type {Record<string, any>} */ (content)._sui,
+      },
     });
   });
 
