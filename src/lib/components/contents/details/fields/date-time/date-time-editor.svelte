@@ -137,7 +137,8 @@
 <div role="none">
   {#if useTextInput}
     <!-- P59: styled TextInput (matches sibling fields) honouring the config display format; `flex`
-         lets it fill the cell so the Now/Clear button never overflows a width-constrained field. -->
+         lets it fill the cell so the Now/Clear buttons wrap below instead of overflowing a
+         width-constrained (P10) field cell. -->
     <TextInput
       flex
       placeholder={displayFormat}
@@ -202,6 +203,10 @@
 <style>
   div {
     display: flex;
+    /* P59-fix: let the Now/Clear buttons drop below the input when the field cell is too narrow to
+       hold them side-by-side (P10 fractions on a phone). Without this the row can't shrink to fit
+       and overflows its cell horizontally instead of flowing down like every other control. */
+    flex-wrap: wrap;
     align-items: center;
     gap: 4px;
     /* P59-fix: @sveltia/ui controls carry `margin-block: 4px`, which collapses through the block
@@ -216,11 +221,20 @@
     margin-block: 0;
   }
 
-  /* P59: let the input shrink from a 0 basis so the Now/Clear button keeps its size and the whole
-     row stays inside a width-constrained (P10) field cell instead of overflowing. */
-  div > input {
-    flex: 1 1 0;
+  /* P59: the input fills the row and may shrink to nothing (min-width: 0), but an 8em basis makes
+     the Now/Clear buttons wrap below as a group before the input becomes unusably small — so on a
+     narrow cell you get [input] over [Now][Clear] rather than a squished single line. Targets both
+     the native `<input>` (no display format) and the `.sui` TextInput (custom display format). */
+
+  div > input,
+  div > :global(.sui.text-input) {
+    flex: 1 1 8em;
     min-width: 0;
+  }
+
+  /* Keep the buttons at their intrinsic size so they wrap as whole units instead of squishing. */
+  div > :global(.sui.button) {
+    flex: none;
   }
 
   .timezone {
