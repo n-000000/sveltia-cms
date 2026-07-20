@@ -4,7 +4,6 @@
     Alert,
     AlertDialog,
     Button,
-    ConfirmationDialog,
     Divider,
     Menu,
     MenuButton,
@@ -21,20 +20,15 @@
   import EditSlugDialog from '$lib/components/contents/details/edit-slug-dialog.svelte';
   import RoleFilter from '$lib/components/global/toolbar/items/role-filter.svelte';
   import { goBack, goto } from '$lib/services/app/navigation';
-  import { getAssetFolder } from '$lib/services/assets/folders';
   import { skipCIConfigured, skipCIEnabled } from '$lib/services/backends/git/shared/integration';
   import { getCollectionLabel } from '$lib/services/contents/collection';
-  import { deleteEntries } from '$lib/services/contents/collection/data/delete';
-  import { collectionState } from '$lib/services/contents/collection/view';
   import { entryDraft, entryDraftModified } from '$lib/services/contents/draft';
   import { createDraft } from '$lib/services/contents/draft/create';
-  import { duplicateDraft } from '$lib/services/contents/draft/create/duplicate';
   import { saveEntry } from '$lib/services/contents/draft/save';
   import { revertChanges } from '$lib/services/contents/draft/update/revert';
   import { copyFromLocaleToast, editorFirstPane } from '$lib/services/contents/editor';
   import { entryEditorSettings } from '$lib/services/contents/editor/settings';
   import { getEntryPreviewURL } from '$lib/services/contents/entry';
-  import { getAssociatedAssets } from '$lib/services/contents/entry/assets';
   import { getLocalizedEntrySummary } from '$lib/services/contents/entry/summary';
   import { getLocaleLabel } from '$lib/services/contents/i18n';
   import { DEFAULT_I18N_CONFIG } from '$lib/services/contents/i18n/config';
@@ -56,7 +50,6 @@
 
   let showValidationToast = $state(false);
   let showEditSlugDialog = $state(false);
-  let showDeleteDialog = $state(false);
   let showErrorDialog = $state(false);
   let errorMessage = $state('');
   let saving = $state(false);
@@ -72,7 +65,6 @@
   const originalEntry = $derived($entryDraft?.originalEntry);
   const { defaultLocale } = $derived((collectionFile ?? collection)?._i18n ?? DEFAULT_I18N_CONFIG);
   const collectionName = $derived(collection?.name);
-  const fileName = $derived(collectionFile?.name);
   const collectionLabel = $derived(
     // `appLocale.current` is a key, because `getCollectionLabel` can return a localized label
     appLocale.current && collection ? getCollectionLabel(collection) : '',
@@ -83,11 +75,6 @@
     Object.values($entryDraft?.validities ?? {})
       .flatMap((validity) => Object.values(validity).map(({ valid }) => !valid))
       .filter(Boolean).length,
-  );
-  const associatedAssets = $derived(
-    collectionName && originalEntry && getAssetFolder({ collectionName, fileName })?.entryRelative
-      ? getAssociatedAssets({ entry: originalEntry, collectionName, fileName, relative: true })
-      : [],
   );
   const previewURL = $derived(
     collection && originalEntry
@@ -178,44 +165,6 @@
   };
 </script>
 
-{#snippet overflowButtons()}
-  {@const Component = env.isSmallScreen ? MenuItem : Button}
-  {@const canDuplicate =
-    !isIndexFile &&
-    entryCollection?.duplicate !== false &&
-    !$collectionState.creationDisabled &&
-    // @todo Enable duplication for Hugo’s page bundles = the `path` option. We need to
-    // duplicate assets along with the entry.
-    // @see https://github.com/sveltia/sveltia-cms/issues/526
-    !entryCollection?.path}
-  {@const canDelete = entryCollection?.delete !== false}
-  {#if canDuplicate}
-    <Component
-      variant="ghost"
-      label={_('duplicate')}
-      aria-label={_('duplicate_entry')}
-      onclick={() => {
-        goto(`/collections/${collectionName}/new`, {
-          replaceState: true,
-          notifyChange: false,
-          transitionType: 'forwards',
-        });
-        duplicateDraft();
-      }}
-    />
-  {/if}
-  {#if canDelete}
-    <Component
-      variant="ghost"
-      label={_('delete')}
-      aria-label={_('delete_entry')}
-      onclick={() => {
-        showDeleteDialog = true;
-      }}
-    />
-  {/if}
-{/snippet}
-
 <Toolbar variant="primary" aria-label={_('primary')}>
   <BackButton
     aria-label={_('cancel_editing')}
@@ -247,14 +196,11 @@
   {#if !disabled && previewURL && !isDraft}
     <Button
       variant="tertiary"
-      label={_('view_on_live_site')}
+      label={_('view_publication')}
       onclick={() => {
         openNewTab(previewURL);
       }}
     />
-  {/if}
-  {#if !env.isSmallScreen && !disabled && !collectionFile && !isNew}
-    {@render overflowButtons()}
   {/if}
   <RoleFilter />
   <MenuButton
@@ -267,9 +213,6 @@
   >
     {#snippet popup()}
       <Menu aria-label={_('editor_options')}>
-        {#if env.isSmallScreen && !disabled && !collectionFile && !isNew}
-          {@render overflowButtons()}
-        {/if}
         <MenuItem
           label={_('edit_slug')}
           disabled={!!collectionFile || isNew || isIndexFile || entryCollection?.delete === false}
@@ -368,28 +311,6 @@
 </Toast>
 
 <EditSlugDialog bind:open={showEditSlugDialog} />
-
-<ConfirmationDialog
-  bind:open={showDeleteDialog}
-  title={_('delete_entry')}
-  okLabel={_('delete')}
-  onOk={async () => {
-    if (originalEntry) {
-      await deleteEntries([originalEntry], associatedAssets);
-    }
-
-    _goBack();
-  }}
-  onClose={() => {
-    menuButton?.focus();
-  }}
->
-  {_(
-    associatedAssets.length
-      ? 'confirm_deleting_this_entry_with_assets'
-      : 'confirm_deleting_this_entry',
-  )}
-</ConfirmationDialog>
 
 <!-- @todo make the error message more informative -->
 <AlertDialog

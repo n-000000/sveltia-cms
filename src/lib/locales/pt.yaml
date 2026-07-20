@@ -510,6 +510,7 @@ locale_x_now_disabled: O conteúdo em {$locale} está agora desativado. Será el
 view_in_repository: Ver no Repositório
 view_on_x: Ver em {$service}
 view_on_live_site: Ver no Site em Direto
+view_publication: Ver Publicação
 copy_from: Copiar de…
 copy_from_x: Copiar de {$locale}
 translation_options: Opções de Tradução
