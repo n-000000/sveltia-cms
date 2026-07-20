@@ -230,6 +230,11 @@
     display: flex !important;
     align-items: center;
     gap: 12px;
+    /* Span the full field column. The field-editor-group wraps every field child in
+       `margin-inline: auto; max-width: 768px`, which centres the block when it's narrower than the
+       column. With the filename now a short basename (not the long URL), this flex row would
+       otherwise shrink to its content and drift to the centre — pin it full-width, content-left. */
+    width: 100%;
     margin: var(--sui-focus-ring-width);
 
     :global {
