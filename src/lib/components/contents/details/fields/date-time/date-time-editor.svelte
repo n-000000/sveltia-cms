@@ -209,12 +209,11 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 4px;
-    /* P59-fix: @sveltia/ui controls carry `margin-block: 4px`, which collapses through the block
-       `field-wrapper` for normal widgets so they sit flush at the wrapper top. This flex row does
-       NOT collapse its children’s margins, so the honoured 4px pushed the datetime control 4px
-       below the dropdowns it shares an inline (P10) row with. Carry the 4px on the row itself
-       (block-level → collapses like siblings) and zero it on the children so they align. */
-    margin-block: 4px;
+    /* P59-fix: match the 4px block-margin a normal text input carries so the datetime control lines
+       up with its P10 row-mates. It must be PADDING, not margin: this row is a block-level flex
+       box, so a `margin-block` collapses through the wrapper to zero and leaves the control 4px
+       high (the bug this replaces). Children keep `margin-block: 0` below so only this 4px acts. */
+    padding-block: 4px;
   }
 
   div > :global(.sui) {

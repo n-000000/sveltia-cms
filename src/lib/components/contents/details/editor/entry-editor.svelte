@@ -47,7 +47,10 @@
   .field-flow {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
+    /* Stretch fields sharing a row to equal height so their bottom separator lines align, even when
+       one is taller (e.g. the identifier field carries a hint footer). Single-field rows are
+       unaffected. */
+    align-items: stretch;
     /*
      * Live inside the app's 768px reading column (the same constant field-editor-group applies to
      * each field's content via `max-width: 768px`). Fractional fields then subdivide THIS column and
