@@ -204,6 +204,16 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    /* P59-fix: @sveltia/ui controls carry `margin-block: 4px`, which collapses through the block
+       `field-wrapper` for normal widgets so they sit flush at the wrapper top. This flex row does
+       NOT collapse its children’s margins, so the honoured 4px pushed the datetime control 4px
+       below the dropdowns it shares an inline (P10) row with. Carry the 4px on the row itself
+       (block-level → collapses like siblings) and zero it on the children so they align. */
+    margin-block: 4px;
+  }
+
+  div > :global(.sui) {
+    margin-block: 0;
   }
 
   /* P59: let the input shrink from a 0 basis so the Now/Clear button keeps its size and the whole
