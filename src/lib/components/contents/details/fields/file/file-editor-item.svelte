@@ -1,6 +1,7 @@
 <script>
   import { _ } from '@sveltia/i18n';
   import { Button, Icon } from '@sveltia/ui';
+  import { getPathInfo } from '@sveltia/utils/file';
   import { isURL } from '@sveltia/utils/string';
   import { untrack } from 'svelte';
 
@@ -9,7 +10,6 @@
   import { getMediaFieldURL } from '$lib/services/assets/info';
   import { getMediaKind } from '$lib/services/assets/kinds';
   import { entryDraft } from '$lib/services/contents/draft';
-  import { createPath } from '$lib/services/utils/file';
 
   /**
    * @import { Asset, AssetKind, Entry } from '$lib/types/private';
@@ -75,43 +75,36 @@
   });
 
   /**
-   * Get the path to display for the asset or file. For an unsaved file, this will be the same as
-   * the final path in most cases, but it could be different if a file with the same name already
-   * exists in the assets folder, and the new file is renamed to avoid conflicts.
-   * @type {string} The path to display. If the folder could not be determined, it will only be the
-   * file name.
+   * The file name to display for the selected asset or file — just the basename, no directory
+   * structure or URL. Showing the full stored value (which for R2-hosted assets is a long public
+   * URL) buries the one thing the editor cares about, the file name, in storage-schema noise.
+   * @type {string}
    * @todo Handle template tags and relative paths if possible.
    */
-  const fileDisplayPath = $derived.by(() => {
+  const fileDisplayName = $derived.by(() => {
     if (!value) {
       return '';
     }
 
     if (file) {
-      const { publicPath, entryRelative, hasTemplateTags } =
-        $entryDraft?.files[value]?.folder ?? {};
-
-      const _folder = entryRelative || hasTemplateTags ? '' : publicPath || '';
-
-      return createPath([_folder, decodeURI(file.name.normalize())]);
+      return decodeURI(file.name.normalize());
     }
 
     if (!value.startsWith('blob:')) {
-      const decodedValue = decodeURI(value);
+      let decodedValue = decodeURI(value);
 
-      // Truncate query string for display. This is mainly for Unsplash URLs which have a long query
-      // string for image parameters.
+      // Drop the query string (mainly for Unsplash URLs, which carry long image-parameter queries)
+      // before reducing to the basename.
       if (isURL(decodedValue)) {
         // eslint-disable-next-line svelte/prefer-svelte-reactivity
         const url = new URL(decodedValue);
 
-        if (url.search) {
-          url.search = '';
-          return `${url}…`;
-        }
+        url.search = '';
+        decodedValue = `${url}`;
       }
 
-      return decodedValue;
+      // ponytail: basename keeps the extension; swap to `.filename` to also drop it.
+      return getPathInfo(decodedValue).basename;
     }
 
     return '';
@@ -188,7 +181,7 @@
         aria-labelledby="{fieldId}-label"
         aria-errormessage="{fieldId}-error"
       >
-        {fileDisplayPath}
+        {fileDisplayName}
       </div>
     {/if}
     <div role="none">
