@@ -130,7 +130,8 @@ const getSavedAssetsForEntry = (draft, folder) => {
  * @param {SelectedResource} args.resource Resource to be processed.
  * @param {DefaultMediaLibraryConfig} args.libraryConfig Configuration for the media library.
  * @returns {Promise<{ value: string | undefined, credit: string, oversizedFileName: string |
- * undefined }>} Processed resource value, credit, and file name if the file is oversized.
+ * undefined, wrongDimensionsFileName: string | undefined }>} Processed resource value, credit, and
+ * the file name if the file is oversized or fails the field’s aspect-ratio/resolution constraints.
  */
 export const processResource = async ({ draft, resource, libraryConfig }) => {
   const { url, credit, replace = false } = resource;
@@ -139,6 +140,8 @@ export const processResource = async ({ draft, resource, libraryConfig }) => {
   let value = '';
   /** @type {string | undefined} */
   let oversizedFileName = undefined;
+  /** @type {string | undefined} */
+  let wrongDimensionsFileName = undefined;
 
   if (file) {
     const { folder } = resource;
@@ -147,9 +150,26 @@ export const processResource = async ({ draft, resource, libraryConfig }) => {
     if (existingBlobURL) {
       value = existingBlobURL;
     } else {
-      const { file: processedFile, oversized } = await processFile(file, libraryConfig ?? {});
+      const {
+        file: processedFile,
+        oversized,
+        wrongDimensions,
+      } = await processFile(file, libraryConfig ?? {});
 
       file = processedFile;
+
+      if (wrongDimensions) {
+        // Reject on aspect ratio / resolution before hashing, caching or uploading.
+        wrongDimensionsFileName = file.name;
+        file = undefined;
+
+        return {
+          value: '',
+          credit: '',
+          oversizedFileName,
+          wrongDimensionsFileName,
+        };
+      }
 
       const sha = await getGitHash(file);
 
@@ -197,5 +217,6 @@ export const processResource = async ({ draft, resource, libraryConfig }) => {
     value,
     credit: credit ? sanitize(credit, { ALLOWED_TAGS: ['a'], ALLOWED_ATTR: ['href'] }) : '',
     oversizedFileName,
+    wrongDimensionsFileName,
   };
 };

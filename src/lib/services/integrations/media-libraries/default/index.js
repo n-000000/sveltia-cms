@@ -29,15 +29,34 @@ export const getDefaultMediaLibraryOptions = ({ fieldConfig } = {}) => {
   /** @type {DefaultMediaLibraryConfig} */
   const {
     max_file_size: maxSize,
+    aspect_ratio: aspectRatio,
+    min_width: minWidth,
+    min_height: minHeight,
+    max_width: maxWidth,
+    max_height: maxHeight,
     multiple,
     slugify_filename: slugify,
     transformations,
   } = typeof options === 'boolean' ? {} : (options?.config ?? {});
 
+  /**
+   * Keep a positive-integer pixel constraint, otherwise drop it.
+   * @param {unknown} value Raw value.
+   * @returns {number | undefined} Sanitized value.
+   */
+  const pixels = (value) =>
+    typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : undefined;
+
   return {
     enabled: options !== false,
     config: {
       max_file_size: typeof maxSize === 'number' && Number.isInteger(maxSize) ? maxSize : Infinity,
+      aspect_ratio:
+        typeof aspectRatio === 'string' || typeof aspectRatio === 'number' ? aspectRatio : undefined,
+      min_width: pixels(minWidth),
+      min_height: pixels(minHeight),
+      max_width: pixels(maxWidth),
+      max_height: pixels(maxHeight),
       multiple: typeof multiple === 'boolean' ? multiple : false,
       slugify_filename: typeof slugify === 'boolean' ? slugify : false,
       transformations: isObject(transformations) ? transformations : undefined,

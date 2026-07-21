@@ -15,6 +15,7 @@
   import SelectAssetsDialog from '$lib/components/assets/browser/select-assets-dialog.svelte';
   import ConflictResolutionDialog from '$lib/components/assets/shared/conflict-resolution-dialog.svelte';
   import DropZone from '$lib/components/assets/shared/drop-zone.svelte';
+  import DimensionAlertDialog from '$lib/components/assets/shared/dimension-alert-dialog.svelte';
   import OversizeAlertDialog from '$lib/components/assets/shared/oversize-alert-dialog.svelte';
   import FileEditorItem from '$lib/components/contents/details/fields/file/file-editor-item.svelte';
   import UploadButton from '$lib/components/contents/details/fields/file/upload-button.svelte';
@@ -79,6 +80,7 @@
   /** @type {HTMLElement | undefined} */
   let listEl = $state();
   let showOversizeAlert = $state(false);
+  let showWrongDimensionsAlert = $state(false);
   let showPhotoCreditDialog = $state(false);
   let photoCredit = $state('');
   /** @type {DropZone | undefined} */
@@ -86,6 +88,8 @@
   let processing = $state(false);
   /** @type {string[]} */
   let oversizedFileNames = $state([]);
+  /** @type {string[]} */
+  let wrongDimensionsFileNames = $state([]);
   /** @type {File[]} */
   let pendingFiles = $state([]);
   /** @type {Asset[]} */
@@ -193,6 +197,7 @@
     resetSelection();
     processing = true;
     oversizedFileNames = [];
+    wrongDimensionsFileNames = [];
 
     const resources = await Promise.all(
       selectedResources.map((resource) =>
@@ -211,7 +216,7 @@
           .pop() ?? -1)
       : -1;
 
-    resources.forEach(({ value, credit, oversizedFileName }, index) => {
+    resources.forEach(({ value, credit, oversizedFileName, wrongDimensionsFileName }, index) => {
       if (value) {
         hasValidResource = true;
 
@@ -233,6 +238,10 @@
       if (oversizedFileName) {
         oversizedFileNames.push(oversizedFileName);
       }
+
+      if (wrongDimensionsFileName) {
+        wrongDimensionsFileNames.push(wrongDimensionsFileName);
+      }
     });
 
     // Restore the previous value if no valid resources were processed, so that a failed
@@ -250,6 +259,10 @@
 
     if (oversizedFileNames.length) {
       showOversizeAlert = true;
+    }
+
+    if (wrongDimensionsFileNames.length) {
+      showWrongDimensionsAlert = true;
     }
 
     processing = false;
@@ -450,6 +463,11 @@
 <ConflictResolutionDialog />
 
 <OversizeAlertDialog bind:open={showOversizeAlert} {oversizedFileNames} {maxSize} />
+<DimensionAlertDialog
+  bind:open={showWrongDimensionsAlert}
+  fileNames={wrongDimensionsFileNames}
+  config={libraryConfig}
+/>
 
 <ConfirmationDialog
   bind:open={showPhotoCreditDialog}

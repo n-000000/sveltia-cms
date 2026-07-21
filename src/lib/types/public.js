@@ -107,6 +107,14 @@
  * Shared options that apply to all media libraries.
  * @typedef {object} SharedMediaLibraryOptions
  * @property {number} [max_file_size] Maximum file size in bytes that can be accepted for uploading.
+ * @property {string | number} [aspect_ratio] Required image aspect ratio, as `"W:H"` (e.g.
+ * `"16:9"`), `"W/H"` (e.g. `"4/3"`) or a plain width÷height number (e.g. `1.5`). Images whose ratio
+ * differs by more than 1% are rejected on selection. Measured on the original, pre-transformation
+ * file. Non-images and undecodable files are not affected.
+ * @property {number} [min_width] Minimum image width in pixels; narrower images are rejected.
+ * @property {number} [min_height] Minimum image height in pixels; shorter images are rejected.
+ * @property {number} [max_width] Maximum image width in pixels; wider images are rejected.
+ * @property {number} [max_height] Maximum image height in pixels; taller images are rejected.
  * @property {boolean} [slugify_filename] Whether to rename an original asset file when saving it,
  * according to the global `slug` option. Default: `false`, meaning that the original file name is
  * kept by default, while Netlify/Decap CMS forces to slugify file names. If set to `true`, for

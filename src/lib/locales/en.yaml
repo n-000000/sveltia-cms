@@ -372,6 +372,17 @@ warning_oversized_files: |
   .match $count
     one {{ This file cannot be uploaded because it exceeds the maximum size of {$size}. Please reduce the size or select a different file. }}
     *   {{ These files cannot be uploaded because they exceed the maximum size of {$size}. Please reduce the sizes or select different files. }}
+warning_wrong_dimensions: |
+  .input {$count :integer}
+  .match $count
+    one {{ This image cannot be used because it does not meet the required dimensions ({$requirement}). Please select a different image. }}
+    *   {{ These images cannot be used because they do not meet the required dimensions ({$requirement}). Please select different images. }}
+dimension_hint:
+  aspect_ratio: "aspect ratio {$ratio}"
+  min_width: "min width {$px} px"
+  min_height: "min height {$px} px"
+  max_width: "max width {$px} px"
+  max_height: "max height {$px} px"
 file_name_conflict_confirmation: |
   .input {$count :integer}
   .match $count
@@ -671,6 +682,8 @@ assets_dialog:
   enter_image_url: "Enter URL of the image:"
   large_file:
     title: Large File
+  wrong_dimensions:
+    title: Invalid Image Dimensions
   photo_credit:
     title: Photo Credit
     description: "Use the following credit if possible:"
