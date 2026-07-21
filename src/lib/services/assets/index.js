@@ -142,6 +142,10 @@ export const processedAssets = derived([uploadingAssets], ([_uploadingAssets], s
 
     update(() => ({
       processing: false,
+      // ponytail: bulk media-library upload filters only on `oversized`; a `wrongDimensions` file
+      // would slip through IF an aspect-ratio/resolution constraint were ever set globally. All
+      // P13 use is field-level (constraint lives on the field config), so this path is unaffected;
+      // wire wrongDimensions here too if global dimension constraints become a real need.
       undersizedFiles: results.filter(({ oversized }) => !oversized).map(({ file }) => file),
       oversizedFiles: results.filter(({ oversized }) => oversized).map(({ file }) => file),
       transformedFileMap: new WeakMap(
