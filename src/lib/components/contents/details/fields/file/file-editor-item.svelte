@@ -300,4 +300,27 @@
       cursor: grabbing;
     }
   }
+
+  /* Card layout to match the 2-up wrap in file-editor.svelte's `.item-list` at the same
+     container width: thumbnail on top (taller aspect than the fixed 120px square, so the name
+     and buttons below it stay legible) instead of the desktop thumbnail-then-text row. */
+  @container media-list (max-width: 260px) {
+    .filled {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 4px;
+
+      :global {
+        .preview {
+          width: 100% !important;
+          height: auto !important;
+          aspect-ratio: 4 / 3;
+        }
+      }
+    }
+
+    .drag-handle {
+      width: 100%;
+    }
+  }
 </style>
