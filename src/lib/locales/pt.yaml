@@ -484,7 +484,7 @@ restore_backup_description: Esta entrada tem uma cópia de segurança de {$datet
 draft_backup_saved: Cópia de segurança do rascunho guardada.
 draft_backup_restored: Cópia de segurança do rascunho restaurada.
 draft_backup_deleted: Cópia de segurança do rascunho eliminada.
-draft_toggle: Rascunho
+active_toggle: Activo
 cancel_editing: Cancelar Edição
 create_entry_title: A criar {$name}
 create_entry_announcement: Está agora a criar uma nova entrada na coleção "{$collection}".

@@ -393,23 +393,25 @@
   {#if !!currentValue?.length && !processing}
     {#if multiple}
       {#if Array.isArray(currentValue)}
-        <div role="none" class="item-list" bind:this={listEl}>
-          {#each currentValue as value, index (value)}
-            <div role="none" class="sort-item" data-sort-index={index} data-key-path="{keyPath}.{index}">
-              <FileEditorItem
-                {...itemArgs}
-                {value}
-                draggable={!readonly}
-                fieldId="{fieldId}-{index}"
-                onReplace={() => {
-                  replaceMode = true;
-                  replaceIndex = index;
-                  showSelectAssetsDialog = true;
-                }}
-                onRemove={() => removeItem(index)}
-              />
-            </div>
-          {/each}
+        <div role="none" class="media-list-container">
+          <div role="none" class="item-list" bind:this={listEl}>
+            {#each currentValue as value, index (value)}
+              <div role="none" class="sort-item" data-sort-index={index} data-key-path="{keyPath}.{index}">
+                <FileEditorItem
+                  {...itemArgs}
+                  {value}
+                  draggable={!readonly}
+                  fieldId="{fieldId}-{index}"
+                  onReplace={() => {
+                    replaceMode = true;
+                    replaceIndex = index;
+                    showSelectAssetsDialog = true;
+                  }}
+                  onRemove={() => removeItem(index)}
+                />
+              </div>
+            {/each}
+          </div>
         </div>
         {#if currentValue.length < max}
           {@render uploadButton()}
@@ -493,6 +495,13 @@
 </ConfirmationDialog>
 
 <style>
+  /* A size container can't query its own size — only descendants can — so the container lives on
+     this wrapper, one level above `.item-list`, purely so the query below has something to read. */
+  .media-list-container {
+    container-type: inline-size;
+    container-name: media-list;
+  }
+
   .item-list {
     display: flex;
     flex-direction: column;
@@ -510,6 +519,20 @@
 
     &:global(.sortable-ghost) {
       opacity: 0.3;
+    }
+  }
+
+  /* Below this the column is too narrow for the 120px-thumbnail row layout (P10 half/third-width
+     fields on a phone) — wrap 2 items per row instead of 1 full-width row each. */
+  @container media-list (max-width: 260px) {
+    .item-list {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    .sort-item {
+      flex: 1 1 calc(50% - 4px);
+      min-width: 0;
     }
   }
 </style>

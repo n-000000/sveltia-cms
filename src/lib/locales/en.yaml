@@ -488,7 +488,7 @@ restore_backup_description: This entry has a backup from {$datetime}. Do you wan
 draft_backup_saved: Draft backup has been saved.
 draft_backup_restored: Draft backup has been restored.
 draft_backup_deleted: Draft backup has been deleted.
-draft_toggle: Draft
+active_toggle: Active
 cancel_editing: Cancel Editing
 create_entry_title: Creating {$name}
 create_entry_announcement: You’re now creating a new entry in the “{$collection}” collection.

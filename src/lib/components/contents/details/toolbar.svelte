@@ -32,6 +32,7 @@
   import { getLocalizedEntrySummary } from '$lib/services/contents/entry/summary';
   import { getLocaleLabel } from '$lib/services/contents/i18n';
   import { DEFAULT_I18N_CONFIG } from '$lib/services/contents/i18n/config';
+  import { ROLE_VALUES } from '$lib/services/contents/fields/visibility';
   import { env } from '$lib/services/user/env.svelte';
   import { prefs } from '$lib/services/user/prefs.svelte';
   import { openNewTab } from '$lib/services/utils/window';
@@ -86,6 +87,10 @@
       defaultLocale ?? Object.keys($entryDraft?.currentValues ?? {})[0]
     ]?.draft),
   );
+  // Below this, the fixed-width header controls (draft switch, preview, role filter, ⋮, save)
+  // outrun the breadcrumb's shrink budget and start colliding — move the optional ones into the
+  // ⋮ menu. Reuses the same screen-size gate the preview-pane options below already use.
+  const collapseHeaderControls = $derived(env.isSmallScreen || env.isMediumScreen);
   const identifierField = $derived(collection?.identifier_field ?? 'title');
   // The locale shown in the primary (left) editor pane, when it's in edit mode — the "current
   // language" the user is typing in. Undefined when that pane is previewing.
@@ -184,8 +189,8 @@
   </h2>
   <Switch
     class="draft-toggle"
-    label={_('draft_toggle')}
-    checked={isDraft}
+    label={_('active_toggle')}
+    checked={!isDraft}
     onChange={() => {
       if ($entryDraft) {
         $entryDraft.currentValues[defaultLocale].draft = !$entryDraft.currentValues[defaultLocale]
@@ -193,16 +198,18 @@
       }
     }}
   />
-  {#if !disabled && previewURL && !isDraft}
-    <Button
-      variant="tertiary"
-      label={_('view_publication')}
-      onclick={() => {
-        openNewTab(previewURL);
-      }}
-    />
+  {#if !collapseHeaderControls}
+    {#if !disabled && previewURL && !isDraft}
+      <Button
+        variant="tertiary"
+        label={_('view_publication')}
+        onclick={() => {
+          openNewTab(previewURL);
+        }}
+      />
+    {/if}
+    <RoleFilter />
   {/if}
-  <RoleFilter />
   <MenuButton
     {disabled}
     variant="ghost"
@@ -227,7 +234,28 @@
             revertChanges();
           }}
         />
-        {#if !(env.isSmallScreen || env.isMediumScreen)}
+        {#if collapseHeaderControls}
+          <Divider />
+          {#if !disabled && previewURL && !isDraft}
+            <MenuItem
+              label={_('view_publication')}
+              onclick={() => {
+                openNewTab(previewURL);
+              }}
+            />
+          {/if}
+          {#each ROLE_VALUES as role (role)}
+            {@const roleEnabled = prefs.roleFilter?.[role] !== false}
+            <MenuItemCheckbox
+              label={_(`show_role_${role}`)}
+              checked={roleEnabled}
+              onChange={() => {
+                prefs.roleFilter = { ...prefs.roleFilter, [role]: !roleEnabled };
+              }}
+            />
+          {/each}
+        {/if}
+        {#if !collapseHeaderControls}
           <Divider />
           <MenuItemCheckbox
             label={_('show_preview')}
@@ -333,10 +361,22 @@
     display: flex;
     align-items: center;
     min-width: 0;
+    /* Was `visible`: with the collection-label button below now shrinkable instead of fixed, this
+       stops it clipping cleanly instead of bleeding over the next toolbar item (e.g. the Active
+       switch) once both it and the entry title are squeezed for space on a narrow screen. */
+    overflow: hidden;
   }
 
   .crumb-back {
-    flex: none;
+    /* Was `flex: none`: on a narrow screen a long collection label plus the entry title (also
+       shrinkable) don't both fit — unshrinkable, this button's text overflowed uncontained onto
+       the next toolbar item instead of the two sharing the squeeze. `min-width` keeps a few
+       characters + ellipsis rather than letting it collapse away entirely. */
+    flex: 0 1 auto;
+    min-width: 3em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     border: 0;
     padding: 0;
     background: none;
