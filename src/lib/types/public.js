@@ -1341,6 +1341,12 @@
  * @property {string} [public_folder] Public media folder path for an entry collection. This
  * overrides the global `public_folder` option. Default: `media_folder` option value.
  * @property {boolean} [hide] Whether to hide the collection in the UI. Default: `false`.
+ * @property {string} [nav_group] Label of a parent heading to nest this collection under in the
+ * sidebar collection list, e.g. `Publicidade` for `Conteúdo` and `Rodapé` collections. Collections
+ * sharing the same `nav_group` are listed together, in their `collections` array order, under that
+ * heading instead of the default “Collections” heading. Purely a sidebar grouping — the collection
+ * is still navigated to and stored exactly as before. Unrelated to `view_groups`, which groups
+ * entries within a single collection.
  * @property {boolean} [publish] Whether to show the publishing control UI for Editorial Workflow.
  * Default: `true`. Note that Editorial Workflow is not yet supported in Sveltia CMS.
  * @property {FileFormat} [format] File format. It should match the file extension. Default:
