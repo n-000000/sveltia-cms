@@ -29,7 +29,60 @@
   // @ts-ignore Dividers can be included in the collection list
   const collections = $derived($cmsConfig?.collections?.filter(({ hide }) => !hide) ?? []);
   const singletons = $derived($cmsConfig?.singletons ?? []);
+  /**
+   * P9: nest collections carrying a `nav_group` under that label instead of the default
+   * “Collections” heading — e.g. `Publicidade` for the `Conteúdo`/`Rodapé` collections — while
+   * everything else keeps today’s single flat list. Groups appear in first-occurrence order.
+   */
+  const ungroupedCollections = $derived(
+    collections.filter((collection) => 'divider' in collection || !collection.nav_group),
+  );
+  const navGroups = $derived.by(() => {
+    /** @type {Map<string, object[]>} */
+    const groups = new Map();
+
+    collections.forEach((collection) => {
+      const navGroup = 'divider' in collection ? undefined : collection.nav_group;
+
+      if (navGroup) {
+        groups.set(navGroup, [...(groups.get(navGroup) ?? []), collection]);
+      }
+    });
+
+    return [...groups];
+  });
 </script>
+
+{#snippet collectionOption(collection, index)}
+  {#await sleep() then}
+    {#if !('divider' in collection)}
+      {@const { name, label, icon } = collection}
+      <Option
+        label={label || name}
+        selected={env.isSmallScreen || isSearchPage ? false : $selectedCollection?.name === name}
+        onSelect={() => {
+          goto(`/collections/${name}`, { transitionType: 'forwards' });
+        }}
+      >
+        {#snippet startIcon()}
+          <Icon name={icon || 'bookmark_manager'} />
+        {/snippet}
+        {#snippet endIcon()}
+          {#key $allEntries}
+            {@const count = (
+              'files' in collection ? collection.files : getEntriesByCollection(name)
+            ).length}
+            <span class="count" aria-label="({_('x_entries', { values: { count } })})">
+              {numberFormatter.format(count)}
+            </span>
+          {/key}
+        {/snippet}
+      </Option>
+    {:else if collection.divider}
+      <Divider />
+    {/if}
+  {/await}
+{/snippet}
 
 <div role="none" class="primary-sidebar">
   {#if env.isSmallScreen}
@@ -45,42 +98,20 @@
     />
   {/if}
   <Listbox aria-label={_('collection_list')} aria-controls="collection-container">
-    {#if collections.length}
+    {#if ungroupedCollections.length}
       <OptionGroup label={_('collections')}>
-        {#each collections as collection, index (collection.name ?? index)}
-          {#await sleep() then}
-            {#if !('divider' in collection)}
-              {@const { name, label, icon } = collection}
-              <Option
-                label={label || name}
-                selected={env.isSmallScreen || isSearchPage
-                  ? false
-                  : $selectedCollection?.name === name}
-                onSelect={() => {
-                  goto(`/collections/${name}`, { transitionType: 'forwards' });
-                }}
-              >
-                {#snippet startIcon()}
-                  <Icon name={icon || 'bookmark_manager'} />
-                {/snippet}
-                {#snippet endIcon()}
-                  {#key $allEntries}
-                    {@const count = (
-                      'files' in collection ? collection.files : getEntriesByCollection(name)
-                    ).length}
-                    <span class="count" aria-label="({_('x_entries', { values: { count } })})">
-                      {numberFormatter.format(count)}
-                    </span>
-                  {/key}
-                {/snippet}
-              </Option>
-            {:else if collection.divider}
-              <Divider />
-            {/if}
-          {/await}
+        {#each ungroupedCollections as collection, index (collection.name ?? index)}
+          {@render collectionOption(collection, index)}
         {/each}
       </OptionGroup>
     {/if}
+    {#each navGroups as [groupLabel, groupCollections] (groupLabel)}
+      <OptionGroup label={groupLabel}>
+        {#each groupCollections as collection, index (collection.name ?? index)}
+          {@render collectionOption(collection, index)}
+        {/each}
+      </OptionGroup>
+    {/each}
     {#if singletons.length}
       {#if env.isSmallScreen || collections.length}
         <!-- Use the user-friendly “Files” label instead of “Singletons” -->
