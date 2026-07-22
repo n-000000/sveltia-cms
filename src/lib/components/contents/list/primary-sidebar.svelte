@@ -11,6 +11,7 @@
   import { allEntries } from '$lib/services/contents';
   import { selectedCollection } from '$lib/services/contents/collection';
   import { getEntriesByCollection } from '$lib/services/contents/collection/entries';
+  import { getValidCollectionFiles } from '$lib/services/contents/collection/files';
   import { env } from '$lib/services/user/env.svelte';
 
   /**
@@ -57,11 +58,19 @@
   {#await sleep() then}
     {#if !('divider' in collection)}
       {@const { name, label, icon } = collection}
+      {@const soleFile =
+        'files' in collection && getValidCollectionFiles(collection.files).length === 1
+          ? getValidCollectionFiles(collection.files)[0]
+          : undefined}
       <Option
         label={label || name}
         selected={env.isSmallScreen || isSearchPage ? false : $selectedCollection?.name === name}
         onSelect={() => {
-          goto(`/collections/${name}`, { transitionType: 'forwards' });
+          // A files collection with exactly one file has nothing to list — open it directly,
+          // same as a `singletons` entry does, instead of showing a one-row FileList first.
+          goto(`/collections/${name}${soleFile ? `/entries/${soleFile.name}` : ''}`, {
+            transitionType: 'forwards',
+          });
         }}
       >
         {#snippet startIcon()}
