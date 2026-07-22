@@ -28,6 +28,7 @@
     listAssets,
   } from '$lib/services/contents/fields/file/helper';
   import { getUnsavedAssets, processResource } from '$lib/services/contents/fields/file/process';
+  import { parseFieldWidth } from '$lib/services/contents/fields/layout';
   import { allCloudStorageServices } from '$lib/services/integrations/media-libraries/cloud';
   import { getDefaultMediaLibraryOptions } from '$lib/services/integrations/media-libraries/default';
   import { isMultiple } from '$lib/services/integrations/media-libraries/shared';
@@ -106,6 +107,9 @@
   const collectionName = $derived($entryDraft?.collectionName ?? '');
   const fileName = $derived($entryDraft?.fileName);
   const isIndexFile = $derived($entryDraft?.isIndexFile ?? false);
+  // P10 already narrows this field by giving it a fractional row width — don't also make the
+  // item list wrap 2-up inside it, or a 1/2+1/2 row of galleries turns into a 2x2 grid.
+  const hasP10Width = $derived(!!parseFieldWidth(/** @type {any} */ (fieldConfig).width));
   const isImageField = $derived(fieldType === 'image');
   const kind = $derived(isImageField ? 'image' : undefined);
   const defaultLibraryOptions = $derived(getDefaultMediaLibraryOptions({ fieldConfig }));
@@ -393,7 +397,11 @@
   {#if !!currentValue?.length && !processing}
     {#if multiple}
       {#if Array.isArray(currentValue)}
-        <div role="none" class="media-list-container">
+        <div
+          role="none"
+          class="media-list-container"
+          class:no-narrow-adapt={hasP10Width}
+        >
           <div role="none" class="item-list" bind:this={listEl}>
             {#each currentValue as value, index (value)}
               <div role="none" class="sort-item" data-sort-index={index} data-key-path="{keyPath}.{index}">
@@ -522,15 +530,18 @@
     }
   }
 
-  /* Below this the column is too narrow for the 120px-thumbnail row layout (P10 half/third-width
-     fields on a phone) — wrap 2 items per row instead of 1 full-width row each. */
+  /* Below this the column is too narrow for the 120px-thumbnail row layout on a phone — wrap 2
+     items per row instead of 1 full-width row each. Skipped when the field already has a P10
+     fractional width (.no-narrow-adapt): that field is narrow *by the editor's own choice* to sit
+     next to a sibling, and wrapping its list 2-up on top of that turns a 1/2+1/2 row of galleries
+     into an unwanted 2x2 grid. */
   @container media-list (max-width: 260px) {
-    .item-list {
+    .media-list-container:not(.no-narrow-adapt) .item-list {
       flex-direction: row;
       flex-wrap: wrap;
     }
 
-    .sort-item {
+    .media-list-container:not(.no-narrow-adapt) .sort-item {
       flex: 1 1 calc(50% - 4px);
       min-width: 0;
     }
